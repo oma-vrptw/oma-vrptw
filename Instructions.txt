@@ -1,0 +1,56 @@
+------------------------------------------------------
+STRUTTURA DEL PROGETTO
+------------------------------------------------------
+- input: directory con istanze da risolvere
+- output: directory con solutioni
+- src
+	- com\mdvrp: strutture dati del problema VRPTW
+	- com\TabuSearch: algoritmo del Tabu Search
+	- org\coinor\opents: libreria open source con engine del Tabu Search
+	
+------------------------------------------------------
+INSTALLAZIONE
+------------------------------------------------------
+1) Installare eclipse o il vostro ambiete di sviluppo per java preferito
+2) Importare il progetto
+3) Non c'è un 3 punto!
+
+------------------------------------------------------
+PARAMETRI DI INGRESSO
+------------------------------------------------------
+-if Nome dell'istanza nella cartella input (es. -if C101.txt)
+-of Percorso e nome del file di output usato in "append mode" (default. output/Solutions.csv)
+-it Numero di iterazioni (es. -it 10000)
+-rs Seme random
+
+Altri parametri sono presenti in input. Scopriteli!
+
+Il file di istanza è obbligatorio.
+Gli altri hanno dei valori di default.
+
+------------------------------------------------------
+OBIETTIVI
+------------------------------------------------------
+Migliorare il codice attuale sia dal punto di vista della qualità della soluzione sia dal punto di vista delle performace.
+Le soluzioni conosciute delle istanze a vostra disposizione sono reperibili ai seguenti indirizzi
+
+http://www.sintef.no/Projectweb/TOP/VRPTW/Solomon-benchmark/
+http://www.sintef.no/Projectweb/TOP/VRPTW/Homberger-benchmark/
+
+Al termine del lavoro, dovrà essere consegnato il nuovo codice e un report con le modifiche effettuate e il confronto delle soluzioni ottenute con quelle di riferimento
+
+------------------------------------------------------
+REGOLE
+------------------------------------------------------
+1) Tempo a disposizione 15 giorni.
+1) Il numero massimo di iterazioni utilizzabile è 10000.
+2) Non e' ammesso l'utilizzo di implementazioni parallele per migliorare la qualità della soluzione a parità di tempo di calcolo.
+3) Qualunque file può essere modificato (sconsiglio la modifica della libreria open source).
+
+------------------------------------------------------
+CONSIGLIO
+------------------------------------------------------
+Le fasi principali dell'algoritmo sono
+- Inizializzazione della soluzione
+- Calcolo del vicinato
+- Aggiornamento della tabu list
