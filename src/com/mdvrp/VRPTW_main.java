@@ -5,13 +5,13 @@ import java.io.PrintStream;
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
-import com.softtechdesign.ga.Population;
+import com.softtechdesign.ga.MyGA;
 
-public class VRPTW_ProvaAlessio {
+public class VRPTW_main {
 	
 public static void main(String[] args) {
-		
-		Population			population;
+
+		MyGA				population;
 		MySearchProgram     search;
 		MySolution          initialSol;
 		MyObjectiveFunction objFunc;
@@ -21,13 +21,6 @@ public static void main(String[] args) {
 		Instance            instance; 								// holds all the problem data extracted from the input file
 		Duration            duration 		= new Duration(); 		// used to calculate the elapsed time
 		PrintStream         outPrintSream 	= null;					// used to redirect the output
-		
-		// TODO: ho messo dontcare e dontcare2 per i parametri della classe
-		// Population che non riguardano la creazione della popolazione
-		int chromosomeDim = 20;
-		int populationDim = 10;
-		int dontcare = 0;
-		boolean dontcare2 = false;
 		
 		try {			
 			// check to see if an input file was specified
@@ -43,21 +36,29 @@ public static void main(String[] args) {
 			// get the instance from the file			
 			instance = new Instance(parameters); 
 			instance.populateFromHombergFile(parameters.getInputFileName());
-			
+
+			int chromosomeDim = instance.getCustomersNr()+instance.getVehiclesNr();
+			int populationDim = 15;
+
 			// Init data for Genetic Algorithm
-			population = new Population(chromosomeDim, 
+			population = new MyGA(chromosomeDim, 
 					populationDim,
-					(double)dontcare, 
-					dontcare,
-					dontcare, 
-					dontcare, 
-					dontcare,
-					(double)dontcare, 
-					dontcare, 
-					dontcare2,
+					1.0, //alwayssss execute crossover
+					50,
+					100, //number of cycles of GA
+					0, 
+					0,
+					1.0, 
+					3, 
+					false,
 					instance);
 			
+
 			population.printPopulation();
+			
+			int i = population.evolve();
+			System.out.println("Number of generation: "+i);
+			
 			/**
 			 * 
 			// Init memory for Tabu Search

@@ -446,6 +446,9 @@ public class Instance {
 		return capacities[i][j];
 	}
 
+	public double getCapacity(int i) {
+		return customers.get(i).getCapacity();
+	}
 
 	public double getDuration(int i, int j) {
 		return durations[i][j];

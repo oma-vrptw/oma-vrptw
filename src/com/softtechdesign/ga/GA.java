@@ -156,6 +156,8 @@ public abstract class GA implements Runnable
         this.mutationProb = mutationProb;
     }
 
+    GA(){}
+    
     /**
      * Gets the average deviation of the given generation of chromosomes
      * @param iGeneration
