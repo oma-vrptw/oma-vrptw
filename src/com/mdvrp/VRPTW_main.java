@@ -38,17 +38,17 @@ public static void main(String[] args) {
 			instance.populateFromHombergFile(parameters.getInputFileName());
 
 			int chromosomeDim = instance.getCustomersNr()+instance.getVehiclesNr();
-			int populationDim = 15;
+			int populationDim = 10;
 
 			// Init data for Genetic Algorithm
 			population = new MyGA(chromosomeDim, 
 					populationDim,
 					1.0, //alwayssss execute crossover
 					50,
-					100, //number of cycles of GA
+					2, //number of cycles of GA
 					0, 
 					0,
-					1.0, 
+					0, 
 					3, 
 					false,
 					instance);

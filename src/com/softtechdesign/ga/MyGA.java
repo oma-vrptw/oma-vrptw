@@ -158,7 +158,7 @@ public class MyGA extends GA{
             System.out.println("INITIAL POPULATION (NO PRELIM RUNS):");
 
         //Add Preliminary Chromosomes to list box
-        addChromosomesToLog(0, populationDim);
+        //addChromosomesToLog(0, populationDim);
 
         iGen = 0;
         while (iGen < maxGenerations)
@@ -179,16 +179,104 @@ public class MyGA extends GA{
         System.out.println("GEN " + (iGen + 1) + " AVG FITNESS = " + this.genAvgFitness[iGen-1] +
                            " AVG DEV = " + this.genAvgDeviation[iGen-1]);
 
-        addChromosomesToLog(iGen, 10); //display Chromosomes to system.out
-
+        //addChromosomesToLog(iGen, 10); //display Chromosomes to system.out
+        printPopulation();
+        
         computeFitnessRankings();
         System.out.println("Best Chromosome Found: ");
-        System.out.println(this.chromosomes[this.bestFitnessChromIndex].getGenesAsStr() +
+        System.out.println(this.chromosomes[this.bestFitnessChromIndex] +
                            " Fitness= " + this.chromosomes[this.bestFitnessChromIndex].fitness);
 
         System.out.println("GA end time: " + new Date().toString());
         return (iGen);
 	}
+	
+	@Override
+	void doGeneticMating()
+    {
+        int iCnt, iRandom;
+        int indexParent1 = -1, indexParent2 = -1;
+        ChromInt Chrom1, Chrom2;
+
+        iCnt = 0;
+        
+        //System.out.println("this.bestFitnessChromIndex: "+this.bestFitnessChromIndex);
+        //System.out.println("Chromosome[0]: "+chromosomes[0]);
+        //System.out.println("ChromNextGen[0]: "+chromNextGen[0]);
+        //System.out.println("ChromNextGen[0]: "+chromNextGen[0]);
+        
+        //Elitism--fittest chromosome automatically go on to next gen (in 2 offspring)
+        //this.chromNextGen[iCnt].copyChromGenes(this.chromosomes[this.bestFitnessChromIndex]);
+        this.chromNextGen[iCnt] = this.chromosomes[this.bestFitnessChromIndex];
+        this.chromosomes[this.bestFitnessChromIndex].fitness = 0.0;
+        //System.out.println("Old this.bestFitnessChromIndex: "+this.bestFitnessChromIndex);
+        printPopulation();
+        computeFitnessRankings();
+        printPopulation();
+        //System.out.println("New this.bestFitnessChromIndex: "+this.bestFitnessChromIndex);
+        iCnt++;
+        //this.chromNextGen[iCnt].copyChromGenes(this.chromosomes[this.bestFitnessChromIndex]);
+        this.chromNextGen[iCnt] = this.chromosomes[this.bestFitnessChromIndex];
+        iCnt++;
+
+        Chrom1 = new ChromInt(chromosomeDim);
+        Chrom2 = new ChromInt(chromosomeDim);
+
+        do
+        {
+            int indexes[] = { indexParent1, indexParent2 };
+            selectTwoParents(indexes);
+            indexParent1 = indexes[0];
+            indexParent2 = indexes[1];
+
+            Chrom1.copyChromGenes(this.chromosomes[indexParent1]);
+            Chrom2.copyChromGenes(this.chromosomes[indexParent2]);
+
+            if (getRandom(1.0) < crossoverProb) //do crossover
+            {
+                if (this.crossoverType == Crossover.ctOnePoint)
+                    doOnePtCrossover(Chrom1, Chrom2);
+                else if (this.crossoverType == Crossover.ctTwoPoint)
+                    doTwoPtCrossover(Chrom1, Chrom2);
+                else if (this.crossoverType == Crossover.ctUniform)
+                    doUniformCrossover(Chrom1, Chrom2);
+                else if (this.crossoverType == Crossover.ctRoulette)
+                {
+                    iRandom = getRandom(3);
+                    if (iRandom < 1)
+                        doOnePtCrossover(Chrom1, Chrom2);
+                    else if (iRandom < 2)
+                        doTwoPtCrossover(Chrom1, Chrom2);
+                    else
+                        doUniformCrossover(Chrom1, Chrom2);
+                }
+                //System.out.println("ChromNextGen["+iCnt+"]: "+chromNextGen[iCnt]);
+                //System.out.println("Chrom1: "+Chrom1);
+                //System.out.println("ChromNextGen["+iCnt+1+"]: "+chromNextGen[iCnt+1]);
+                //System.out.println("Chrom2: "+Chrom2);
+                
+                //this.chromNextGen[iCnt].copyChromGenes(Chrom1);
+                this.chromNextGen[iCnt] = Chrom1;
+                iCnt++;
+                //this.chromNextGen[iCnt].copyChromGenes(Chrom2);
+                this.chromNextGen[iCnt] = Chrom2;
+                iCnt++;
+            }
+            else //if no crossover, then copy this parent chromosome "as is" into the offspring
+                {
+                // CREATE OFFSPRING ONE
+                //this.chromNextGen[iCnt].copyChromGenes(Chrom1);
+            	this.chromNextGen[iCnt] = Chrom1;
+                iCnt++;
+
+                // CREATE OFFSPRING TWO
+                //this.chromNextGen[iCnt].copyChromGenes(Chrom2);
+                this.chromNextGen[iCnt] = Chrom2;
+                iCnt++;
+            }
+        }
+        while (iCnt < populationDim);
+    }
 	
 	@Override
 	protected void doRandomMutation(int iChromIndex) {
@@ -218,14 +306,14 @@ public class MyGA extends GA{
 	protected double getFitness(int iChromIndex) {
 		// TODO Auto-generated method stub
 		
-		return getRandom(100);
+		return iChromIndex+10;
 	}
 	
 	public void printPopulation()
 	{
 		for(int i=0; i<populationDim; i++)
 		{
-			System.out.println(chromosomes[i].toString());
+			System.out.println("Chom"+i+": "+chromosomes[i].toString()+" Fitness: "+chromosomes[i].fitness);
 		}
 	}
 }

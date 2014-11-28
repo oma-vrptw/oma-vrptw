@@ -512,8 +512,8 @@ public abstract class GA implements Runnable
         double rValue;
 
         // recalc the fitness of each chromosome
-        for (int i = 0; i < populationDim; i++)
-            this.chromosomes[i].fitness = getFitness(i);
+        /*for (int i = 0; i < populationDim; i++)
+            this.chromosomes[i].fitness = getFitness(i);*/
 
         for (int i = 0; i < populationDim; i++)
             this.chromosomes[i].fitnessRank = getFitnessRank(this.chromosomes[i].fitness);
@@ -627,7 +627,8 @@ public abstract class GA implements Runnable
     {
         for (int i = 0; i < populationDim; i++)
         {
-            this.chromosomes[i].copyChromGenes(this.chromNextGen[i]);
+            //this.chromosomes[i].copyChromGenes(this.chromNextGen[i]);
+        	this.chromosomes[i] = this.chromNextGen[i];
 
             //only mutate chromosomes if it is NOT the best
             if (i != this.bestFitnessChromIndex)
