@@ -5,13 +5,13 @@ import java.io.PrintStream;
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
-import com.softtechdesign.ga.MyGA;
+import com.MyGeneticA.MyGA;
 
 public class VRPTW_main {
 	
 public static void main(String[] args) {
 
-		MyGA				population;
+		MyGA				myGA;
 		MySearchProgram     search;
 		MySolution          initialSol;
 		MyObjectiveFunction objFunc;
@@ -41,23 +41,16 @@ public static void main(String[] args) {
 			int populationDim = 10;
 
 			// Init data for Genetic Algorithm
-			population = new MyGA(chromosomeDim, 
+			myGA = new MyGA(chromosomeDim, 
 					populationDim,
-					1.0, //alwayssss execute crossover
-					50,
-					2, //number of cycles of GA
-					0, 
-					0,
-					0, 
-					3, 
-					false,
 					instance);
 			
-
-			population.printPopulation();
+			myGA.initPopulation();
 			
-			int i = population.evolve();
-			System.out.println("Number of generation: "+i);
+			//population.printPopulation();
+			
+			//int i = population.evolve();
+			//System.out.println("Number of generation: "+i);
 			
 			/**
 			 * 
