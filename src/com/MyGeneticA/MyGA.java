@@ -2,6 +2,7 @@ package com.MyGeneticA;
 
 import java.util.Random;
 
+import com.mdvrp.Cost;
 import com.mdvrp.Instance;
 
 public class MyGA {
@@ -184,4 +185,10 @@ public class MyGA {
 	}
 	
 	Chromosome selectBestChromosome() { return null; }
+	
+	double getFitness(int index) { 
+		MyGASolution sol = new MyGASolution(population.getChormosome(index), instance);
+		
+		return sol.getFitness();
+	}
 }

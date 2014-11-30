@@ -12,14 +12,14 @@ import com.mdvrp.Vehicle;
 
 @SuppressWarnings("serial")
 public class MySolution extends SolutionAdapter{
-	private static Instance instance;
+	protected static Instance instance;
 	private static int iterationsDone;
-	private Route[][] routes; // stores the routes to be modified on
-	private Cost cost;		  // stores the total cost of the routes
-	private double alpha;		// α
-	private double beta;		// β
-	private double gamma;		// γ
-	private double delta;		// δ
+	protected Route[][] routes; // stores the routes to be modified on
+	protected Cost cost;		  // stores the total cost of the routes
+	protected double alpha;		// α
+	protected double beta;		// β
+	protected double gamma;		// γ
+	protected double delta;		// δ
 	private double upLimit;
 	private double resetValue;
 	private int feasibleIndex;
@@ -45,7 +45,6 @@ public class MySolution extends SolutionAdapter{
     	MySolution.setIterationsDone(0);
     	Bs = new int[instance.getCustomersNr()][instance.getVehiclesNr()][instance.getDepotsNr()];		
 	}
-	
 	
 	public Object clone()
     {   
@@ -267,7 +266,7 @@ public class MySolution extends SolutionAdapter{
 	 * this function calculates the cost of a route from scratch
 	 * @param route
 	 */
-	private void evaluateRoute(Route route) {
+	protected void evaluateRoute(Route route) {
     	double totalTime = 0;
     	double waitingTime = 0;
     	double twViol = 0;
@@ -489,7 +488,4 @@ public class MySolution extends SolutionAdapter{
 	public static void setIterationsDone(int iterationsDone) {
 		MySolution.iterationsDone = iterationsDone;
 	}
-	
-	
-
 }
