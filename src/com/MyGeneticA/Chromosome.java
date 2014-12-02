@@ -19,8 +19,6 @@ public class Chromosome {
 	
 	int getGene(int index) { return genes[index]; }
 	
-	
-	
 	public void print() {
 		System.out.print("[");
 		for(int i = 0; i < genes.length; i++){

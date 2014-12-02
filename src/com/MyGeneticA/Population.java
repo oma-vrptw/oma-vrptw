@@ -1,10 +1,14 @@
 package com.MyGeneticA;
 
+import com.mdvrp.Instance;
+
 public class Population {
 	private Chromosome[] chromosomes;
+	private Instance instance;
 	
-	Population(int populationDim) { 
+	Population(int populationDim, Instance instance) { 
 		chromosomes = new Chromosome[populationDim];
+		this.instance = instance;
 	}
 	
 	void setChromosome(int index, Chromosome c) { 
@@ -13,7 +17,10 @@ public class Population {
 	
 	Chromosome getChormosome(int index) { return chromosomes[index]; }
 	
-	double getFitness(int index) { return 0; }
+	double getFitness(int index) { 
+		MyGASolution mgas = new MyGASolution(chromosomes[index], instance);
+		return mgas.getFitness();
+	}
 	
 	void printPopulation() { 
 		for(int i = 0; i < chromosomes.length; i++){
@@ -24,11 +31,12 @@ public class Population {
 	}
 	
 	int getBestChromosome() { 
-		double bestFitness = 0;
+		double bestFitness = Integer.MAX_VALUE;
 		int idBestChrom = 0;
 		
 		for(int i = 0; i < chromosomes.length; i++){
-			if(getFitness(i) > bestFitness) {
+			System.out.println("Fitness[i]: "+getFitness(i));
+			if(getFitness(i) < bestFitness) {
 				bestFitness = getFitness(i);
 				idBestChrom = i;
 			}

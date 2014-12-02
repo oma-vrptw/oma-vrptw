@@ -15,7 +15,7 @@ public class MyGA {
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
-		this.population = new Population(populationDim);
+		this.population = new Population(populationDim, instance);
 	}
 	
 	public void initPopulation() {
@@ -60,6 +60,7 @@ public class MyGA {
         }
 		
 		//test code (stub)
+		System.out.println("[[[INIT_POPULATION]]]");
 		population.printPopulation();
 		Chromosome[][] selection = new Chromosome[4][2];
 		int cr = 0;
@@ -68,12 +69,20 @@ public class MyGA {
 			selection[i][1] = population.getChormosome(cr+1);
 			cr += 2;
 		}
+		
+		System.out.println("[[[CROSSOVER]]]");
+		
 		Chromosome[] result = crossover(selection);
 		for(int i = 0; i < result.length; i++){
 			System.out.print("Child["+i+"]: ");
 			result[i].print();
 			System.out.println();
 		}
+		
+		System.out.println("[[[GENERATE_NEW_POPULATION]]]");
+		generateNewPopulation(result);
+		population.printPopulation();
+		
 	}
 	Chromosome[][] selectParents() { return null; }
 	
@@ -114,8 +123,8 @@ public class MyGA {
 	
 	void generateNewPopulation(Chromosome[] children) { 
 
-		Population p_new = new Population(populationDim);
-		Population child = new  Population (children.length);
+		Population p_new = new Population(populationDim, instance);
+		Population child = new  Population (children.length, instance);
 		for(int h=0; h<children.length; h++){
 			child.setChromosome(h, children[h]);
 		}
@@ -126,7 +135,9 @@ public class MyGA {
 		int counter1 = 1;
 		
 		while(counter1 < percentageChoose){
+			System.out.println("CIAO");
 			int IDbestChr = population.getBestChromosome();
+			System.out.println("BestChromosome is: "+IDbestChr);
 			p_new.setChromosome(c, population.getChormosome(IDbestChr));
 			population.setChromosome(IDbestChr, null);
 			counter1++;
@@ -137,14 +148,15 @@ public class MyGA {
 		int counter2 = 1;	
 		while(counter2 < percentageChoose){
 			int IDbestChi = child.getBestChromosome();
-			p_new.setChromosome(c, child.getChormosome(IDbestChi));
+			System.out.println("BestChromosome is: "+IDbestChi);
+			p_new.setChromosome(cnt, child.getChormosome(IDbestChi));
 			children[IDbestChi] = null;
 			counter2++;
 			cnt++;	
 		}
 		
 		/*creo un array contenente il totale dei cromosomi iniziali e dei figli generati*/
-		Population ArrayTotal = new Population (populationDim+children.length);
+		Population ArrayTotal = new Population (populationDim+children.length, instance);
 		
 		int counter3 = 0;
 		for(int k=0; k < populationDim+children.length; k++){
@@ -156,9 +168,10 @@ public class MyGA {
 		}
 		
 		/*genero un array temporaneo che utilizzo per prendere blocchi randomici di 4 cromosomi e selezionare il best*/
-		Population TempArray = new Population(4);
+		Population TempArray = new Population(4, instance);
 		
-		int index = (int)0.4*percentageChoose;
+		int index = (int)(0.4*percentageChoose);
+		System.out.println("Index: "+index);
 		int postiDisponibili = populationDim - index;	
 		int counter4 = 1;
 		
@@ -174,6 +187,7 @@ public class MyGA {
 							cycle++;}
 						  }
 		int ID = TempArray.getBestChromosome();
+		
 		p_new.setChromosome(index, TempArray.getChormosome(ID));
 		index++;
 		}

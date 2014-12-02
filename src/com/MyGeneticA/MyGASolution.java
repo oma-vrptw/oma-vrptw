@@ -36,24 +36,23 @@ public class MyGASolution extends MySolution{
 		
 		//for each deposit
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
-			int k =0;	//index in chromosome array
-			for(int j=0; k < ng; j++){
+			int k = 0;	//index in chromosome array
+			for(int j=0; j < ng; j++){
 				//until there are genes in chromosome
 				//at each iteration create a new route (new vehicle)
 				for( ;!chromosome.isDelimiter(k) ;k++){
 					//fill a route according to chromosome
-					
 					//get the customer pointed by chromosome[k]
-					Customer cu = instance.getDepot(i).getAssignedCustomer(chromosome.getGene(k));
+					Customer cu = instance.getDepot(i).getAssignedCustomer(chromosome.getGene(k)-1);
 					routes[i][j].addCustomer(cu);
 				}
+				//if(chromosome.isDelimiter(k)) k++;
 			}
 		}
 	}
 
 	private void evaluateChromosome() {
 		buildRoutes();	//create route object from chromosome
-		
 		//for each deposit
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
 			for(int j=0; j < routes[i].length; j++){
@@ -81,8 +80,5 @@ public class MyGASolution extends MySolution{
 		
 		return cost.getTotal();
 	}
-	
-	
-	
 	
 }
