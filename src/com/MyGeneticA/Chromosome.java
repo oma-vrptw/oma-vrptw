@@ -2,7 +2,7 @@ package com.MyGeneticA;
 
 public class Chromosome implements Comparable<Chromosome>{
 	private int[] genes;
-	private int numberOfGenes;
+	private int numberOfGenes;	//error! it's the length of the array, including delimiters, not genes number only.
 	private final int delim;	//route delimiter in genes array 
 	private MyGASolution solution;
 	private double fitness;
@@ -58,5 +58,9 @@ public class Chromosome implements Comparable<Chromosome>{
 			return -1;
 		
 		return 0;
+	}
+
+	public MyGASolution getSolution() {
+		return solution;
 	}
 }

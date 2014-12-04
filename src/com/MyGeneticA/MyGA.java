@@ -3,6 +3,7 @@ package com.MyGeneticA;
 import java.io.Console;
 import java.util.Random;
 
+import com.TabuSearch.MySolution;
 import com.mdvrp.Cost;
 import com.mdvrp.Instance;
 
@@ -250,17 +251,29 @@ public class MyGA {
 		}
 	}
 	
-	Chromosome selectBestChromosome() {
+	private Chromosome getBestChromosome() {
 		Chromosome best, c;
 		
 		best= population.getChormosome(0);
 		for(int i = 1; i < populationDim; i++){
 			c = population.getChormosome(i);
-			if(c.compareTo(best) == 1)
+			if(c.compareTo(best) == -1)
 				best = c;
 		}
 		
 		return best;
+	}
+	
+	public MySolution getBestSolution(){
+		Chromosome best;
+		MyGASolution bestSolution;
+		
+		best = getBestChromosome();
+		bestSolution = best.getSolution();
+		
+		System.out.println("Selected best chromosome. It's fitness is: " + best.getFitness());
+		
+		return (MySolution)bestSolution;
 	}
 	
 	double getFitness(Chromosome c) { 		

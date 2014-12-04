@@ -50,27 +50,8 @@ public class MyGASolution extends MySolution{
 					Customer cu = instance.getDepot(i).getAssignedCustomer(chromosome.getGene(k));
 					routes[i][j].addCustomer(cu);
 				}
-				
-				
 			}
 		}
-
-	private void evaluateChromosome() {
-		buildRoutes();	//create route object from chromosome
-		//for each deposit
-		Cost c;
-		for (int i = 0; i < instance.getDepotsNr(); ++i){
-			for(int j=0; j < routes[i].length; j++){
-				evaluateRoute(routes[i][j]);	//calculate cost for a given route
-				c = routes[i][j].getCost();
-				//System.out.println("route travel time: "+c.travelTime);
-				c.calculateTotal(alpha, beta, gamma);
-				//System.out.println("route total cost: "+ c.getTotal());
-			}
-		}
-
-		return;
-	}
 
 	/**
 	 * calculate objective function for a given chromosome. 
@@ -80,7 +61,7 @@ public class MyGASolution extends MySolution{
 	 */
 	public double getFitness() {
 		//this function build and evaluate routes 
-		evaluateChromosome();
+		buildRoutes();
 		MyGAObjectiveFunction objectiveFunction = new MyGAObjectiveFunction(instance);
 		return objectiveFunction.evaluateAbsolutely(this);
 	}
