@@ -105,6 +105,7 @@ public class MyGA {
 		//test code (stub)
 		System.out.println("[[[INIT_POPULATION]]]");
 		population.printPopulation();
+		
 		/*
 		Chromosome[][] selection = new Chromosome[4][2];
 		int cr = 0;
@@ -254,12 +255,6 @@ public class MyGA {
 		}
 	}
 
-		
-		
-		
-	
-
-	
 	public MySolution getBestSolution(){
 		Chromosome best;
 		MyGASolution bestSolution;

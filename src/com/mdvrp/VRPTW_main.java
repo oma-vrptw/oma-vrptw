@@ -75,22 +75,14 @@ public static void main(String[] args) {
 	        // Start solving  
 	        
 	        search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
-	        search.tabuSearch.startSolving();
-	        
-	        try {
-	        	// in order to apply wait on an object synchronization must be done
-	        	synchronized(instance){
-	        		instance.wait();
-	        	}
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
+	        search.tabuSearch.startSolving();	        
 	        
 	        int routesNr = 0;
 	        for(int i =0; i < search.feasibleRoutes.length; ++i)
 	        	for(int j=0; j < search.feasibleRoutes[i].length; ++j)
 	        		if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
 	        			routesNr++;
+	        duration.stop();
 	        // Print results
 	        String outSol = String.format(
 	        		"\nInstance file: %s\n"
@@ -104,7 +96,7 @@ public static void main(String[] args) {
 	        fw.write(outSol);
 	        fw.close();
 	        
-	        duration.stop();
+	        
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
