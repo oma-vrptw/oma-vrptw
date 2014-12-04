@@ -1,5 +1,6 @@
 package com.MyGeneticA;
 
+import java.io.Console;
 import java.util.Random;
 
 import com.mdvrp.Cost;
@@ -23,37 +24,79 @@ public class MyGA {
         {
 			Chromosome c = new Chromosome(chromosomeDim);
 			
-			boolean [] usedCustomer = new boolean[instance.getCustomersNr()+1];
+			boolean [] usedCustomer = new boolean[instance.getCustomersNr()];
 			
-			for(int j = 0; j < instance.getCustomersNr()+1; j++) usedCustomer[j] = false;
+			for(int j = 0; j < instance.getCustomersNr(); j++) usedCustomer[j] = false;
 			
 			int routeCapacity = 0;
 			int usedRoutes = 0;
+			boolean endOfRoute;
+			int customerChosen;
 			
-            for (int iGene = 0; iGene < chromosomeDim; iGene++)
+			/*
+			 * while we have genes to insert and vehicles into depote, try to build a feasible
+			 * (ignore time window constraints, so it's actually infeasible)
+			 *  chromosome (solution)
+			 */
+			int iGene;
+			
+            for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
             {
-            	boolean endOfRoute = false;
+            	//start building new route
+            	endOfRoute = false;
             	
-            	for(int j = 0; j < instance.getCustomersNr(); j++){
-            		Random random = new Random();
-	            	int customerRandom = random.nextInt(instance.getCustomersNr());
-	            	if((usedCustomer[customerRandom] == false) && (usedRoutes >= (instance.getCustomersNr()-1) || routeCapacity+(int)instance.getCapacity(customerRandom) <= 200)){
-	            		c.setGene(iGene, customerRandom+1);
-	            		endOfRoute = false;
-	            		routeCapacity = routeCapacity + (int)instance.getCapacity(customerRandom);
-	            		usedCustomer[customerRandom] = true;
-	            		break;
-	            	}
-	            	endOfRoute = true;
+            	Random random = new Random();
+            	//retrieve a number between (0 .. CustomersNr-1)
+            	int startCustomer = random.nextInt(instance.getCustomersNr());
+            	int assignedCustomersNr = instance.getCustomersNr();
+            	//try to fill a new route
+            	//for(int j = 0; j < instance.getCustomersNr() && !endOfRoute; j++){
+            	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j){
+            		customerChosen = j % assignedCustomersNr;
+            		
+            		if(usedCustomer[customerChosen] == true || routeCapacity+(int)instance.getCapacity(customerChosen) > 200){
+            			//skip to next customer, this was considered yet	
+            			continue;
+            		}
+	            	
+	            	//insert the selected customer into the route
+	            	c.setGene(iGene, customerChosen);
+	            	routeCapacity = routeCapacity + (int)instance.getCapacity(customerChosen);
+	            	usedCustomer[customerChosen] = true;
+	            	iGene++;
             	}
             	
-            	if(endOfRoute == true){
-            		c.setGene(iGene, -1);
-            		usedRoutes++;
-            		routeCapacity = 0;
-            	}
+            	//end of route
+            	usedRoutes++;
             	
+            	//se non è l'ultima rotta
+            	if(usedRoutes < instance.getVehiclesNr()){
+	            	c.setGene(iGene, -1);
+	        		routeCapacity = 0;
+	        		iGene++;
+            	}
             }
+            
+       
+            if(iGene < chromosomeDim){
+            	for(int j = 0; j < instance.getCustomersNr(); j++){
+            		if(usedCustomer[j] == false){
+            			//insert the selected customer into the route
+    	            	c.setGene(iGene, j);
+    	            	routeCapacity = routeCapacity + (int)instance.getCapacity(j);
+    	            	usedCustomer[j] = true;
+    	            	//avanzo nel cromosoma
+    	            	iGene++;
+            		}
+            	}
+            	
+        		
+        	}
+            
+            c.setGene(iGene, -1);
+            //lasciato per compatibilità, cit. roberto
+    		usedRoutes++;
+    		routeCapacity = 0;
             
             population.setChromosome(i, c);
 
@@ -79,10 +122,17 @@ public class MyGA {
 			System.out.println();
 		}
 		
+		population.printPopulation();
+		for(int i = 0; i < populationDim; i++){
+			System.out.println("fitness("+i+"): " + getFitness(i));
+		}
+		
+		
+		/*
 		System.out.println("[[[GENERATE_NEW_POPULATION]]]");
 		generateNewPopulation(result);
 		population.printPopulation();
-		
+		*/
 	}
 	Chromosome[][] selectParents() { return null; }
 	

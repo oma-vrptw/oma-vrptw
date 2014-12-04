@@ -37,6 +37,11 @@ public static void main(String[] args) {
 			instance = new Instance(parameters); 
 			instance.populateFromHombergFile(parameters.getInputFileName());
 
+			/*
+			 * allocate space for all the customers 
+			 * and routes delimiters (=vehicles number)
+			 * Note: a chromosome is always terminated with a delimiter
+			 */
 			int chromosomeDim = instance.getCustomersNr()+instance.getVehiclesNr();
 			int populationDim = 10;
 
@@ -114,8 +119,5 @@ public static void main(String[] args) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-
-		
 	}
 }
