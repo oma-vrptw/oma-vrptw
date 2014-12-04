@@ -13,6 +13,9 @@ public class Population {
 	
 	void setChromosome(int index, Chromosome c) { 
 		chromosomes[index] = c;
+		MyGASolution sol = new MyGASolution(c, instance);
+		c.setSolution(sol);
+		c.setFitness();
 	}
 	
 	Chromosome getChormosome(int index) { return chromosomes[index]; }

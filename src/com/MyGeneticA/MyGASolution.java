@@ -36,35 +36,39 @@ public class MyGASolution extends MySolution{
 		
 		//for each deposit
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
-			int k = 0;	//index in chromosome array
-			for(int j=0; j < ng; j++){
+			int j=0;	//routes index
 				//until there are genes in chromosome
 				//at each iteration create a new route (new vehicle)
-				for( ;!chromosome.isDelimiter(k) ;k++){
+				for(int k = 0; k < ng;k++){
 					//fill a route according to chromosome
 					//get the customer pointed by chromosome[k]
-					Customer cu = instance.getDepot(i).getAssignedCustomer(chromosome.getGene(k)-1);
+					if(chromosome.isDelimiter(k)){
+						j++;	//end of a route
+						continue;
+					}
+					
+					Customer cu = instance.getDepot(i).getAssignedCustomer(chromosome.getGene(k));
 					routes[i][j].addCustomer(cu);
 				}
-				//if(chromosome.isDelimiter(k)) k++;
+				
+				
 			}
 		}
-	}
 
 	private void evaluateChromosome() {
 		buildRoutes();	//create route object from chromosome
 		//for each deposit
+		Cost c;
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
 			for(int j=0; j < routes[i].length; j++){
-				evaluateRoute(routes[0][j]);	//calculate cost for a given route
+				evaluateRoute(routes[i][j]);	//calculate cost for a given route
+				c = routes[i][j].getCost();
+				//System.out.println("route travel time: "+c.travelTime);
+				c.calculateTotal(alpha, beta, gamma);
+				//System.out.println("route total cost: "+ c.getTotal());
 			}
 		}
-		
-		Cost c = getCost();	//object storing total cost of the routes
-		
-		//calculate total in order to give it available to getFitness method
-		c.calculateTotal(alpha, beta, gamma);
-		
+
 		return;
 	}
 
@@ -77,8 +81,8 @@ public class MyGASolution extends MySolution{
 	public double getFitness() {
 		//this function build and evaluate routes 
 		evaluateChromosome();
-		
-		return cost.getTotal();
+		MyGAObjectiveFunction objectiveFunction = new MyGAObjectiveFunction(instance);
+		return objectiveFunction.evaluateAbsolutely(this);
 	}
 	
 }

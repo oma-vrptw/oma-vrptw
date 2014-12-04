@@ -12,10 +12,12 @@ public class MyGA {
 	private int chromosomeDim;
 	private Instance instance;
 	
+	
 	public MyGA(int chromosomeDim, int populationDim, Instance instance) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
+		
 		this.population = new Population(populationDim, instance);
 	}
 	
@@ -124,7 +126,7 @@ public class MyGA {
 		
 		population.printPopulation();
 		for(int i = 0; i < populationDim; i++){
-			System.out.println("fitness("+i+"): " + getFitness(i));
+			System.out.println("fitness("+i+"): " + getFitness(population.getChormosome(i)));
 		}
 		
 		
@@ -248,11 +250,20 @@ public class MyGA {
 		}
 	}
 	
-	Chromosome selectBestChromosome() { return null; }
-	
-	double getFitness(int index) { 
-		MyGASolution sol = new MyGASolution(population.getChormosome(index), instance);
+	Chromosome selectBestChromosome() {
+		Chromosome best, c;
 		
-		return sol.getFitness();
+		best= population.getChormosome(0);
+		for(int i = 1; i < populationDim; i++){
+			c = population.getChormosome(i);
+			if(c.compareTo(best) == 1)
+				best = c;
+		}
+		
+		return best;
+	}
+	
+	double getFitness(Chromosome c) { 		
+		return c.getFitness();
 	}
 }

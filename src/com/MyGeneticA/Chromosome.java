@@ -1,9 +1,11 @@
 package com.MyGeneticA;
 
-public class Chromosome {
+public class Chromosome implements Comparable<Chromosome>{
 	private int[] genes;
 	private int numberOfGenes;
 	private final int delim;	//route delimiter in genes array 
+	private MyGASolution solution;
+	private double fitness;
 	
 	Chromosome(int n) { 
 		delim = -1;	//set delimiter to -1
@@ -32,5 +34,29 @@ public class Chromosome {
 	 */
 	public boolean isDelimiter(int index){
 		return genes[index] == delim;
+	}
+
+	public void setSolution(MyGASolution sol) {
+		this.solution = sol;		
+	}
+
+	public double getFitness(){
+		return this.fitness;
+	}
+	
+	public void setFitness() {
+		this.fitness = solution.getFitness();		
+	}
+
+	@Override
+	public int compareTo(Chromosome c) {
+		if(c == null)throw new NullPointerException();
+		
+		if(this.getFitness() > c.getFitness())
+			return 1;
+		else if(this.getFitness() < c.getFitness())
+			return -1;
+		
+		return 0;
 	}
 }
