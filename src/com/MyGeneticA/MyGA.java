@@ -178,81 +178,80 @@ public class MyGA {
 	
 	void generateNewPopulation(Chromosome[] children) { 
 
-		Population p_new = new Population(populationDim, instance);
-		Population child = new  Population (children.length, instance);
-		for(int h=0; h<children.length; h++){
-			child.setChromosome(h, children[h]);
-		}
+		Population p_new = new Population(populationDim, instance); //temporary next new population initially empty
+		Population child = new  Population (children.length, instance); //population of children
 		
+	//set chromosomes into child population
+		for(int h=0; h<children.length; h++){
+			child.setChromosome(h, children[h]);}
+		
+	//define the percentage of the best chromosomes of the old population that will be reinsert in the next new population
 		int percentageChoose = (int)(0.2*populationDim);
+		//int percentageChoose = (int)((populationDim/10)*2);
 		
 		int c = 0;
 		int counter1 = 1;
 		
-		while(counter1 < percentageChoose){
-			System.out.println("CIAO");
+	//select the best "percentageChoose" of old population and child chromosomes and insert them into the new next population
+		while(counter1 <= percentageChoose){
 			int IDbestChr = population.getBestChromosome();
-			System.out.println("BestChromosome is: "+IDbestChr);
-			p_new.setChromosome(c, population.getChormosome(IDbestChr));
-			population.setChromosome(IDbestChr, null);
-			counter1++;
-			c++;
-		}
-											
-		int cnt = percentageChoose;									
-		int counter2 = 1;	
-		while(counter2 < percentageChoose){
 			int IDbestChi = child.getBestChromosome();
-			System.out.println("BestChromosome is: "+IDbestChi);
-			p_new.setChromosome(cnt, child.getChormosome(IDbestChi));
-			children[IDbestChi] = null;
-			counter2++;
-			cnt++;	
-		}
-		
-		/*creo un array contenente il totale dei cromosomi iniziali e dei figli generati*/
+			
+			p_new.setChromosome(c, population.getChormosome(IDbestChr));
+			c++;
+			p_new.setChromosome(c, child.getChormosome(IDbestChi));
+			
+			population.setChromosome(IDbestChr, null);
+			child.setChromosome(IDbestChi, null);
+			
+			counter1++;
+			c++;}
+			
+	//create a new population whose dimension is the total between population dimension and number of children create
 		Population ArrayTotal = new Population (populationDim+children.length, instance);
 		
 		int counter3 = 0;
+	//copy all the chromosomes into a temporary population --> all the chromosomes selected in the previous steps are equal to null		
 		for(int k=0; k < populationDim+children.length; k++){
 			if(k<populationDim){	
 				ArrayTotal.setChromosome(k, population.getChormosome(k));}
 					else{ 
 				 		 ArrayTotal.setChromosome(k, child.getChormosome(counter3));
-				 		 counter3++;}
-		}
+				 		 counter3++;}}
+
+	//create a temporary population that contain the chromosomes choose in a randomic way for the selection
+		Population TempArray = new Population(3, instance);
 		
-		/*genero un array temporaneo che utilizzo per prendere blocchi randomici di 4 cromosomi e selezionare il best*/
-		Population TempArray = new Population(4, instance);
-		
-		int index = (int)(0.4*percentageChoose);
-		System.out.println("Index: "+index);
+		int index = percentageChoose*2;
 		int postiDisponibili = populationDim - index;	
-		int counter4 = 1;
 		
-		while(counter4 < postiDisponibili){	
+	//selection of the remaining chromosomes that will define the next new population
+		for(int l=0; l<postiDisponibili; l++){
 		int cycle=0;
 		
 			Random rnd = new Random();
-			while(cycle<4){
+			//select 3 chromosomes from the total population and put the best into the next new population
+			for(int h=0; cycle<=2; h++){
+				
 				int random = rnd.nextInt(populationDim+children.length-1);
-					if(ArrayTotal.getChormosome(random) == null){break;}
-						else{
+					if(ArrayTotal.getChormosome(random) != null){
 							TempArray.setChromosome(cycle, ArrayTotal.getChormosome(random));
 							cycle++;}
-						  }
+						               } //end inner "for"		
+			
 		int ID = TempArray.getBestChromosome();
-		
 		p_new.setChromosome(index, TempArray.getChormosome(ID));
 		index++;
-		}
-		
-		/*;creo la nuova popolazione andando a rimpiazzare l'array iniziale con quello che ho creato ArrayTotal*/
+		} //end outer "for"
+
+	//create the next new population
 		for(int n=0; n<populationDim; n++){
 		population.setChromosome(n, p_new.getChormosome(n));
 		}
 	}
-	
+		
+		
+		
 	private Chromosome getBestChromosome() {
 		Chromosome best, c;
 		
