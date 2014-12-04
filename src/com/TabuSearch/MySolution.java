@@ -20,10 +20,10 @@ public class MySolution extends SolutionAdapter{
 	protected double beta;		// β
 	protected double gamma;		// γ
 	protected double delta;		// δ
-	private double upLimit;
-	private double resetValue;
-	private int feasibleIndex;
-	private int[][][] Bs;
+	protected double upLimit;
+	protected double resetValue;
+	protected int feasibleIndex;
+	protected int[][][] Bs;
 	private List<MySwapMove> moves = new ArrayList<MySwapMove>();
 	private List<Cost> costs = new ArrayList<Cost>();
 	

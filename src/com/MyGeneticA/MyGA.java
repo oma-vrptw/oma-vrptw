@@ -6,6 +6,7 @@ import java.util.Random;
 import com.TabuSearch.MySolution;
 import com.mdvrp.Cost;
 import com.mdvrp.Instance;
+import com.mdvrp.Route;
 
 public class MyGA {
 	private Population population;
@@ -108,6 +109,7 @@ public class MyGA {
 		//test code (stub)
 		System.out.println("[[[INIT_POPULATION]]]");
 		population.printPopulation();
+		/*
 		Chromosome[][] selection = new Chromosome[4][2];
 		int cr = 0;
 		for(int i = 0; i < 4; i++) {
@@ -131,7 +133,7 @@ public class MyGA {
 		}
 		
 		
-		/*
+
 		System.out.println("[[[GENERATE_NEW_POPULATION]]]");
 		generateNewPopulation(result);
 		population.printPopulation();
@@ -260,7 +262,13 @@ public class MyGA {
 			if(c.compareTo(best) == -1)
 				best = c;
 		}
-		
+		Route[][] routes = best.getSolution().getRoutes();
+		int totCustomer = 0;
+		for (int j = 0; j < routes[0].length; ++j){
+			totCustomer += routes[0][j].getCustomersLength();
+			for (int k = 0; k < routes[0][j].getCustomersLength(); ++k) {
+			}
+		}
 		return best;
 	}
 	
@@ -271,8 +279,8 @@ public class MyGA {
 		best = getBestChromosome();
 		bestSolution = best.getSolution();
 		
-		System.out.println("Selected best chromosome. It's fitness is: " + best.getFitness());
-		
+		System.out.println("Selected best chromosome. Its fitness is: " + best.getFitness());
+		bestSolution.getChromosome().print();
 		return (MySolution)bestSolution;
 	}
 	

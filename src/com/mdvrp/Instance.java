@@ -474,4 +474,9 @@ public class Instance {
 	public double getPrecision(){
 		return parameters.getPrecision();
 	}
+
+	public Customer getCustomer(int gene) {
+		// TODO Auto-generated method stub
+		return customers.get(gene);
+	}
 }

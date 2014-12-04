@@ -39,9 +39,9 @@ public class MyMoveManager implements MoveManager {
          int nextBufferPos = 0;
          
          // iterates depots
-         for (int i = 0; i < routes.length; ++i) {
+         for (int i = 0; i < routes.length; ++i) {   	 
          	// iterates routes
-         	for (int j = 0; j < routes[i].length; ++j) {
+         	for (int j = 0; j < routes[i].length; ++j) {      		
          		// iterates customers in the route
          		for (int k = 0; k < routes[i][j].getCustomersLength(); ++k) {
          			for(int l = 0; l < routes.length; ++l){

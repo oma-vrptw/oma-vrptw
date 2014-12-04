@@ -109,68 +109,6 @@ public static void main(String[] args) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-			/**
-			 * 
-			// Init memory for Tabu Search
-			initialSol 		= new MySolution(instance);
-			objFunc 		= new MyObjectiveFunction(instance);
-	        moveManager 	= new MyMoveManager(instance);
-	        moveManager.setMovesType(parameters.getMovesType());
-	        
-	        // Tabu list
-	        int dimension[] = {instance.getDepotsNr(), instance.getVehiclesNr(), instance.getCustomersNr(), 1, 1};
-	        tabuList 		= new MyTabuList(parameters.getTabuTenure(), dimension);
-	        
-	        // Create Tabu Search object
-	        search 			= new MySearchProgram(instance, initialSol, moveManager,
-							            objFunc, tabuList, false,  outPrintSream);
-	        // Start solving  
-	        
-	        search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
-	        search.tabuSearch.startSolving();
-	        
-	        */
 			
-			/*
-			 * 
-	        // wait for the search thread to finish
-	        try {
-	        	// in order to apply wait on an object synchronization must be done
-	        	synchronized(instance){
-	        		instance.wait();
-	        	}
-			} catch (InterruptedException e1) {
-				e1.printStackTrace();
-			}
-			*/
-	        
-	        
-	        
-	        /**
-	         * 
-	        // Count routes
-	        int routesNr = 0;
-	        for(int i =0; i < search.feasibleRoutes.length; ++i)
-	        	for(int j=0; j < search.feasibleRoutes[i].length; ++j)
-	        		if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
-	        			routesNr++;
-	        // Print results
-	        String outSol = String.format(
-	        		"\nInstance file: %s\n"
-	        		+ "Total cost: %5.2f\n"
-	        		+ "Execution time: %d sec\n"
-	        		+ "Number of routes: %4d\n",
-	        		instance.getParameters().getInputFileName(), search.feasibleCost.total,
-	            	duration.getSeconds(), routesNr);
-	        System.out.println(outSol);
-	        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
-	        fw.write(outSol);
-	        fw.close();
-	        
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
 	}
 }

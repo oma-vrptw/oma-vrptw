@@ -13,6 +13,7 @@ import com.mdvrp.Cost;
 import com.mdvrp.Customer;
 import com.mdvrp.Depot;
 import com.mdvrp.Instance;
+import com.mdvrp.Route;
 import com.TabuSearch.MySolution;
 
 @SuppressWarnings("serial")
@@ -21,7 +22,18 @@ public class MyGASolution extends MySolution{
 	
 	public MyGASolution(Chromosome ch, Instance instance) {
 		// TODO Auto-generated constructor stub
-		super(instance);
+		MySolution.setInstance(instance);
+		cost = new Cost();
+		initializeRoutes(instance);
+		alpha 	= 1;
+    	beta 	= 1;
+    	gamma	= 1;
+    	delta	= 0.005;
+    	upLimit = 10000000;
+    	resetValue = 0.1;
+    	feasibleIndex = 0;
+    	MySolution.setIterationsDone(0);
+    	Bs = new int[instance.getCustomersNr()][instance.getVehiclesNr()][instance.getDepotsNr()];	
 		
 		this.chromosome = ch;
 	}
@@ -47,8 +59,10 @@ public class MyGASolution extends MySolution{
 						continue;
 					}
 					
-					Customer cu = instance.getDepot(i).getAssignedCustomer(chromosome.getGene(k));
+					Customer cu = instance.getCustomer(chromosome.getGene(k));
+
 					routes[i][j].addCustomer(cu);
+					
 				}
 			}
 		}
@@ -64,6 +78,19 @@ public class MyGASolution extends MySolution{
 		buildRoutes();
 		MyGAObjectiveFunction objectiveFunction = new MyGAObjectiveFunction(instance);
 		return objectiveFunction.evaluateAbsolutely(this);
+	}
+	
+	public Object clone()
+    {   
+        MyGASolution copy = (MyGASolution)super.clone();
+       
+        copy.chromosome = this.chromosome;
+        
+        return copy;
+    }   // end clone
+
+	public Chromosome getChromosome() {
+		return chromosome;
 	}
 	
 }
