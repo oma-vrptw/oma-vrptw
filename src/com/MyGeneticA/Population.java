@@ -5,10 +5,12 @@ import com.mdvrp.Instance;
 public class Population {
 	private Chromosome[] chromosomes;
 	private Instance instance;
+	private int dim;
 	
 	Population(int populationDim, Instance instance) { 
 		chromosomes = new Chromosome[populationDim];
 		this.instance = instance;
+		this.dim = populationDim;
 	}
 	
 	void setChromosome(int index, Chromosome c) { 
@@ -18,7 +20,7 @@ public class Population {
 		c.setFitness();
 	}
 	
-	Chromosome getChormosome(int index) { return chromosomes[index]; }
+	Chromosome getChromosome(int index) { return chromosomes[index]; }
 	
 	double getFitness(int index) { 
 		MyGASolution mgas = new MyGASolution(chromosomes[index], instance);
@@ -33,18 +35,34 @@ public class Population {
 		}
 	}
 	
-	int getBestChromosome() { 
-		double bestFitness = Integer.MAX_VALUE;
-		int idBestChrom = 0;
+	public Chromosome getBestChromosome() {
+		Chromosome best, c;
 		
-		for(int i = 0; i < chromosomes.length; i++){
-			System.out.println("Fitness[i]: "+getFitness(i));
-			if(getFitness(i) < bestFitness) {
-				bestFitness = getFitness(i);
-				idBestChrom = i;
+		best= getChromosome(0);
+		for(int i = 1; i < dim; i++){
+			c = getChromosome(i);
+			if(c.compareTo(best) == -1)
+				best = c;
+		}
+		
+		return best;
+	}
+	
+	public int getBestChromosomeIndex() {
+		Chromosome best, c;
+		int bestIndex;
+		
+		best= getChromosome(0);
+		bestIndex = 0;
+		
+		for(int i = 1; i < dim; i++){
+			c = getChromosome(i);
+			if(c.compareTo(best) == -1){
+				best = c;
+				bestIndex = i;
 			}
 		}
 		
-		return idBestChrom;
+		return bestIndex;
 	}
 }

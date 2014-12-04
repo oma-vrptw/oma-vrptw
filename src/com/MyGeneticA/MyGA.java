@@ -1,12 +1,10 @@
 package com.MyGeneticA;
 
-import java.io.Console;
 import java.util.Random;
 
 import com.TabuSearch.MySolution;
-import com.mdvrp.Cost;
 import com.mdvrp.Instance;
-import com.mdvrp.Route;
+
 
 public class MyGA {
 	private Population population;
@@ -23,6 +21,7 @@ public class MyGA {
 		this.population = new Population(populationDim, instance);
 	}
 	
+	
 	public void initPopulation() {
 		for (int i = 0; i < populationDim; i++)
         {
@@ -34,7 +33,7 @@ public class MyGA {
 			
 			int routeCapacity = 0;
 			int usedRoutes = 0;
-			boolean endOfRoute;
+
 			int customerChosen;
 			
 			/*
@@ -47,7 +46,6 @@ public class MyGA {
             for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
             {
             	//start building new route
-            	endOfRoute = false;
             	
             	Random random = new Random();
             	//retrieve a number between (0 .. CustomersNr-1)
@@ -93,8 +91,6 @@ public class MyGA {
     	            	iGene++;
             		}
             	}
-            	
-        		
         	}
             
             c.setGene(iGene, -1);
@@ -191,9 +187,9 @@ public class MyGA {
 		
 		while(counter1 < percentageChoose){
 			System.out.println("CIAO");
-			int IDbestChr = population.getBestChromosome();
+			int IDbestChr = population.getBestChromosomeIndex();
 			System.out.println("BestChromosome is: "+IDbestChr);
-			p_new.setChromosome(c, population.getChormosome(IDbestChr));
+			p_new.setChromosome(c, population.getChromosome(IDbestChr));
 			population.setChromosome(IDbestChr, null);
 			counter1++;
 			c++;
@@ -202,9 +198,9 @@ public class MyGA {
 		int cnt = percentageChoose;									
 		int counter2 = 1;	
 		while(counter2 < percentageChoose){
-			int IDbestChi = child.getBestChromosome();
+			int IDbestChi = child.getBestChromosomeIndex();
 			System.out.println("BestChromosome is: "+IDbestChi);
-			p_new.setChromosome(cnt, child.getChormosome(IDbestChi));
+			p_new.setChromosome(cnt, child.getChromosome(IDbestChi));
 			children[IDbestChi] = null;
 			counter2++;
 			cnt++;	
@@ -216,9 +212,9 @@ public class MyGA {
 		int counter3 = 0;
 		for(int k=0; k < populationDim+children.length; k++){
 			if(k<populationDim){	
-				ArrayTotal.setChromosome(k, population.getChormosome(k));}
+				ArrayTotal.setChromosome(k, population.getChromosome(k));}
 					else{ 
-				 		 ArrayTotal.setChromosome(k, child.getChormosome(counter3));
+				 		 ArrayTotal.setChromosome(k, child.getChromosome(counter3));
 				 		 counter3++;}
 		}
 		
@@ -236,47 +232,30 @@ public class MyGA {
 			Random rnd = new Random();
 			while(cycle<4){
 				int random = rnd.nextInt(populationDim+children.length-1);
-					if(ArrayTotal.getChormosome(random) == null){break;}
+					if(ArrayTotal.getChromosome(random) == null){break;}
 						else{
-							TempArray.setChromosome(cycle, ArrayTotal.getChormosome(random));
+							TempArray.setChromosome(cycle, ArrayTotal.getChromosome(random));
 							cycle++;}
 						  }
-		int ID = TempArray.getBestChromosome();
+		int ID = TempArray.getBestChromosomeIndex();
 		
-		p_new.setChromosome(index, TempArray.getChormosome(ID));
+		p_new.setChromosome(index, TempArray.getChromosome(ID));
 		index++;
 		}
 		
 		/*;creo la nuova popolazione andando a rimpiazzare l'array iniziale con quello che ho creato ArrayTotal*/
 		for(int n=0; n<populationDim; n++){
-		population.setChromosome(n, p_new.getChormosome(n));
+		population.setChromosome(n, p_new.getChromosome(n));
 		}
 	}
 	
-	private Chromosome getBestChromosome() {
-		Chromosome best, c;
-		
-		best= population.getChormosome(0);
-		for(int i = 1; i < populationDim; i++){
-			c = population.getChormosome(i);
-			if(c.compareTo(best) == -1)
-				best = c;
-		}
-		Route[][] routes = best.getSolution().getRoutes();
-		int totCustomer = 0;
-		for (int j = 0; j < routes[0].length; ++j){
-			totCustomer += routes[0][j].getCustomersLength();
-			for (int k = 0; k < routes[0][j].getCustomersLength(); ++k) {
-			}
-		}
-		return best;
-	}
+	
 	
 	public MySolution getBestSolution(){
 		Chromosome best;
 		MyGASolution bestSolution;
 		
-		best = getBestChromosome();
+		best = population.getBestChromosome();
 		bestSolution = best.getSolution();
 		
 		System.out.println("Selected best chromosome. Its fitness is: " + best.getFitness());

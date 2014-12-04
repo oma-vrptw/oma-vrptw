@@ -48,6 +48,7 @@ public class MDVRPTW {
 	        int dimension[] = {instance.getDepotsNr(), instance.getVehiclesNr(), instance.getCustomersNr(), 1, 1};
 	        tabuList 		= new MyTabuList(parameters.getTabuTenure(), dimension);
 	        
+	        System.out.println("initial solution cost: "+objFunc.evaluate(initialSol, null)[2]);
 	        // Create Tabu Search object
 	        search 			= new MySearchProgram(instance, initialSol, moveManager,
 							            objFunc, tabuList, false,  outPrintSream);
