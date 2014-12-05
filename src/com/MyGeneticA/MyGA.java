@@ -106,7 +106,7 @@ public class MyGA {
 		System.out.println("[[[INIT_POPULATION]]]");
 		population.printPopulation();
 		
-		/*
+		
 		Chromosome[][] selection = new Chromosome[4][2];
 		int cr = 0;
 		for(int i = 0; i < 4; i++) {
@@ -130,47 +130,71 @@ public class MyGA {
 		}
 		
 		
-
+/*
 		System.out.println("[[[GENERATE_NEW_POPULATION]]]");
 		generateNewPopulation(result);
-		population.printPopulation();
-		*/
+		population.printPopulation();*/
+		
 	}
 	Chromosome[][] selectParents() { return null; }
 	
 	Chromosome[] crossover(Chromosome[][] parents) { 
 		
-		Chromosome[] children = new Chromosome[parents.length*2];
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 		
+		//calcolo dei tagli
 		int firstCut = (chromosomeDim/3);
 		int secondCut = ((chromosomeDim*2)/3);
 		System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
 		
-		int numChildren = 0;
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
 		
-		for(int i = 0; i < parents.length; i++){
-			children[numChildren] = new Chromosome(chromosomeDim);
-			children[numChildren+1] = new Chromosome(chromosomeDim);
-			
-			for(int j = 0; j < firstCut; j++){
-				children[numChildren].setGene(j, parents[i][0].getGene(j));
-				children[numChildren+1].setGene(j, parents[i][1].getGene(j));
+		//genero i figli
+		for(int i = 0; i < parents.length; i++){ 
+			for(int j = 0; j < 2; j++){ //j=0 genero primo figlio della "corrente" coppia, j=1 genero secondo figlio
+				children[k+j] = new Chromosome(chromosomeDim);
+				copyGenesInFrom(children[k+j], firstCut, secondCut, parents[i][j], firstCut, secondCut); //riempio la parte centrale del figlio1 con la parte centrale del genitore1
+				
+				 //optimization thing!!! faccio un cromosoma con soltanto la parte centrale del figlio così 
+				//ogni volta che devo controllare se il gene del genitore è possibile inserirlo risparmio molto in termini di numero di iterazioni
+				int centralPartDim = (secondCut-firstCut);
+				Chromosome centralPart = new Chromosome(centralPartDim);
+				copyGenesInFrom(centralPart, 0, centralPartDim, children[k+j], firstCut, secondCut);
+				
+				int indexVal = secondCut; //indice relativo al figlio 
+				int remainingVals = (chromosomeDim-centralPartDim); //valori rimanenti da inserire nel figlio
+				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
+				int selectedGene = secondCut; //indice relativo al genitore
+				//il cuore della generazione del figlio (sala parto :D)
+				for(int z = 0; z < chromosomeDim; z++){
+					//è possibile inserire il gene del genitore nel figlio?!?!?
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart) || parents[i][selectedParent].getGene(selectedGene) == -1){ 
+						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
+						indexVal = (indexVal+1) % chromosomeDim;
+						remainingVals --;
+						if(remainingVals == 0) break; //ho inserito l'ultimo gene nel figlio (è natoooooo :D)
+					}
+					selectedGene = (selectedGene+1) % chromosomeDim;
+				}
 			}
-			
-			for(int j = firstCut; j < secondCut; j++){
-				children[numChildren].setGene(j, parents[i][1].getGene(j));
-				children[numChildren+1].setGene(j, parents[i][0].getGene(j));
-			}
-			
-			for(int j = secondCut; j < chromosomeDim; j++){
-				children[numChildren].setGene(j, parents[i][0].getGene(j));
-				children[numChildren+1].setGene(j, parents[i][1].getGene(j));
-			}
-			
-			numChildren += 2;
+			k += 2;
 		}
 		
 		return children; 
+	}
+	
+	void copyGenesInFrom(Chromosome dest, int init_d, int end_d, Chromosome src, int init_s, int end_s){
+		for(int i = init_d, j = init_s; i < end_d; i++, j++){
+			dest.setGene(i, src.getGene(j));
+		}
+	}
+	
+	boolean geneIsPresent(int gene, Chromosome c){
+		for(int i = 0; i < c.getNumberOfGenes(); i++){
+			if(c.getGene(i) == gene) return true;
+		}
+		return false;
 	}
 	
 	void generateNewPopulation(Chromosome[] children) { 
