@@ -162,6 +162,7 @@ public class MyGA {
 				Chromosome centralPart = new Chromosome(centralPartDim);
 				copyGenesInFrom(centralPart, 0, centralPartDim, children[k+j], firstCut, secondCut);
 				
+				int nRoutes = children[k+j].getNumRoutes();
 				int indexVal = secondCut; //indice relativo al figlio 
 				int remainingVals = (chromosomeDim-centralPartDim); //valori rimanenti da inserire nel figlio
 				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
@@ -169,7 +170,8 @@ public class MyGA {
 				//il cuore della generazione del figlio (sala parto :D)
 				for(int z = 0; z < chromosomeDim; z++){
 					//è possibile inserire il gene del genitore nel figlio?!?!?
-					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart) || parents[i][selectedParent].getGene(selectedGene) == -1){ 
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart) || (parents[i][selectedParent].getGene(selectedGene) == -1 && nRoutes < instance.getVehiclesNr())){ 
+						if(parents[i][selectedParent].getGene(selectedGene) == -1) nRoutes ++;
 						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
 						indexVal = (indexVal+1) % chromosomeDim;
 						remainingVals --;
@@ -177,6 +179,8 @@ public class MyGA {
 					}
 					selectedGene = (selectedGene+1) % chromosomeDim;
 				}
+
+				System.out.println("nRoutes: "+children[k+j].getNumRoutes());
 			}
 			k += 2;
 		}

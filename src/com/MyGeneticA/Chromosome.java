@@ -63,4 +63,12 @@ public class Chromosome implements Comparable<Chromosome>{
 	public MyGASolution getSolution() {
 		return solution;
 	}
+	
+	public int getNumRoutes(){
+		int count=0;
+		for(int z = 0; z < numberOfGenes; z++){
+			if(genes[z] == -1) count++;
+		}
+		return count;
+	}
 }
