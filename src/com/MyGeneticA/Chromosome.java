@@ -60,6 +60,7 @@ public class Chromosome implements Comparable<Chromosome>{
 		return 0;
 	}
 
+
 	public MyGASolution getSolution() {
 		return solution;
 	}
@@ -85,4 +86,12 @@ public class Chromosome implements Comparable<Chromosome>{
 	    {
 	        return (getGenesAsString());
 	    }
+
+	public boolean compareToGenes(Chromosome c){
+		for(int i = 0; i < numberOfGenes; i++){
+			if(this.genes[i] != c.genes[i]) return false;
+		}
+		return true;
+	}
+	
 }
