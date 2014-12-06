@@ -164,8 +164,21 @@ public class MyGA {
 			}
 			k += 2;
 		}
-		
-		return children; 
+
+		int newDim = deleteDuplicates(children);
+		if(childrenNum == newDim) return children;
+		else {
+			System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < childrenNum; i++){
+				if(children[i] != null) {
+					childrenWithoutDuplicates[j] = children[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
 	}
 	
 	void copyGenesInFrom(Chromosome dest, int init_d, int end_d, Chromosome src, int init_s, int end_s){
@@ -179,6 +192,23 @@ public class MyGA {
 			if(c.getGene(i) == gene) return true;
 		}
 		return false;
+	}
+	
+	int deleteDuplicates(Chromosome[] children){
+		int newDim = children.length;
+		for(int i = 0; i < children.length; i++){
+			if(children[i] != null){
+				for(int j = 0; j < children.length; j++){
+					if(children[j] != null){
+						if(i != j && children[i].compareToGenes(children[j])){
+							children[j] = null;
+							newDim--;
+						}
+					}
+				}
+			}
+		}
+		return newDim;
 	}
 	
 	void generateNewPopulation(Chromosome[] children) { 
@@ -312,6 +342,8 @@ public class MyGA {
 
 
 			Chromosome[] result = crossover(selection);
+			System.out.println("result.length: "+result.length);
+			
 			for(int i = 0; i < result.length; i++){
 				System.out.print("Child["+i+"]: ");
 				result[i].print();
