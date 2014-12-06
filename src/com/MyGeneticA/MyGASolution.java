@@ -44,8 +44,10 @@ public class MyGASolution extends MySolution{
 	 */
 	private void buildRoutes() {
 		int ng;
-		ng = chromosome.getNumberOfGenes();
+		boolean newRoute;
 		
+		ng = chromosome.getNumberOfGenes();
+		newRoute = true;
 		//for each deposit
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
 			int j=0;	//routes index
@@ -54,14 +56,17 @@ public class MyGASolution extends MySolution{
 				for(int k = 0; k < ng;k++){
 					//fill a route according to chromosome
 					//get the customer pointed by chromosome[k]
-					if(chromosome.isDelimiter(k)){
+					if(chromosome.isDelimiter(k) && newRoute){
 						j++;	//end of a route
+						newRoute = false;
 						continue;
+					}else if(!chromosome.isDelimiter(k)){
+						newRoute = true;
+						Customer cu = instance.getCustomer(chromosome.getGene(k));
+						routes[i][j].addCustomer(cu);
 					}
 					
-					Customer cu = instance.getCustomer(chromosome.getGene(k));
-
-					routes[i][j].addCustomer(cu);
+					
 					
 				}
 			}
