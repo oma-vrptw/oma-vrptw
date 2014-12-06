@@ -44,7 +44,7 @@ public static void main(String[] args) {
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr()+instance.getVehiclesNr();
-			int populationDim = 10;
+			int populationDim = 100;
 
 			// Init data for Genetic Algorithm
 			myGA = new MyGA(chromosomeDim, 
@@ -61,7 +61,7 @@ public static void main(String[] args) {
 			
 			// Init memory for Tabu Search
 			initialSol 		= myGA.getBestSolution();
-				
+			
 			objFunc 		= new MyObjectiveFunction(instance);
 	        moveManager 	= new MyMoveManager(instance);
 	        moveManager.setMovesType(parameters.getMovesType());

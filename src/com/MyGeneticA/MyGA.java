@@ -121,7 +121,7 @@ public class MyGA {
 			GenerateRandomChromosome(j);
 		
 		//test code (stub)
-		System.out.println("[[[INIT_POPULATION]]]");
+		//System.out.println("[[[INIT_POPULATION]]]");
 		population.printPopulation();
 		
 		
@@ -149,7 +149,7 @@ public class MyGA {
 		//calcolo dei tagli
 		int firstCut = (chromosomeDim/3);
 		int secondCut = ((chromosomeDim*2)/3);
-		System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
+		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
 		
 		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
 		
@@ -243,23 +243,23 @@ public class MyGA {
 
 		//define the percentage of the best chromosomes of the old population that will be reinsert in the next new population
 		//int percentageChoose = (int)(0.2*populationDim);
-		int percentageChoose = (populationDim/10)*2;
+		int percentageChoose = Math.min((populationDim/10)*2, children.length); //because int IDbestChi = child.getBestChromosomeIndex();
 
 		int c = 0;
 		int counter1 = 1;
-
+		int IDbestChr, IDbestChi;
 		/*creo un array contenente il totale dei cromosomi iniziali e dei figli generati*/
 
 		//select the best "percentageChoose" of old population and child chromosomes and insert them into the new next population
 		while(counter1 <= percentageChoose){
-			int IDbestChr = population.getBestChromosomeIndex();
-			int IDbestChi = child.getBestChromosomeIndex();
+			IDbestChr = population.getBestChromosomeIndex();
+			IDbestChi = child.getBestChromosomeIndex();
 
 			p_new.setChromosome(c, population.getChromosome(IDbestChr));
-			System.out.println("chromosome selected from parents at iteraation:"+counter1+" "+population.getChromosome(IDbestChr));
+			//System.out.println("chromosome selected from parents at iteraation:"+counter1+" "+population.getChromosome(IDbestChr));
 			c++;
 			p_new.setChromosome(c, child.getChromosome(IDbestChi));
-			System.out.println("chromosome selected at iteraation:"+counter1+" "+child.getChromosome(IDbestChi));
+			//System.out.println("chromosome selected at iteraation:"+counter1+" "+child.getChromosome(IDbestChi));
 
 			/*
 			population.setChromosome(IDbestChr, null);
@@ -296,18 +296,13 @@ public class MyGA {
 				index++;
 			}			
 		}
-		
-
-		//create a temporary population that contain the chromosomes choose in a randomic way for the selection
-		Population TempArray = new Population(3, instance);
-
 
 		index = percentageChoose*2;
 		int postiDisponibili = populationDim - index;	
 
 		
 		double tmpFitness, bestFitness;
-		int ID = 0;
+		int ID = 0, random;
 		//selection of the remaining chromosomes that will define the next new population
 		for(int l=0; l<postiDisponibili; l++){
 			
@@ -318,7 +313,7 @@ public class MyGA {
 			bestFitness = 0;
 			for(int cycle=0; cycle<=2; ){
 
-				int random = rnd.nextInt(populationDim+children.length-1);
+				random = rnd.nextInt(populationDim+children.length-1);
 
 				if(ArrayTotal.getChromosome(random) != null){
 					tmpFitness = ArrayTotal.getChromosome(random).getFitness();
@@ -380,6 +375,7 @@ public class MyGA {
 
 
 			Chromosome[] result = crossover(selection);
+			/*
 			System.out.println("result.length: "+result.length);
 			
 			for(int i = 0; i < result.length; i++){
@@ -387,10 +383,10 @@ public class MyGA {
 				result[i].print();
 				System.out.println();
 			}
-
+*/
 			generateNewPopulation(result);
 
-			//if((count % 20) == 0){
+			/*if((count % 20) == 0){
 				
 				
 				
@@ -404,7 +400,7 @@ public class MyGA {
 				for(int i = 0; i < populationDim; i++){
 					System.out.println("fitness("+i+"): " + getFitness(population.getChromosome(i)));
 				}
-			//}
+			}*/
 
 			count++;
 		}while(count < iteration);

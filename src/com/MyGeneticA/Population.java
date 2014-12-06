@@ -1,6 +1,5 @@
 package com.MyGeneticA;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import com.mdvrp.Instance;

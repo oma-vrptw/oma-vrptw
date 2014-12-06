@@ -154,6 +154,7 @@ public class MyCW {
 					
 			for(Customer customer : destCustomers)
 			{
+				
 				assignedRoute.replace(customer.getNumber(), sourceIndex);
 				
 				// Deep copy

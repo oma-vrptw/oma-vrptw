@@ -74,8 +74,13 @@ public class MDVRPTW {
 	        	for(int j=0; j < search.feasibleRoutes[i].length; ++j)
 	        		if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
 	        			routesNr++;
+	        duration.stop();
 	        // Print results
-	        String outSol = String.format("%s; %5.2f; %d sec.; %4d\r\n" ,
+	        String outSol = String.format(
+	        		"\nInstance file: %s\n"
+	        		+ "Total cost: %5.2f\n"
+	        		+ "Execution time: %d sec\n"
+	        		+ "Number of routes: %4d\n",
 	        		instance.getParameters().getInputFileName(), search.feasibleCost.total,
 	            	duration.getSeconds(), routesNr);
 	        System.out.println(outSol);
