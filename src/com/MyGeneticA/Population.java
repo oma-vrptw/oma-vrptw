@@ -20,7 +20,9 @@ public class Population {
 		c.setFitness();
 	}
 	
-	Chromosome getChromosome(int index) { return chromosomes[index]; }
+	Chromosome getChromosome(int index) { 
+		return chromosomes[index]; 
+	}
 	
 	double getFitness(int index) { 
 		MyGASolution mgas = new MyGASolution(chromosomes[index], instance);
@@ -37,12 +39,18 @@ public class Population {
 	
 	public Chromosome getBestChromosome() {
 		Chromosome best, c;
+		int j;
 		
-		best= getChromosome(0);
+		for(j=0; getChromosome(j) == null; j++);
+		
+		best= getChromosome(j);
+		
 		for(int i = 1; i < dim; i++){
 			c = getChromosome(i);
-			if(c.compareTo(best) == -1)
-				best = c;
+			if(c != null){
+				if(c.compareTo(best) == -1)
+					best = c;
+			}
 		}
 		
 		return best;
@@ -50,19 +58,32 @@ public class Population {
 	
 	public int getBestChromosomeIndex() {
 		Chromosome best, c;
-		int bestIndex;
+		int bestIndex, j;
 		
-		best= getChromosome(0);
-		bestIndex = 0;
+		for(j=0; getChromosome(j) == null; j++);
 		
+		bestIndex = j;
+		best = getChromosome(j);
+				
 		for(int i = 1; i < dim; i++){
 			c = getChromosome(i);
-			if(c.compareTo(best) == -1){
-				best = c;
-				bestIndex = i;
+			if(c != null){
+				if(c.compareTo(best) == -1){
+					best = c;
+					bestIndex = i;
+				}
 			}
 		}
 		
 		return bestIndex;
+	}
+
+	public void removeChromosome(int iDbestChr) {
+		// TODO Auto-generated method stub
+		chromosomes[iDbestChr] = null;
+	}
+	
+	public boolean chromosomeIsValid(int index){
+		return chromosomes[index] != null;
 	}
 }

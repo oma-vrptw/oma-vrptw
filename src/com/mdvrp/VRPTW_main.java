@@ -51,7 +51,8 @@ public static void main(String[] args) {
 					populationDim,
 					instance);
 			
-			myGA.initPopulation();
+			//myGA.initPopulation();
+			myGA.evolve();
 			
 			//population.printPopulation();
 			
