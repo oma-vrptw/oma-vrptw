@@ -21,86 +21,104 @@ public class MyGA {
 		this.population = new Population(populationDim, instance);
 	}
 	
+	private void GenerateRandomChromosome(int i)
+	{
+		Chromosome c = new Chromosome(chromosomeDim);		
+		
+		boolean [] usedCustomer = new boolean[instance.getCustomersNr()];
+		
+		for(int j = 0; j < instance.getCustomersNr(); j++) usedCustomer[j] = false;
+		
+		int routeCapacity = 0;
+		int usedRoutes = 0;
+
+		int customerChosen;
+		
+		/*
+		 * while we have genes to insert and vehicles into depote, try to build a feasible
+		 * (ignore time window constraints, so it's actually infeasible)
+		 *  chromosome (solution)
+		 */
+		
+		int iGene;
+		
+        for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
+        {
+        	//start building new route
+        	
+        	Random random = new Random();
+        	//retrieve a number between (0 .. CustomersNr-1)
+        	int startCustomer = random.nextInt(instance.getCustomersNr());
+        	int assignedCustomersNr = instance.getCustomersNr();
+        	//try to fill a new route
+        	//for(int j = 0; j < instance.getCustomersNr() && !endOfRoute; j++){
+        	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j){
+        		customerChosen = j % assignedCustomersNr;
+        		
+        		if(usedCustomer[customerChosen] == true || routeCapacity+(int)instance.getCapacity(customerChosen) > 200){
+        			//skip to next customer, this was considered yet	
+        			continue;
+        		}
+            	
+            	//insert the selected customer into the route
+            	c.setGene(iGene, customerChosen);
+            	routeCapacity = routeCapacity + (int)instance.getCapacity(customerChosen);
+            	usedCustomer[customerChosen] = true;
+            	iGene++;
+        	}
+        	
+        	//end of route
+        	usedRoutes++;
+        	
+        	//se non è l'ultima rotta
+        	if(usedRoutes < instance.getVehiclesNr()){
+            	c.setGene(iGene, -1);
+        		routeCapacity = 0;
+        		iGene++;
+        	}
+        }
+        
+   
+        if(iGene < chromosomeDim){
+        	for(int j = 0; j < instance.getCustomersNr(); j++){
+        		if(usedCustomer[j] == false){
+        			//insert the selected customer into the route
+	            	c.setGene(iGene, j);
+	            	routeCapacity = routeCapacity + (int)instance.getCapacity(j);
+	            	usedCustomer[j] = true;
+	            	//avanzo nel cromosoma
+	            	iGene++;
+        		}
+        	}
+    	}
+        
+        c.setGene(iGene, -1);
+        //lasciato per compatibilità, cit. roberto
+		usedRoutes++;
+		routeCapacity = 0;
+        
+        population.setChromosome(i, c);
+	}
 	
 	public void initPopulation() {
-		for (int i = 0; i < populationDim; i++)
-        {
-			Chromosome c = new Chromosome(chromosomeDim);
-			
-			boolean [] usedCustomer = new boolean[instance.getCustomersNr()];
-			
-			for(int j = 0; j < instance.getCustomersNr(); j++) usedCustomer[j] = false;
-			
-			int routeCapacity = 0;
-			int usedRoutes = 0;
+		
+		MyCW generator = new MyCW(chromosomeDim, instance);
+		Random r = new Random();
+		
+		// randIndex tra 0 e populationDim-1
+		int randIndex = r.nextInt(populationDim);
 
-			int customerChosen;
-			
-			/*
-			 * while we have genes to insert and vehicles into depote, try to build a feasible
-			 * (ignore time window constraints, so it's actually infeasible)
-			 *  chromosome (solution)
-			 */
-			int iGene;
-			
-            for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
-            {
-            	//start building new route
-            	
-            	Random random = new Random();
-            	//retrieve a number between (0 .. CustomersNr-1)
-            	int startCustomer = random.nextInt(instance.getCustomersNr());
-            	int assignedCustomersNr = instance.getCustomersNr();
-            	//try to fill a new route
-            	//for(int j = 0; j < instance.getCustomersNr() && !endOfRoute; j++){
-            	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j){
-            		customerChosen = j % assignedCustomersNr;
-            		
-            		if(usedCustomer[customerChosen] == true || routeCapacity+(int)instance.getCapacity(customerChosen) > 200){
-            			//skip to next customer, this was considered yet	
-            			continue;
-            		}
-	            	
-	            	//insert the selected customer into the route
-	            	c.setGene(iGene, customerChosen);
-	            	routeCapacity = routeCapacity + (int)instance.getCapacity(customerChosen);
-	            	usedCustomer[customerChosen] = true;
-	            	iGene++;
-            	}
-            	
-            	//end of route
-            	usedRoutes++;
-            	
-            	//se non è l'ultima rotta
-            	if(usedRoutes < instance.getVehiclesNr()){
-	            	c.setGene(iGene, -1);
-	        		routeCapacity = 0;
-	        		iGene++;
-            	}
-            }
-            
-       
-            if(iGene < chromosomeDim){
-            	for(int j = 0; j < instance.getCustomersNr(); j++){
-            		if(usedCustomer[j] == false){
-            			//insert the selected customer into the route
-    	            	c.setGene(iGene, j);
-    	            	routeCapacity = routeCapacity + (int)instance.getCapacity(j);
-    	            	usedCustomer[j] = true;
-    	            	//avanzo nel cromosoma
-    	            	iGene++;
-            		}
-            	}
-        	}
-            
-            c.setGene(iGene, -1);
-            //lasciato per compatibilità, cit. roberto
-    		usedRoutes++;
-    		routeCapacity = 0;
-            
-            population.setChromosome(i, c);
-
-        }
+		
+		// Un cromosoma viene generato mediante un algoritmo (no time window aware)
+		// e messo in una posizione casuale
+		population.setChromosome(randIndex, generator.GenerateChromosome());
+		
+		// Tutti gli altri sono randomici
+		for (int i = 0; i < randIndex; i++)
+			GenerateRandomChromosome(i);
+		
+		for (int j = populationDim-1; j > randIndex; j--)
+			GenerateRandomChromosome(j);
 		
 		//test code (stub)
 		System.out.println("[[[INIT_POPULATION]]]");
