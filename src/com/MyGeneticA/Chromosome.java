@@ -71,4 +71,18 @@ public class Chromosome implements Comparable<Chromosome>{
 		}
 		return count;
 	}
+	
+	 public String getGenesAsString()
+	    {
+	        String sGenes = "";
+
+	        for (int i = 0; i < genes.length; i++)
+	            sGenes += " " + genes[i] + ",";
+	        return (sGenes);
+	    }
+	 
+	 public String toString()
+	    {
+	        return (getGenesAsString());
+	    }
 }

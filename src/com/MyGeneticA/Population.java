@@ -1,5 +1,8 @@
 package com.MyGeneticA;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+
 import com.mdvrp.Instance;
 
 public class Population {
@@ -45,7 +48,7 @@ public class Population {
 		
 		best= getChromosome(j);
 		
-		for(int i = 1; i < dim; i++){
+		for(int i = j; i < dim; i++){
 			c = getChromosome(i);
 			if(c != null){
 				if(c.compareTo(best) == -1)
@@ -65,7 +68,7 @@ public class Population {
 		bestIndex = j;
 		best = getChromosome(j);
 				
-		for(int i = 1; i < dim; i++){
+		for(int i = j; i < dim; i++){
 			c = getChromosome(i);
 			if(c != null){
 				if(c.compareTo(best) == -1){
@@ -86,4 +89,11 @@ public class Population {
 	public boolean chromosomeIsValid(int index){
 		return chromosomes[index] != null;
 	}
+
+	public void sort() {
+		// TODO Auto-generated method stub
+		Arrays.sort(chromosomes);
+	}
+	
+	
 }
