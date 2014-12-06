@@ -39,6 +39,16 @@ public class Instance {
 	}
 	
 	/**
+	 * 
+	 * @return distances as a double matrix
+	 */
+	
+	public double[][] getDistances()
+	{
+		return distances;
+	}
+	
+	/**
 	 * Returns the time necessary to travel from node 1 to node 2
 	 * @param node1
 	 * @param node2
