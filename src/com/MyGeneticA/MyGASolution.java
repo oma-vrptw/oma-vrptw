@@ -70,6 +70,8 @@ public class MyGASolution extends MySolution{
 					
 				}
 			}
+		
+		
 		}
 
 	/**

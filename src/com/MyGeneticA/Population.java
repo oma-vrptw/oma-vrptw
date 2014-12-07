@@ -93,6 +93,17 @@ public class Population {
 		// TODO Auto-generated method stub
 		Arrays.sort(chromosomes);
 	}
+
+	public void swapChromosome(Chromosome c, int index) {
+		removeChromosome(index);
+		setChromosome(index, c);
+	}
+
+	public int getWorstChromosomeIndex() {
+		this.sort();
+		
+		return dim-1;
+	}
 	
 	
 }

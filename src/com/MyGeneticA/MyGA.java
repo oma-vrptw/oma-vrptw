@@ -4,6 +4,7 @@ import java.util.Random;
 
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
+import com.mdvrp.Route;
 
 
 public class MyGA {
@@ -122,7 +123,7 @@ public class MyGA {
 		
 		//test code (stub)
 		//System.out.println("[[[INIT_POPULATION]]]");
-		population.printPopulation();
+		//population.printPopulation();
 		
 		
 		
@@ -189,7 +190,7 @@ public class MyGA {
 		int newDim = deleteDuplicates(children);
 		if(childrenNum == newDim) return children;
 		else {
-			System.out.println("Duplicates found!!!");
+			//System.out.println("Duplicates found!!!");
 			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
 			int j = 0;
 			for(int i = 0; i < childrenNum; i++){
@@ -361,9 +362,9 @@ public class MyGA {
 
 	public void evolve() {
 		int count;
-		int iteration = 5;
+		int iteration = 50;
 
-		initPopulation();
+		
 
 		count = 0;
 		do{
@@ -405,5 +406,34 @@ public class MyGA {
 			count++;
 		}while(count < iteration);
 
+	}
+	
+	
+	
+	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
+		Chromosome c;
+		
+		//build a chromosome from a route 
+		c = new Chromosome(feasibleRoutes, chromosomeDim);
+			
+		population.swapChromosome(c, population.getWorstChromosomeIndex());
+		
+	}
+
+	public MySolution[] getNBestSolution(int n) {
+		Chromosome c;
+		MyGASolution[] solution;
+		
+		solution = new MyGASolution[n];
+		
+		population.sort();
+		
+		for(int i=0; i< n; i++){
+			c = population.getChromosome(i);
+			solution[i] = c.getSolution();
+			System.out.println("Selected best chromosome. Its fitness is: " + c.getFitness());
+		}
+
+		return (MySolution[])solution;
 	}
 }
