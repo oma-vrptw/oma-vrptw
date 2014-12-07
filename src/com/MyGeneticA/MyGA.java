@@ -1,6 +1,6 @@
 package com.MyGeneticA;
 
-import java.util.Random;
+import java.util.*;
 
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
@@ -128,6 +128,7 @@ public class MyGA {
 		
 		
 	}
+	/*
 	Chromosome[][] selectParents() { 
 		Chromosome[][] selection = new Chromosome[4][2];
 		int cr = 0;
@@ -140,6 +141,50 @@ public class MyGA {
 			cr += 2;
 		} 
 		return selection;
+	}*/
+	
+	private Chromosome[][] selectParents() {
+		
+		int numberOfParents = 4;
+		
+	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
+		Map<Integer,Boolean> map= new HashMap<>();
+	    
+	    //riempimento iniziale mappa a true
+	    
+		for(int j=0; j < populationDim; j++){
+	    	
+	    	map.put(j,true);
+    	}
+    	Random R= new Random();	
+     	int R1 = 0;
+    	int R2 = 0;
+    	boolean flag1=false, flag2=false;
+   		
+        //scelta dei ficcaioli
+        for(int i=0; i < numberOfParents; i++){
+
+        	for(;;)
+        	{
+        		if(!flag1) R1=R.nextInt(populationDim);
+        		if(!flag2) R2=R.nextInt(populationDim);
+        		
+        		if(map.get(R1)) flag1 = true;
+        		if(map.get(R2)) flag2 = true;
+        		
+        		if(flag1 && flag2) break;
+        	}
+        	
+        	parents[i][0] = population.getChromosome(R1);
+        	parents[i][1] = population.getChromosome(R2);
+        	
+        	//inserisco i due ficcaioli in una mappa per evitare di riprenderli per un seccessivo ficcaggio
+        	map.replace(R1,false);
+        	map.replace(R2,false);
+            
+        } 
+        
+        return parents;
 	}
 	
 	Chromosome[] crossover(Chromosome[][] parents) { 
