@@ -7,12 +7,12 @@ import com.mdvrp.Route;
 
 public class MyGAObjectiveFunction{
 	private static Instance instance;
- 	private double lambda;		// λ
+ 	//private double lambda;		// λ
     
     public MyGAObjectiveFunction( Instance instance ) 
     {   
     	MyGAObjectiveFunction.setInstance(instance);
-     	lambda     = 0.5 * Math.sqrt(instance.getVehiclesNr() * instance.getCustomersNr());
+     	//lambda     = 0.5 * Math.sqrt(instance.getVehiclesNr() * instance.getCustomersNr());
     }   // end constructor
 
     

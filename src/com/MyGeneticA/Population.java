@@ -1,6 +1,5 @@
 package com.MyGeneticA;
 
-import java.lang.reflect.Array;
 import java.util.Arrays;
 
 import com.mdvrp.Instance;
@@ -93,6 +92,17 @@ public class Population {
 	public void sort() {
 		// TODO Auto-generated method stub
 		Arrays.sort(chromosomes);
+	}
+
+	public void swapChromosome(Chromosome c, int index) {
+		removeChromosome(index);
+		setChromosome(index, c);
+	}
+
+	public int getWorstChromosomeIndex() {
+		this.sort();
+		
+		return dim-1;
 	}
 	
 	

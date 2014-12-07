@@ -11,9 +11,9 @@ package com.MyGeneticA;
 
 import com.mdvrp.Cost;
 import com.mdvrp.Customer;
-import com.mdvrp.Depot;
+
 import com.mdvrp.Instance;
-import com.mdvrp.Route;
+
 import com.TabuSearch.MySolution;
 
 @SuppressWarnings("serial")
@@ -70,6 +70,8 @@ public class MyGASolution extends MySolution{
 					
 				}
 			}
+		
+		
 		}
 
 	/**
