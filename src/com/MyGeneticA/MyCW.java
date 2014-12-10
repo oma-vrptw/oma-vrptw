@@ -113,13 +113,13 @@ public class MyCW {
 		Integer destIndex = assignedRoute.get(d);
 		
 		test1 = sourceIndex.equals(destIndex);
-		if(!test1) System.out.println("ERRORE IN " + s + "-" + d + ": sono ancora assegnati a route diverse.");
+		// if(!test1) System.out.println("ERRORE IN " + s + "-" + d + ": sono ancora assegnati a route diverse.");
 		
 		Route source = routes.get(sourceIndex);
 		Route dest = routes.get(destIndex);
 		
 		test2 = source != null && dest != null;
-		if(!test2) System.out.println("ERRORE IN " + s + "-" + d + ": una delle route è inesistente.");
+		// if(!test2) System.out.println("ERRORE IN " + s + "-" + d + ": una delle route è inesistente.");
 		
 		try
 		{
@@ -127,10 +127,10 @@ public class MyCW {
 		}
 		catch(Exception e)
 		{
-			System.out.println("ERRORE IN " + s + "-" + d + ": la source route è null.");
+			// System.out.println("ERRORE IN " + s + "-" + d + ": la source route è null.");
 		}
 		
-		if(!test3) System.out.println("ERRORE IN " + s + "-" + d + ": source e dest hanno route diverse.");
+		// if(!test3) System.out.println("ERRORE IN " + s + "-" + d + ": source e dest hanno route diverse.");
 		
 		return(test1 && test2 && test3);
 	}
@@ -344,12 +344,10 @@ public class MyCW {
 		
 	}
 	
-	private Chromosome ConvertRoutesArrayToChromosome()
+	private Chromosome ConvertRoutesToChromosome()
 	{
-		Chromosome chromosome = new Chromosome(numberOfGenes);
 		
-		for(int i=0; i<chromosome.getNumberOfGenes(); i++)
-			chromosome.setGene(i, -1);
+		Chromosome chromosome = new Chromosome(numberOfGenes);
 		
 		Iterator<Route> it = routes.values().iterator();
 		
@@ -364,40 +362,7 @@ public class MyCW {
 				i++;
 			}
 
-			chromosome.setGene(i,-1);
-			i++;
 		}
-		
-		System.out.println("CROMOSOMA");
-		
-		for(int i=0; i<chromosome.getNumberOfGenes(); i++)
-			System.out.print(chromosome.getGene(i) + " ");
-		
-		int gene = 0, count = 0;
-		int[] array = new int[numberOfCustomers];
-		Arrays.fill(array, -1);
-		
-		for(int i=0; i<chromosome.getNumberOfGenes(); i++)
-		{
-			gene = chromosome.getGene(i);
-			if(gene!=-1)
-			{
-				array[count] = gene;
-				count++;
-			}
-		}
-		Arrays.sort(array);
-		
-		int n=0;
-		System.out.println("\n");
-		for(int i=0; i<array.length; i++)
-		{
-			//System.out.print(array[i] + " ");
-			if(array[i]>-1) n++;
-		}
-		System.out.println();
-		System.out.println("Ho usato " + n + " customer su " + numberOfCustomers);
-		System.out.println("Ho usato " + numberOfUsedVehicles + " veicoli su " + numberOfVehicles);
 		
 		return chromosome;
 		
@@ -407,7 +372,7 @@ public class MyCW {
 	{	
 		InitSavings();
 		PerformSequencialCW();
-		Chromosome result = ConvertRoutesArrayToChromosome();
+		Chromosome result = ConvertRoutesToChromosome();
 		
 		return result;
 		
