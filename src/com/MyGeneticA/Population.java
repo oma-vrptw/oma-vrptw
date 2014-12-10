@@ -34,7 +34,10 @@ public class Population {
 		currentDim++;
 	}
 	
-	Chromosome getChromosome(int index) { 
+	Chromosome getChromosome(int index) {
+		if(index >= currentDim)
+			return null;
+		
 		return chromosomes[index]; 
 	}
 	
@@ -105,10 +108,9 @@ public class Population {
 	public void removeChromosome(int index) {
 		// TODO Auto-generated method stub
 		chromosomes[index] = null;
-		
 		currentDim--;
 		
-		if(currentDim == 0){
+		if(currentDim <= 0){
 			indexBestChromosome = -1;
 			bestChromosome = null;
 			return;
