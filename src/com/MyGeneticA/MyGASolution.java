@@ -11,9 +11,8 @@ package com.MyGeneticA;
 
 import com.mdvrp.Cost;
 import com.mdvrp.Customer;
-
 import com.mdvrp.Instance;
-
+import com.mdvrp.Route;
 import com.TabuSearch.MySolution;
 
 @SuppressWarnings("serial")
@@ -44,29 +43,42 @@ public class MyGASolution extends MySolution{
 	 */
 	private void buildRoutes() {
 		int ng;
-		boolean newRoute;
+
+		int customerChosen;
+		Customer customerChosenPtr;
+		Route route;
+		int k;
 		
 		ng = chromosome.getNumberOfGenes();
-		newRoute = true;
+
 		//for each deposit
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
 			int j=0;	//routes index
 				//until there are genes in chromosome
 				//at each iteration create a new route (new vehicle)
-				for(int k = 0; k < ng;k++){
+			route = routes[i][j]; //first route
+			//fin quando ci sono geni e veicoli disponibili
+				for(k = 0; k < ng && j < instance.getVehiclesNr()-1; k++){
 					//fill a route according to chromosome
 					//get the customer pointed by chromosome[k]
-					if(chromosome.isDelimiter(k) && newRoute){
-						j++;	//end of a route
-						newRoute = false;
-						continue;
-					}else if(!chromosome.isDelimiter(k)){
-						newRoute = true;
-						Customer cu = instance.getCustomer(chromosome.getGene(k));
-						routes[i][j].addCustomer(cu);
+					customerChosen = chromosome.getGene(k);
+					customerChosenPtr = instance.getCustomer(customerChosen);
+					if(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()){
+						route.addCustomer(customerChosenPtr);
+					}else{
+						j++;
+						route = routes[i][j];
+						route.addCustomer(customerChosenPtr);
 					}
-					
-					
+				}
+				
+				//inserisci tutto nella ultima rotta
+				if(k<ng){
+					for(; k < ng ; k++){
+						customerChosen = chromosome.getGene(k);
+						customerChosenPtr = instance.getCustomer(customerChosen);
+						route.addCustomer(customerChosenPtr);
+					}
 					
 				}
 			}

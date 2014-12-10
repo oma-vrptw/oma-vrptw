@@ -4,13 +4,11 @@ import com.mdvrp.Route;
 
 public class Chromosome implements Comparable<Chromosome>{
 	private int[] genes;
-	private int numberOfGenes;	//error! it's the length of the array, including delimiters, not genes number only.
-	private final int delim;	//route delimiter in genes array 
+	private int numberOfGenes;
 	private MyGASolution solution;
 	private double fitness;
 	
 	Chromosome(int chromosomeDim) { 
-		delim = -1;	//set delimiter to -1
 		this.numberOfGenes = chromosomeDim;
 		genes = new int[chromosomeDim]; 
 	}
@@ -63,13 +61,6 @@ public class Chromosome implements Comparable<Chromosome>{
 			if(genes[i] == -1) System.out.print("] :::"+genes[i]+"::: [");
 			else System.out.print(" "+genes[i]+" ");
 		}
-	}
-	
-	/**
-	 * @return true if this element is a delimiter
-	 */
-	public boolean isDelimiter(int index){
-		return genes[index] == delim;
 	}
 
 	public void setSolution(MyGASolution sol) {

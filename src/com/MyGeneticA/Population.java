@@ -8,11 +8,16 @@ public class Population {
 	private Chromosome[] chromosomes;
 	private Instance instance;
 	private int dim;
+	private int currentDim;
+	
+	private Chromosome bestChromosome;
+	private int indexBestChromosome;
 	
 	Population(int populationDim, Instance instance) { 
 		chromosomes = new Chromosome[populationDim];
 		this.instance = instance;
 		this.dim = populationDim;
+		this.currentDim = 0;
 	}
 	
 	void setChromosome(int index, Chromosome c) { 
@@ -20,6 +25,13 @@ public class Population {
 		MyGASolution sol = new MyGASolution(c, instance);
 		c.setSolution(sol);
 		c.setFitness();
+		
+		if(currentDim == 0 || c.getFitness() < bestChromosome.getFitness()){
+			bestChromosome = c;
+			indexBestChromosome = index;
+		}
+		
+		currentDim++;
 	}
 	
 	Chromosome getChromosome(int index) { 
@@ -40,6 +52,15 @@ public class Population {
 	}
 	
 	public Chromosome getBestChromosome() {
+		return bestChromosome;
+	}
+	
+	public int getBestChromosomeIndex() {
+		return indexBestChromosome;
+	}
+	
+	/*
+	private Chromosome getBestChromosomeInternal() {
 		Chromosome best, c;
 		int j;
 		
@@ -57,8 +78,9 @@ public class Population {
 		
 		return best;
 	}
+	*/
 	
-	public int getBestChromosomeIndex() {
+	private int getBestChromosomeIndexInternal() {
 		Chromosome best, c;
 		int bestIndex, j;
 		
@@ -80,9 +102,16 @@ public class Population {
 		return bestIndex;
 	}
 
-	public void removeChromosome(int iDbestChr) {
+	public void removeChromosome(int index) {
 		// TODO Auto-generated method stub
-		chromosomes[iDbestChr] = null;
+		chromosomes[index] = null;
+		
+		if(indexBestChromosome == index){
+			indexBestChromosome = getBestChromosomeIndexInternal();
+			bestChromosome = chromosomes[indexBestChromosome];
+		}
+		
+		currentDim--;
 	}
 	
 	public boolean chromosomeIsValid(int index){
