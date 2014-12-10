@@ -21,30 +21,13 @@ public class Chromosome implements Comparable<Chromosome>{
 		k = 0;
 		for(int i =0; i < feasibleRoutes.length; i++){
 			for(int j=0; j < feasibleRoutes[i].length; j++){
-				if(feasibleRoutes[i][j].getCustomersLength() == 0){
-					//System.out.println("route: "+j+" empty");
-					setGene(k++, -1);
-					continue;
-					
-				}
-				
-				//System.out.println("route: "+j);
 				for(int z=0; z < feasibleRoutes[i][j].getCustomersLength(); z++, k++){
 					setGene(k, feasibleRoutes[i][j].getCustomerNr(z));
-					//System.out.print(feasibleRoutes[i][j].getCustomerNr(z)+" ");
 				}
-			
-				//end of a route
-				//overwrite last 0, its represent the depot. 
-				//our friend George BANEA uses the 0 to represent 
-				//either depot and first customer in a file. Very clever. xD
-				setGene(k++, -1);
-				//System.out.println();
 			}
 		}
 		
 		System.out.println("chromosome from TABU: "+this.toString());
-		//System.out.println("number of customers served: "+k);
 	}
 
 	public int getNumberOfGenes() {

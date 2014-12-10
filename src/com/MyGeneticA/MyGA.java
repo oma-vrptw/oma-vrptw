@@ -150,7 +150,7 @@ public class MyGA {
 	
 	private Chromosome[][] selectParents() {
 		
-		int numberOfParents = 4;
+		int numberOfParents = populationDim/2;
 		
 	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
 		Map<Integer,Boolean> map= new HashMap<>();
@@ -198,7 +198,7 @@ public class MyGA {
 		int selectedCrossover = rnd.nextInt(2);
 		
 		switch(selectedCrossover){
-			case 0: return crossover2pt(parents);
+			case 0: return crossover1pt(parents);
 					
 			case 1: return crossover2pt(parents);
 			
@@ -207,8 +207,59 @@ public class MyGA {
 	}
 
 	Chromosome[] crossover1pt(Chromosome[][] parents) { 
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 		
-		return null;
+		//calcolo del taglio
+		Random rnd = new Random();
+		int cut = rnd.nextInt(chromosomeDim);
+		
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
+		
+		//genero i figli
+		for(int i = 0; i < parents.length; i++){ 
+			for(int j = 0; j < 2; j++){ //j=0 genero primo figlio della "corrente" coppia, j=1 genero secondo figlio
+				children[k+j] = new Chromosome(chromosomeDim);
+				copyGenesInFrom(children[k+j], 0, cut, parents[i][j], 0, cut); //riempio la parte iniziale del figlio1 con la parte iniziale del genitore1
+				
+				 //optimization thing!!! faccio un cromosoma con soltanto la parte iniziale del figlio così 
+				//ogni volta che devo controllare se il gene del genitore è possibile inserirlo risparmio molto in termini di numero di iterazioni
+				Chromosome initialPart = new Chromosome(cut);
+				copyGenesInFrom(initialPart, 0, cut, children[k+j], 0, cut);
+				
+				int indexVal = cut; //indice relativo al figlio 
+				int remainingVals = (chromosomeDim-cut); //valori rimanenti da inserire nel figlio
+				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
+				int selectedGene = cut; //indice relativo al genitore
+				//il cuore della generazione del figlio (sala parto :D)
+				for(int z = 0; z < chromosomeDim; z++){
+					//è possibile inserire il gene del genitore nel figlio?!?!?
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), initialPart)){ 
+						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
+						indexVal = (indexVal+1) % chromosomeDim;
+						remainingVals --;
+						if(remainingVals == 0) break; //ho inserito l'ultimo gene nel figlio (è natoooooo :D)
+					}
+					selectedGene = (selectedGene+1) % chromosomeDim;
+				}
+			}
+			k += 2;
+		}
+
+		int newDim = deleteDuplicates(children);
+		if(childrenNum == newDim) return children;
+		else {
+			//System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < childrenNum; i++){
+				if(children[i] != null) {
+					childrenWithoutDuplicates[j] = children[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
 	}
 	
 	Chromosome[] crossover2pt(Chromosome[][] parents) { 
@@ -312,45 +363,43 @@ public class MyGA {
 			child.setChromosome(h, children[h]);}
 
 		//define the percentage of the best chromosomes of the old population that will be reinsert in the next new population
-		//int percentageChoose = (int)(0.2*populationDim);
-		int percentageChoose = Math.min((populationDim/10)*2, children.length); //because int IDbestChi = child.getBestChromosomeIndex();
-
+		int precentageChoose = (populationDim/10)*2;
+		
 		int c = 0;
 		int counter1 = 1;
 		int IDbestChr, IDbestChi;
-		/*creo un array contenente il totale dei cromosomi iniziali e dei figli generati*/
 
-		//select the best "percentageChoose" of old population and child chromosomes and insert them into the new next population
-		while(counter1 <= percentageChoose){
+		while(counter1 <= precentageChoose ){
 			IDbestChr = population.getBestChromosomeIndex();
-			IDbestChi = child.getBestChromosomeIndex();
 
 			p_new.setChromosome(c, population.getChromosome(IDbestChr));
-			//System.out.println("chromosome selected from parents at iteraation:"+counter1+" "+population.getChromosome(IDbestChr));
-			c++;
-			p_new.setChromosome(c, child.getChromosome(IDbestChi));
-			//System.out.println("chromosome selected at iteraation:"+counter1+" "+child.getChromosome(IDbestChi));
-
-			/*
-			population.setChromosome(IDbestChr, null);
-			child.setChromosome(IDbestChi, null);
-			 */
-
 			population.removeChromosome(IDbestChr);
-			child.removeChromosome(IDbestChi);
 
 			counter1++;
 			c++;
 		}
 
+		int counter2 = 1;
+		int min = Math.min(children.length, precentageChoose);
+
+		if(min!=0){
+
+			while(counter2 <= min){
+				IDbestChi = child.getBestChromosomeIndex();
+
+				p_new.setChromosome(c, child.getChromosome(IDbestChi));
+
+				child.removeChromosome(IDbestChi);
+
+				counter2++;
+				c++;} }
 		//create a new population whose dimension is the total between population dimension and number of children create
 
 		Population ArrayTotal = new Population (populationDim+children.length, instance);
 		Chromosome tmp;
 		//copy all the chromosomes into a temporary population --> all the chromosomes selected in the previous steps are equal to null
-		int index;
-		
-		index = 0;
+		int index=0;
+
 		for(int k=0; k < populationDim; k++){
 			tmp = population.getChromosome(k);
 			if(tmp != null){
@@ -367,15 +416,14 @@ public class MyGA {
 			}			
 		}
 
-		index = percentageChoose*2;
-		int postiDisponibili = populationDim - index;	
+		//int index1 =  precentageChoose ;
+		int postiDisponibili = populationDim - precentageChoose - min ;	
 
 		
 		double tmpFitness, bestFitness;
 		int ID = 0, random;
 		//selection of the remaining chromosomes that will define the next new population
 		for(int l=0; l<postiDisponibili; l++){
-			
 			
 			Random rnd = new Random();
 			//select 3 chromosomes from the total population and put the best into the next new population
@@ -395,15 +443,12 @@ public class MyGA {
 					cycle++;
 				}
 				
-				
 			} //end inner "for"		
-
 			
-			
-			p_new.setChromosome(index, ArrayTotal.getChromosome(ID));
+			p_new.setChromosome(c, ArrayTotal.getChromosome(ID));
 			ArrayTotal.removeChromosome(ID);
 			
-			index++;
+			c++;
 		} //end outer "for"
 
 		//create the next new population
