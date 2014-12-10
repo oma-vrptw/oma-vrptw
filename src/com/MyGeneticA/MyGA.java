@@ -119,11 +119,17 @@ public class MyGA {
 		// e messo in una posizione casuale
 		population.setChromosome(randIndex, generator.GenerateChromosome());
 		
+		MySolution initialSol = new MySolution(instance);
+		
+		Chromosome c = new Chromosome(initialSol.getRoutes(), chromosomeDim);
+		
+		population.setChromosome(randIndex+1, c);
+		
 		// Tutti gli altri sono randomici
 		for (int i = 0; i < randIndex; i++)
 			GenerateRandomChromosome(i);
 		
-		for (int j = populationDim-1; j > randIndex; j--)
+		for (int j = populationDim-1; j > randIndex+1; j--)
 			GenerateRandomChromosome(j);
 		
 		//test code (stub)
