@@ -32,6 +32,7 @@ public class MyGA {
 		
 		int routeCapacity = 0;
 		int usedRoutes = 0;
+		double totalCapacity = instance.getCapacity(0, 0);
 
 		int customerChosen;
 		
@@ -46,17 +47,20 @@ public class MyGA {
         for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
         {
         	//start building new route
-        	
         	Random random = new Random();
+        	
         	//retrieve a number between (0 .. CustomersNr-1)
         	int startCustomer = random.nextInt(instance.getCustomersNr());
         	int assignedCustomersNr = instance.getCustomersNr();
+        	
         	//try to fill a new route
         	//for(int j = 0; j < instance.getCustomersNr() && !endOfRoute; j++){
-        	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j){
+        	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j)
+        	{
         		customerChosen = j % assignedCustomersNr;
         		
-        		if(usedCustomer[customerChosen] == true || routeCapacity+(int)instance.getCapacity(customerChosen) > 200){
+        		if(usedCustomer[customerChosen] == true || routeCapacity + (int)instance.getCapacity(customerChosen) > totalCapacity)
+        		{
         			//skip to next customer, this was considered yet	
         			continue;
         		}
@@ -73,9 +77,9 @@ public class MyGA {
         	
         	//se non è l'ultima rotta
         	if(usedRoutes < instance.getVehiclesNr()){
-            	c.setGene(iGene, -1);
+            	//c.setGene(iGene, -1);
         		routeCapacity = 0;
-        		iGene++;
+        		//iGene++;
         	}
         }
         
@@ -93,7 +97,7 @@ public class MyGA {
         	}
     	}
         
-        c.setGene(iGene, -1);
+        //c.setGene(iGene, -1);
         //lasciato per compatibilità, cit. roberto
 		usedRoutes++;
 		routeCapacity = 0;
@@ -101,7 +105,8 @@ public class MyGA {
         population.setChromosome(i, c);
 	}
 	
-	public void initPopulation() {
+	public void initPopulation() 
+	{
 		
 		MyCW generator = new MyCW(chromosomeDim, instance);
 		Random r = new Random();
@@ -122,10 +127,8 @@ public class MyGA {
 			GenerateRandomChromosome(j);
 		
 		//test code (stub)
-		//System.out.println("[[[INIT_POPULATION]]]");
-		//population.printPopulation();
-		
-		
+		System.out.println("[[[INIT_POPULATION]]]");
+		population.printPopulation();
 		
 	}
 	/*
