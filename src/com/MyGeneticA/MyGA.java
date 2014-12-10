@@ -150,7 +150,7 @@ public class MyGA {
 	
 	private Chromosome[][] selectParents() {
 		
-		int numberOfParents = 4;
+		int numberOfParents = populationDim/2;
 		
 	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
 		Map<Integer,Boolean> map= new HashMap<>();
@@ -198,7 +198,7 @@ public class MyGA {
 		int selectedCrossover = rnd.nextInt(2);
 		
 		switch(selectedCrossover){
-			case 0: return crossover2pt(parents);
+			case 0: return crossover1pt(parents);
 					
 			case 1: return crossover2pt(parents);
 			
@@ -427,7 +427,6 @@ public class MyGA {
 		//selection of the remaining chromosomes that will define the next new population
 		for(int l=0; l<postiDisponibili; l++){
 			
-			
 			Random rnd = new Random();
 			//select 3 chromosomes from the total population and put the best into the next new population
 			
@@ -446,11 +445,8 @@ public class MyGA {
 					cycle++;
 				}
 				
-				
 			} //end inner "for"		
 
-			
-			
 			p_new.setChromosome(index, ArrayTotal.getChromosome(ID));
 			ArrayTotal.removeChromosome(ID);
 			

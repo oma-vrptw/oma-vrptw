@@ -55,7 +55,7 @@ public class VRPTW_main {
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr();
-			int populationDim = 50;
+			int populationDim = 100;
 			int NBestSolution, countBestSolution;
 			
 			MySolution BestGASolutions[];
@@ -72,8 +72,10 @@ public class VRPTW_main {
 			iter = 3;
 			NBestSolution = 3;
 			
+			double bestSolutionFound = Double.MAX_VALUE;
+			
 			count = 0;
-			while(count < iter*NBestSolution){
+			while(count < iter){
 				myGA.evolve();
 
 				//population.printPopulation();
@@ -108,6 +110,9 @@ public class VRPTW_main {
 									instance.getParameters().getInputFileName(), search.feasibleCost.total,
 									duration.getSeconds(), routesNr);
 					System.out.println(outSol);
+					
+					if(bestSolutionFound > search.feasibleCost.total) bestSolutionFound = search.feasibleCost.total;
+					
 					FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 					fw.write(outSol);
 					fw.close();
@@ -118,6 +123,9 @@ public class VRPTW_main {
 
 				count++;
 			}
+			
+			System.out.println("The best found solution is: "+bestSolutionFound);
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
