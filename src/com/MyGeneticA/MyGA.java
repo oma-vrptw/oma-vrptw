@@ -32,6 +32,7 @@ public class MyGA {
 		
 		int routeCapacity = 0;
 		int usedRoutes = 0;
+		double totalCapacity = instance.getCapacity(0, 0);
 
 		int customerChosen;
 		
@@ -46,17 +47,20 @@ public class MyGA {
         for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
         {
         	//start building new route
-        	
         	Random random = new Random();
+        	
         	//retrieve a number between (0 .. CustomersNr-1)
         	int startCustomer = random.nextInt(instance.getCustomersNr());
         	int assignedCustomersNr = instance.getCustomersNr();
+        	
         	//try to fill a new route
         	//for(int j = 0; j < instance.getCustomersNr() && !endOfRoute; j++){
-        	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j){
+        	for(int j = startCustomer; j < assignedCustomersNr + startCustomer; ++j)
+        	{
         		customerChosen = j % assignedCustomersNr;
         		
-        		if(usedCustomer[customerChosen] == true || routeCapacity+(int)instance.getCapacity(customerChosen) > 200){
+        		if(usedCustomer[customerChosen] == true || routeCapacity + (int)instance.getCapacity(customerChosen) > totalCapacity)
+        		{
         			//skip to next customer, this was considered yet	
         			continue;
         		}
@@ -73,9 +77,9 @@ public class MyGA {
         	
         	//se non è l'ultima rotta
         	if(usedRoutes < instance.getVehiclesNr()){
-            	c.setGene(iGene, -1);
+            	//c.setGene(iGene, -1);
         		routeCapacity = 0;
-        		iGene++;
+        		//iGene++;
         	}
         }
         
@@ -93,7 +97,7 @@ public class MyGA {
         	}
     	}
         
-        c.setGene(iGene, -1);
+        //c.setGene(iGene, -1);
         //lasciato per compatibilità, cit. roberto
 		usedRoutes++;
 		routeCapacity = 0;
@@ -101,7 +105,8 @@ public class MyGA {
         population.setChromosome(i, c);
 	}
 	
-	public void initPopulation() {
+	public void initPopulation() 
+	{
 		
 		MyCW generator = new MyCW(chromosomeDim, instance);
 		Random r = new Random();
@@ -122,10 +127,10 @@ public class MyGA {
 			GenerateRandomChromosome(j);
 		
 		//test code (stub)
+
 		//System.out.println("[[[INIT_POPULATION]]]");
 		//population.printPopulation();
-		
-		
+
 		
 	}
 	/*
@@ -188,13 +193,34 @@ public class MyGA {
 	}
 	
 	Chromosome[] crossover(Chromosome[][] parents) { 
+		Random rnd = new Random();
+		
+		int selectedCrossover = rnd.nextInt(2);
+		
+		switch(selectedCrossover){
+			case 0: return crossover2pt(parents);
+					
+			case 1: return crossover2pt(parents);
+			
+			default: return crossover2pt(parents);
+		}
+	}
+
+	Chromosome[] crossover1pt(Chromosome[][] parents) { 
+		
+		return null;
+	}
+	
+	Chromosome[] crossover2pt(Chromosome[][] parents) { 
 		
 		int childrenNum = parents.length*2;
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 		
 		//calcolo dei tagli
-		int firstCut = (chromosomeDim/3);
-		int secondCut = ((chromosomeDim*2)/3);
+		Random rnd = new Random();
+		int firstCut = rnd.nextInt(chromosomeDim/2);
+		int secondCut = rnd.nextInt(chromosomeDim/2) + (chromosomeDim/2);
+		
 		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
 		
 		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
@@ -211,7 +237,6 @@ public class MyGA {
 				Chromosome centralPart = new Chromosome(centralPartDim);
 				copyGenesInFrom(centralPart, 0, centralPartDim, children[k+j], firstCut, secondCut);
 				
-				int nRoutes = children[k+j].getNumRoutes();
 				int indexVal = secondCut; //indice relativo al figlio 
 				int remainingVals = (chromosomeDim-centralPartDim); //valori rimanenti da inserire nel figlio
 				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
@@ -219,8 +244,7 @@ public class MyGA {
 				//il cuore della generazione del figlio (sala parto :D)
 				for(int z = 0; z < chromosomeDim; z++){
 					//è possibile inserire il gene del genitore nel figlio?!?!?
-					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart) || (parents[i][selectedParent].getGene(selectedGene) == -1 && nRoutes < instance.getVehiclesNr())){ 
-						if(parents[i][selectedParent].getGene(selectedGene) == -1) nRoutes ++;
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart)){ 
 						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
 						indexVal = (indexVal+1) % chromosomeDim;
 						remainingVals --;

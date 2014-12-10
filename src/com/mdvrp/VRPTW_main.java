@@ -54,7 +54,7 @@ public class VRPTW_main {
 			 * and routes delimiters (=vehicles number)
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
-			int chromosomeDim = instance.getCustomersNr()+instance.getVehiclesNr();
+			int chromosomeDim = instance.getCustomersNr();
 			int populationDim = 50;
 			int NBestSolution, countBestSolution;
 			
