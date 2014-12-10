@@ -108,10 +108,10 @@ public class VRPTW_main {
 									instance.getParameters().getInputFileName(), search.feasibleCost.total,
 									duration.getSeconds(), routesNr);
 					System.out.println(outSol);
-					FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
+					/*FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 					fw.write(outSol);
 					fw.close();
-					
+					*/
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
 					countBestSolution++;
 				}
