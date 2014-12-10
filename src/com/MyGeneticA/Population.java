@@ -106,12 +106,18 @@ public class Population {
 		// TODO Auto-generated method stub
 		chromosomes[index] = null;
 		
+		currentDim--;
+		
+		if(currentDim == 0){
+			indexBestChromosome = -1;
+			bestChromosome = null;
+			return;
+		}
+		
 		if(indexBestChromosome == index){
 			indexBestChromosome = getBestChromosomeIndexInternal();
 			bestChromosome = chromosomes[indexBestChromosome];
 		}
-		
-		currentDim--;
 	}
 	
 	public boolean chromosomeIsValid(int index){

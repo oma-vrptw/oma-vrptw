@@ -207,8 +207,59 @@ public class MyGA {
 	}
 
 	Chromosome[] crossover1pt(Chromosome[][] parents) { 
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 		
-		return null;
+		//calcolo del taglio
+		Random rnd = new Random();
+		int cut = rnd.nextInt(chromosomeDim);
+		
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
+		
+		//genero i figli
+		for(int i = 0; i < parents.length; i++){ 
+			for(int j = 0; j < 2; j++){ //j=0 genero primo figlio della "corrente" coppia, j=1 genero secondo figlio
+				children[k+j] = new Chromosome(chromosomeDim);
+				copyGenesInFrom(children[k+j], 0, cut, parents[i][j], 0, cut); //riempio la parte iniziale del figlio1 con la parte iniziale del genitore1
+				
+				 //optimization thing!!! faccio un cromosoma con soltanto la parte iniziale del figlio così 
+				//ogni volta che devo controllare se il gene del genitore è possibile inserirlo risparmio molto in termini di numero di iterazioni
+				Chromosome initialPart = new Chromosome(cut);
+				copyGenesInFrom(initialPart, 0, cut, children[k+j], 0, cut);
+				
+				int indexVal = cut; //indice relativo al figlio 
+				int remainingVals = (chromosomeDim-cut); //valori rimanenti da inserire nel figlio
+				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
+				int selectedGene = cut; //indice relativo al genitore
+				//il cuore della generazione del figlio (sala parto :D)
+				for(int z = 0; z < chromosomeDim; z++){
+					//è possibile inserire il gene del genitore nel figlio?!?!?
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), initialPart)){ 
+						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
+						indexVal = (indexVal+1) % chromosomeDim;
+						remainingVals --;
+						if(remainingVals == 0) break; //ho inserito l'ultimo gene nel figlio (è natoooooo :D)
+					}
+					selectedGene = (selectedGene+1) % chromosomeDim;
+				}
+			}
+			k += 2;
+		}
+
+		int newDim = deleteDuplicates(children);
+		if(childrenNum == newDim) return children;
+		else {
+			//System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < childrenNum; i++){
+				if(children[i] != null) {
+					childrenWithoutDuplicates[j] = children[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
 	}
 	
 	Chromosome[] crossover2pt(Chromosome[][] parents) { 
