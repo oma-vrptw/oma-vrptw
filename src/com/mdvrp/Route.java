@@ -29,7 +29,7 @@ public class Route {
 		for (int i = 0; i < route.customers.size(); ++i) {
 			this.customers.add(new Customer(route.getCustomer(i)));
 		}
-	}
+	}	
 	
 	public double getDuration() {
 		return cost.serviceTime + cost.waitingTime;

@@ -36,7 +36,7 @@ public class Chromosome implements Comparable<Chromosome>{
 	
 	void setGene(int index, int value) { genes[index] = value; }
 	
-	int getGene(int index) { return genes[index]; }
+	public int getGene(int index) { return genes[index]; }
 	
 	public void print() {
 		System.out.print("[");

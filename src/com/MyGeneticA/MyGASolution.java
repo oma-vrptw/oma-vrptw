@@ -18,9 +18,11 @@ import com.TabuSearch.MySolution;
 @SuppressWarnings("serial")
 public class MyGASolution extends MySolution{
 	Chromosome chromosome;
+	MyGAObjectiveFunction objectiveFunction;
 	
 	public MyGASolution(Chromosome ch, Instance instance) {
 		// TODO Auto-generated constructor stub
+		objectiveFunction = new MyGAObjectiveFunction(instance);
 		MySolution.setInstance(instance);
 		cost = new Cost();
 		initializeRoutes(instance);
@@ -58,17 +60,28 @@ public class MyGASolution extends MySolution{
 				//at each iteration create a new route (new vehicle)
 			route = routes[i][j]; //first route
 			//fin quando ci sono geni e veicoli disponibili
-				for(k = 0; k < ng && j < instance.getVehiclesNr()-1; k++){
+			
+			//inserisci il primo nella prima rotta
+			k=0;
+			customerChosen = chromosome.getGene(k);
+			customerChosenPtr = instance.getCustomer(customerChosen);
+			route.addCustomer(customerChosenPtr);
+			evaluateRoute(route);
+			
+				for(k = 1; k < ng && j < instance.getVehiclesNr()-1; k++){
 					//fill a route according to chromosome
 					//get the customer pointed by chromosome[k]
 					customerChosen = chromosome.getGene(k);
 					customerChosenPtr = instance.getCustomer(customerChosen);
-					if(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()){
+					if(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
+						&& route.getCost().travelTime + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()){
 						route.addCustomer(customerChosenPtr);
+						evaluateRoute(route);
 					}else{
 						j++;
 						route = routes[i][j];
 						route.addCustomer(customerChosenPtr);
+						evaluateRoute(route);
 					}
 				}
 				
@@ -78,6 +91,7 @@ public class MyGASolution extends MySolution{
 						customerChosen = chromosome.getGene(k);
 						customerChosenPtr = instance.getCustomer(customerChosen);
 						route.addCustomer(customerChosenPtr);
+						evaluateRoute(route);
 					}
 					
 				}
@@ -95,7 +109,7 @@ public class MyGASolution extends MySolution{
 	public double getFitness() {
 		//this function build and evaluate routes 
 		buildRoutes();
-		MyGAObjectiveFunction objectiveFunction = new MyGAObjectiveFunction(instance);
+		
 		return objectiveFunction.evaluateAbsolutely(this);
 	}
 	

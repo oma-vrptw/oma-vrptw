@@ -63,7 +63,9 @@ public class VRPTW_main {
 			// Init data for Genetic Algorithm
 			myGA = new MyGA(chromosomeDim, 
 					populationDim,
-					instance);
+					instance, 
+					50, 
+					true);
 
 
 			myGA.initPopulation();
@@ -119,6 +121,7 @@ public class VRPTW_main {
 					fw.write(outSol);
 					fw.close();
 
+					
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
 					countBestSolution++;
 				}

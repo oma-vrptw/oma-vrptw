@@ -2,9 +2,16 @@ package com.MyGeneticA;
 
 import java.util.*;
 
+import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
+
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
+import com.softtechdesign.ga.ChromChars;
+import com.softtechdesign.ga.ChromFloat;
+import com.softtechdesign.ga.ChromStrings;
+import com.softtechdesign.ga.GAFloat;
+import com.softtechdesign.ga.GAString;
 
 
 public class MyGA {
@@ -13,13 +20,34 @@ public class MyGA {
 	private int chromosomeDim;
 	private Instance instance;
 	
+	 /** statistics--average deviation of current generation */
+    double[] genAvgDeviation; 
+    
+    /** statistics--average fitness of current generation */
+    double[] genAvgFitness;
+	private int maxGenerations;
 	
-	public MyGA(int chromosomeDim, int populationDim, Instance instance) { 
+	private int crossoverProb;
+	private boolean computeStatistics; 
+	
+	/**
+     * Initializes the GA using given parameters
+     * @param chromosomeDim
+     * @param populationDim
+     * @param instance
+     * @param maxGenerations
+     */
+	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
 		
 		this.population = new Population(populationDim, instance);
+		
+		this.maxGenerations = maxGenerations;
+		this.genAvgDeviation = new double[maxGenerations];
+        this.genAvgFitness = new double[maxGenerations];
+        this.computeStatistics = computeStatistics;
 	}
 	
 	private void GenerateRandomChromosome(int i)
@@ -481,14 +509,24 @@ public class MyGA {
 
 
 	public void evolve() {
-		int count;
-		int iteration = 50;
+		int iGen;
 
 		
 
-		count = 0;
+		iGen = 0;
 		do{
-
+			doGeneticMating();
+			if (computeStatistics == true)
+            {
+                this.genAvgDeviation[iGen] = getAvgDeviationAmongChroms();
+                this.genAvgFitness[iGen] = getAvgFitness();
+                
+                System.out.println("avg deviation generation: "+iGen+"  = "+genAvgDeviation[iGen]);
+                System.out.println("genAvgFitness: "+iGen+"  = "+genAvgFitness[iGen]);
+            }
+			iGen++;
+			
+			/*
 			Chromosome[][] selection = selectParents();
 
 
@@ -496,7 +534,7 @@ public class MyGA {
 
 
 			Chromosome[] result = crossover(selection);
-			/*
+
 			System.out.println("result.length: "+result.length);
 			
 			for(int i = 0; i < result.length; i++){
@@ -504,10 +542,10 @@ public class MyGA {
 				result[i].print();
 				System.out.println();
 			}
-*/
+
 			generateNewPopulation(result);
 
-			/*if((count % 20) == 0){
+			if((count % 20) == 0){
 				
 				
 				
@@ -523,8 +561,8 @@ public class MyGA {
 				}
 			}*/
 
-			count++;
-		}while(count < iteration);
+			
+		}while(iGen < maxGenerations);
 
 	}
 	
@@ -532,11 +570,13 @@ public class MyGA {
 	
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
 		Chromosome c;
-		
+		Route[] r;
 		//build a chromosome from a route 
 		c = new Chromosome(feasibleRoutes, chromosomeDim);
-			
+		
+		
 		population.swapChromosome(c, population.getWorstChromosomeIndex());
+		System.out.println("Fitness del nuovo inserito = "+c.getFitness());	
 		
 	}
 
@@ -556,4 +596,95 @@ public class MyGA {
 
 		return (MySolution[])solution;
 	}
+	
+	/**
+     * Go through all chromosomes and calculate the average fitness (of this generation)
+     * @return double
+     */
+    public double getAvgFitness()
+    {
+        double rSumFitness = 0.0;
+
+        for (int i = 0; i < populationDim; i++)
+            rSumFitness += this.population.getChromosome(i).getFitness();
+        return (rSumFitness / populationDim);
+    }
+    
+    /**
+     * Get the average deviation from the current population of chromosomes. The smaller this
+     * deviation, the higher the convergence is to a particular (but not necessarily optimal)
+     * solution. It calculates this deviation by determining how many genes in the populuation
+     * are different than the bestFitGenes. The more genes which are "different", the higher
+     * the deviation.
+     * @return
+     */
+    protected double getAvgDeviationAmongChroms()
+    {
+        int devCnt = 0;
+        for (int iGene = 0; iGene < this.chromosomeDim; iGene++)
+        {
+                int bestFitGene =
+                    this.population.getBestChromosome().getGene(iGene);
+                for (int i = 0; i < populationDim; i++)
+                {
+                    double thisGene = this.population.getChromosome(i).getGene(iGene);
+                    if (thisGene != bestFitGene)
+                        devCnt++;
+                }
+          
+        }
+
+        return ((double)devCnt);
+    }
+    
+    /**
+     * Gets the average deviation of the given generation of chromosomes
+     * @param iGeneration
+     * @return
+     */
+    public double getAvgDeviation(int iGeneration)
+    {
+        return (this.genAvgDeviation[iGeneration]);
+    }
+
+    /**
+     * Gets the average fitness of the given generation of chromosomes
+     * @param iGeneration
+     * @return
+     */
+    public double getAvgFitness(int iGeneration)
+    {
+        return (this.genAvgFitness[iGeneration]);
+    }
+    
+    void doGeneticMating()
+    {
+    	Chromosome[] result ;
+    	Chromosome[][] selection = selectParents();
+
+				
+		int selectedCrossover = getRandom(2);
+		switch(selectedCrossover){
+			case 0: 
+				result = crossover1pt(selection);
+				break;
+					
+			case 1: 
+				result = crossover2pt(selection);
+				break;
+			
+			default: 
+				result = crossover2pt(selection);
+		}
+		
+		generateNewPopulation(result);
+
+    }
+    
+    int getRandom(int upperBound)
+    {
+        int iRandom = (int) (Math.random() * upperBound);
+        return (iRandom);
+    }
+
 }
