@@ -183,48 +183,57 @@ public class MyGA {
 	}*/
 
 	private Chromosome[][] selectParents() {
-
-		int numberOfParents = populationDim/4;
-
-		Chromosome[][] parents= new Chromosome[numberOfParents][2];
-		Map<Integer,Boolean> map= new HashMap<>();
-
-		//riempimento iniziale mappa a true
-
-		for(int j=0; j < populationDim; j++){
-
-			map.put(j,true);
-		}
-		Random R= new Random();	
-		int R1 = 0;
-		int R2 = 0;
+		
+		int numberOfParents = populationDim/4, R1 = 0, R2 = 0;;
+		
+	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
+		Map<Integer,Boolean> map = new HashMap<>();
 		boolean flag1=false, flag2=false;
 
-		//scelta dei ficcaioli
-		for(int i=0; i < numberOfParents; i++){
+		Random R= new Random();	
+    	
+	    //riempimento iniziale mappa a true
+	    for(int i=0; i < numberOfParents; i++)
+	    	map.put(i,true);
+    	
+    	population.sort();
+    	
+        for(int i=0; i < numberOfParents/2; i++)
+        {	   	
+        	parents[i][0] = population.getChromosome(i);
+        	parents[i][1] = population.getChromosome(i+1);
+        	
+        	map.replace(i,false);
+        	map.replace(i+1,false);
+        }
+        
+        for(int i=numberOfParents/2; i < numberOfParents; i++)
+        {
 
-			for(;;)
-			{
-				if(!flag1) R1=R.nextInt(populationDim);
-				if(!flag2) R2=R.nextInt(populationDim);
-
-				if(map.get(R1)) flag1 = true;
-				if(map.get(R2)) flag2 = true;
-
-				if(flag1 && flag2) break;
-			}
-
-			parents[i][0] = population.getChromosome(R1);
-			parents[i][1] = population.getChromosome(R2);
-
-			//inserisco i due ficcaioli in una mappa per evitare di riprenderli per un seccessivo ficcaggio
-			map.replace(R1,false);
-			map.replace(R2,false);
-
-		} 
-
-		return parents;
+        	while(true)
+            {
+            	if(!flag1) R1=R.nextInt(map.size());
+            	if(!flag2) R2=R.nextInt(map.size());
+            		
+            	if(map.get(R1)) flag1 = true;
+            	if(map.get(R2) && R2!=R1) flag2 = true;
+            		
+            	if(flag1 && flag2) break;
+            }
+            	
+            parents[i][0] = population.getChromosome(R1);
+            parents[i][1] = population.getChromosome(R2);
+            	
+            //inserisco i due ficcaioli in una mappa per evitare di riprenderli per un seccessivo ficcaggio
+            map.replace(R1,false);
+            map.replace(R2,false);
+              
+        }             
+	
+        return parents;
 	}
+		
+
 
 	Chromosome[] crossover(Chromosome[][] parents) { 
 		Random rnd = new Random();

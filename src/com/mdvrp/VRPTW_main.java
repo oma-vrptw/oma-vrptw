@@ -23,7 +23,7 @@ public class VRPTW_main {
 		Duration            duration 		= new Duration(); 		// used to calculate the elapsed time
 		PrintStream         outPrintSream 	= null;					// used to redirect the output
 		int count, iter;
-
+		int bestRoutesNr;
 
 		try {			
 			// check to see if an input file was specified
@@ -76,10 +76,10 @@ public class VRPTW_main {
 			NBestSolution = 3;
 			
 			double bestSolutionFound = Double.MAX_VALUE;
-			
+			bestRoutesNr = 0;
 			count = 0;
 			while(count < iter){
-				myGA.evolve2();
+				myGA.evolve();
 
 				//population.printPopulation();
 
@@ -115,12 +115,10 @@ public class VRPTW_main {
 					System.out.println(outSol);
 
 					
-					if(bestSolutionFound > search.feasibleCost.total) bestSolutionFound = search.feasibleCost.total;
-					
-					FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
-
-					fw.write(outSol);
-					fw.close();
+					if(bestSolutionFound > search.feasibleCost.total){
+						bestSolutionFound = search.feasibleCost.total;
+						bestRoutesNr = routesNr;
+					}
 
 					
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
@@ -130,7 +128,17 @@ public class VRPTW_main {
 				count++;
 			}
 			
-			System.out.println("The best found solution is: "+bestSolutionFound);
+			 String outSol = String.format(
+		        		"\nInstance file: %s\n"
+		        		+ "Total cost: %5.2f\n"
+		        		+ "Execution time: %d sec\n"
+		        		+ "Number of routes: %4d\n",
+		        		instance.getParameters().getInputFileName(), bestSolutionFound,
+		            	duration.getSeconds(), bestRoutesNr);
+		        System.out.println(outSol);
+		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
+		        fw.write(outSol);
+		        fw.close();
 			
 			
 		} catch (Exception e) {
