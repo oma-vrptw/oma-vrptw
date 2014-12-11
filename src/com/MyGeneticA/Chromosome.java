@@ -7,6 +7,7 @@ public class Chromosome implements Comparable<Chromosome>{
 	private int numberOfGenes;
 	private MyGASolution solution;
 	private double fitness;
+	private int routesNumber;
 	
 	Chromosome(int chromosomeDim) { 
 		this.numberOfGenes = chromosomeDim;
@@ -102,6 +103,14 @@ public class Chromosome implements Comparable<Chromosome>{
 			if(this.genes[i] != c.genes[i]) return false;
 		}
 		return true;
+	}
+
+	public void setRoutesNumber(int k) {
+		this.routesNumber = k;
+	}
+	
+	public int getRoutesNumber(){
+		return routesNumber;
 	}
 	
 }

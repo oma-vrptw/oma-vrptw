@@ -2,16 +2,9 @@ package com.MyGeneticA;
 
 import java.util.*;
 
-import javax.swing.plaf.basic.BasicInternalFrameTitlePane.MaximizeAction;
-
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
-import com.softtechdesign.ga.ChromChars;
-import com.softtechdesign.ga.ChromFloat;
-import com.softtechdesign.ga.ChromStrings;
-import com.softtechdesign.ga.GAFloat;
-import com.softtechdesign.ga.GAString;
 
 
 public class MyGA {
@@ -152,7 +145,7 @@ public class MyGA {
 		Chromosome c = new Chromosome(initialSol.getRoutes(), chromosomeDim);
 		
 		population.setChromosome((randIndex+1)%populationDim, c);
-		
+		System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
 		// Tutti gli altri sono randomici
 		for (int i = 0; i < randIndex; i++)
 			GenerateRandomChromosome(i);
@@ -663,14 +656,12 @@ public class MyGA {
 	
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
 		Chromosome c;
-		Route[] r;
 		//build a chromosome from a route 
 		c = new Chromosome(feasibleRoutes, chromosomeDim);
 		
 		
 		population.swapChromosome(c, population.getWorstChromosomeIndex());
-		System.out.println("Fitness del nuovo inserito = "+c.getFitness());	
-		
+		System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
 	}
 
 	public MySolution[] getNBestSolution(int n) {

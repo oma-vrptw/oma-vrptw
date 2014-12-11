@@ -131,6 +131,7 @@ public class VRPTW_main {
 			
 			System.out.println("The best found solution is: "+bestSolutionFound);
 			
+			
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
