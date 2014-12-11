@@ -507,8 +507,6 @@ public class MyGA {
 			population.setChromosome(n, p_new.getChromosome(n));
 		}
 	}
-
-	
 		
     void swapMutation(Population P) {
     
@@ -546,9 +544,6 @@ public class MyGA {
 	
 	}
 	
-    
-    
-    
 	public MySolution getBestSolution(){
 		Chromosome best;
 		MyGASolution bestSolution;
@@ -569,8 +564,6 @@ public class MyGA {
 	public void evolve() {
 		int count;
 		int iteration = 1;
-
-		
 
 		count = 0;
 		do{
@@ -613,8 +606,6 @@ public class MyGA {
 		}while(count < iteration);
 
 	}
-	
-	
 	
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
 		Chromosome c;
