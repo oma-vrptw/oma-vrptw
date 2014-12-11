@@ -123,7 +123,7 @@ public class MyGA {
 		
 		Chromosome c = new Chromosome(initialSol.getRoutes(), chromosomeDim);
 		
-		population.setChromosome(randIndex+1, c);
+		population.setChromosome((randIndex+1)%populationDim, c);
 		
 		// Tutti gli altri sono randomici
 		for (int i = 0; i < randIndex; i++)
@@ -156,7 +156,7 @@ public class MyGA {
 	
 	private Chromosome[][] selectParents() {
 		
-		int numberOfParents = populationDim/2;
+		int numberOfParents = populationDim/4;
 		
 	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
 		Map<Integer,Boolean> map= new HashMap<>();
@@ -201,14 +201,16 @@ public class MyGA {
 	Chromosome[] crossover(Chromosome[][] parents) { 
 		Random rnd = new Random();
 		
-		int selectedCrossover = rnd.nextInt(2);
+		int selectedCrossover = rnd.nextInt(3);
 		
 		switch(selectedCrossover){
 			case 0: return crossover1pt(parents);
 					
 			case 1: return crossover2pt(parents);
 			
-			default: return crossover2pt(parents);
+			case 2: return crossoverUniform(parents);
+			
+			default: return crossoverUniform(parents);
 		}
 	}
 
@@ -240,7 +242,7 @@ public class MyGA {
 				//il cuore della generazione del figlio (sala parto :D)
 				for(int z = 0; z < chromosomeDim; z++){
 					//è possibile inserire il gene del genitore nel figlio?!?!?
-					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), initialPart)){ 
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), initialPart, cut)){ 
 						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
 						indexVal = (indexVal+1) % chromosomeDim;
 						remainingVals --;
@@ -301,7 +303,7 @@ public class MyGA {
 				//il cuore della generazione del figlio (sala parto :D)
 				for(int z = 0; z < chromosomeDim; z++){
 					//è possibile inserire il gene del genitore nel figlio?!?!?
-					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart)){ 
+					if(!geneIsPresent(parents[i][selectedParent].getGene(selectedGene), centralPart, centralPartDim)){ 
 						children[k+j].setGene(indexVal, parents[i][selectedParent].getGene(selectedGene));
 						indexVal = (indexVal+1) % chromosomeDim;
 						remainingVals --;
@@ -329,14 +331,56 @@ public class MyGA {
 		}
 	}
 	
+	Chromosome[] crossoverUniform(Chromosome[][] parents) { 
+		
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
+		
+		Random rnd = new Random();
+		
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
+		
+		for(int i = 0; i < parents.length; i++){
+			children[k] = new Chromosome(chromosomeDim);
+			children[k+1] = new Chromosome(chromosomeDim);
+			for(int j = 0; j < chromosomeDim; j++){
+				int tmp = rnd.nextInt(2); //0 or 1
+				
+				if(!geneIsPresent(parents[i][tmp].getGene(j), children[k], j) && !geneIsPresent(parents[i][(tmp+1)%2].getGene(j), children[k+1], j)){ 
+					children[k].setGene(j, parents[i][tmp].getGene(j));
+					children[k+1].setGene(j, parents[i][(tmp+1)%2].getGene(j)); 
+				}else{
+					children[k].setGene(j, parents[i][(tmp+1)%2].getGene(j));
+					children[k+1].setGene(j, parents[i][tmp].getGene(j)); 
+				}
+			}
+			k += 2;
+		}
+		
+		int newDim = deleteDuplicates(children);
+		if(childrenNum == newDim) return children;
+		else {
+			//System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < childrenNum; i++){
+				if(children[i] != null) {
+					childrenWithoutDuplicates[j] = children[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
+	}
+
 	void copyGenesInFrom(Chromosome dest, int init_d, int end_d, Chromosome src, int init_s, int end_s){
 		for(int i = init_d, j = init_s; i < end_d; i++, j++){
 			dest.setGene(i, src.getGene(j));
 		}
 	}
 	
-	boolean geneIsPresent(int gene, Chromosome c){
-		for(int i = 0; i < c.getNumberOfGenes(); i++){
+	boolean geneIsPresent(int gene, Chromosome c, int cDim){
+		for(int i = 0; i < cDim; i++){
 			if(c.getGene(i) == gene) return true;
 		}
 		return false;
@@ -482,7 +526,7 @@ public class MyGA {
 
 	public void evolve() {
 		int count;
-		int iteration = 50;
+		int iteration = 1;
 
 		
 
@@ -491,20 +535,20 @@ public class MyGA {
 
 			Chromosome[][] selection = selectParents();
 
-
-			//System.out.println("[[[CROSSOVER]]]");
-
-
+			/*population.printPopulation();
+			System.out.println("[[[CROSSOVER]]]");
+			*/
+			
 			Chromosome[] result = crossover(selection);
-			/*
-			System.out.println("result.length: "+result.length);
+			
+			/*System.out.println("result.length: "+result.length);
 			
 			for(int i = 0; i < result.length; i++){
 				System.out.print("Child["+i+"]: ");
 				result[i].print();
 				System.out.println();
-			}
-*/
+			}*/
+
 			generateNewPopulation(result);
 
 			/*if((count % 20) == 0){
