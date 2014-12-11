@@ -426,6 +426,7 @@ public class MyGA {
 		int postiDisponibili = populationDim - precentageChoose - min ;	
 
 		
+		
 		double tmpFitness, bestFitness;
 		int ID = 0, random;
 		//selection of the remaining chromosomes that will define the next new population
@@ -463,6 +464,47 @@ public class MyGA {
 		}
 	}
 
+	
+		
+    void swapMutation(Population P) {
+    
+    int gene_tmp;
+	Random rnd1 = new Random();
+	Random rnd2 = new Random();
+	int i = 0;
+	int k = 0;
+	boolean matrix[][];
+	
+	int numSwap = (instance.getCustomersNr()/100)*20; //FACCIO UN NUMERO DI SWAP PARI AL 20% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP
+	
+	while(i < populationDim){
+		
+		while(k<numSwap){
+			
+			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
+			
+			for(int h=0; h<instance.getCustomersNr(); h++){
+				matrix[h][h]=false;}
+			
+			int sw1=rnd1.nextInt(instance.getCustomersNr()-1);
+			int sw2=rnd2.nextInt(instance.getCustomersNr()-1);
+			
+			if(matrix[sw1][sw2]==false){
+			gene_tmp = P.getChromosome(i).getGene(sw1);
+			P.getChromosome(i).setGene(sw1, P.getChromosome(i).getGene(sw2));
+			P.getChromosome(i).setGene(sw2, gene_tmp);
+			k++;
+			matrix[sw1][sw2]=true;}
+										
+		}
+		
+	i++;}
+	
+	}
+	
+    
+    
+    
 	public MySolution getBestSolution(){
 		Chromosome best;
 		MyGASolution bestSolution;
