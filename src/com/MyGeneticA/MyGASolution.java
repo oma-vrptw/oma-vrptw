@@ -74,8 +74,8 @@ public class MyGASolution extends MySolution{
 					customerChosen = chromosome.getGene(k);
 					customerChosenPtr = instance.getCustomer(customerChosen);
 					if(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
-						&& route.getCost().getTotal() + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
-						//&& route.getCost().getTotal() + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() <= customerChosenPtr.getEndTw()
+						&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
+						//&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() - getInstance().getTravelTime(route.getLastCustomerNr(), route.getDepotNr()) <= customerChosenPtr.getEndTw()
 						){
 						route.addCustomer(customerChosenPtr);
 						evaluateRoute(route);

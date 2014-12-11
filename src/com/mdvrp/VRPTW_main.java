@@ -55,7 +55,7 @@ public class VRPTW_main {
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr();
-			int populationDim = 50;
+			int populationDim = 100;
 			int NBestSolution, countBestSolution;
 			
 			MySolution BestGASolutions[];
@@ -65,7 +65,8 @@ public class VRPTW_main {
 					populationDim,
 					instance, 
 					50, 
-					true);
+					true,
+					50);
 
 
 			myGA.initPopulation();
@@ -78,7 +79,7 @@ public class VRPTW_main {
 			
 			count = 0;
 			while(count < iter){
-				myGA.evolve();
+				myGA.evolve2();
 
 				//population.printPopulation();
 
