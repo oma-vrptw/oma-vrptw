@@ -109,9 +109,10 @@ public class MyGASolution extends MySolution{
 	 * instance alpha, beta, gamma parameters.
 	 * @return fitness value = objective function cost
 	 */
+	//WARNING -> questa funzione è pericolosa ti sballa mezzo mondo, usare con cautela
 	public double getFitness() {
 		//this function build and evaluate routes 
-		initializeRoutes(instance);
+		//initializeRoutes(instance);
 		
 		buildRoutes();
 		

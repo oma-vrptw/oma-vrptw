@@ -720,14 +720,18 @@ System.out.println("mutation done: "+mutationDone);
 		population.sort();
 		c = population.getChromosome(0);
 		solution.add(0, c.getSolution());
-		System.out.println(String.format("Selected best chromosome. Its fitness is: %5.2f", + c.getSolution().getFitness()));
+		System.out.println("Selected best chromosome. Its fitness is: " + Math.round(c.getFitness()));
 		
 		for(int i=1, nSelected = 1; nSelected < nMax && i < populationDim; i++){
 			c = population.getChromosome(i);
-			if(Math.floor(c.getSolution().getFitness()) != Math.floor(solution.get(nSelected-1).getFitness())){
-				solution.add(nSelected, c.getSolution());
-				System.out.println(String.format("Selected best chromosome. Its fitness is: %5.2f", + c.getSolution().getFitness()));
-				nSelected++;
+			int x = getAvgDeviationAmongTwoChroms(c, solution.get(nSelected-1).getChromosome());
+			if(Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness())
+					|| x >= 20){
+
+					solution.add(nSelected, c.getSolution());
+					System.out.println("Selected best chromosome. Its fitness is: " + Math.round(c.getFitness())+" its deviation is: "+x);
+					nSelected++;
+
 			}
 		}
 
@@ -774,6 +778,18 @@ System.out.println("mutation done: "+mutationDone);
 		return ((double)devCnt);
 	}
 
+	protected int getAvgDeviationAmongTwoChroms(Chromosome c1, Chromosome c2)
+	{
+		int devCnt = 0;
+		for (int iGene = 0; iGene < this.chromosomeDim; iGene++)
+		{
+			if (c1.getGene(iGene) != c2.getGene(iGene))
+				devCnt++;
+		}
+
+		return devCnt;
+	}
+	
 	/**
 	 * Gets the average deviation of the given generation of chromosomes
 	 * @param iGeneration

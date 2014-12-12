@@ -70,7 +70,7 @@ public class VRPTW_main {
 					populationDim,
 					instance, 
 					3, 
-					false,
+					true,
 					10);
 
 			myGA.initPopulation();
