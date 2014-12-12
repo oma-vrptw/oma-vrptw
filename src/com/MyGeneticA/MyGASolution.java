@@ -111,6 +111,8 @@ public class MyGASolution extends MySolution{
 	 */
 	public double getFitness() {
 		//this function build and evaluate routes 
+		initializeRoutes(instance);
+		
 		buildRoutes();
 		
 		return objectiveFunction.evaluateAbsolutely(this);

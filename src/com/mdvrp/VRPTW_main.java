@@ -2,11 +2,14 @@ package com.mdvrp;
 
 import java.io.FileWriter;
 import java.io.PrintStream;
+import java.util.ArrayList;
 
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
+import com.MyGeneticA.Chromosome;
 import com.MyGeneticA.MyGA;
+import com.MyGeneticA.MyGASolution;
 
 public class VRPTW_main {
 
@@ -58,45 +61,51 @@ public class VRPTW_main {
 			int populationDim = instance.getCustomersNr();
 			int NBestSolution, countBestSolution;
 			
-			MySolution BestGASolutions[];
+			ArrayList<MySolution> BestGASolutions;
 			
 			// Init data for Genetic Algorithm
 			myGA = new MyGA(chromosomeDim, 
 					populationDim,
 					instance, 
-					50, 
+					3, 
 					true,
-					7);
+					10);
 
 
 			myGA.initPopulation();
 			
 			
-			iter = 4;
+			iter = 3;
 			NBestSolution = 3;
 			
 			double bestSolutionFound = Double.MAX_VALUE;
 			bestRoutesNr = 0;
 			count = 0;
 			Boolean doMutation;
-			
+			int seconds4Best=0;
 			doMutation = false;
 			
 			while(count < iter){
 				
 				
 				myGA.evolve2(doMutation);
-
+				//myGA.evolve();
 				//population.printPopulation();
 
 				// Init memory for Tabu Search
 				
-				BestGASolutions = myGA.getNBestSolution(NBestSolution);
+				
+				
+				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
+				NBestSolution = BestGASolutions.size();
+				//BestGASolutions = myGA.getNBestSolution(NBestSolution);
+				System.out.println(NBestSolution);
 				
 				countBestSolution = 0;
 				while(countBestSolution < NBestSolution){
-
-					initialSol 		= BestGASolutions[countBestSolution];
+					
+					initialSol 		= BestGASolutions.get(countBestSolution);
+					
 					// Start solving  
 					search 			= new MySearchProgram(instance, initialSol, moveManager,
 							objFunc, tabuList, false,  outPrintSream);
@@ -124,6 +133,7 @@ public class VRPTW_main {
 					if(bestSolutionFound > search.feasibleCost.total){
 						bestSolutionFound = search.feasibleCost.total;
 						bestRoutesNr = routesNr;
+						seconds4Best += duration.getSeconds() + duration.getMinutes()*60;
 					}
 
 					
@@ -143,7 +153,7 @@ public class VRPTW_main {
 		        		+ "Execution time: %d sec\n"
 		        		+ "Number of routes: %4d\n",
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
-		            	duration.getSeconds(), bestRoutesNr);
+		            	seconds4Best, bestRoutesNr);
 		        System.out.println(outSol);
 		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 		        fw.write(outSol);

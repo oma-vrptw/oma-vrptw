@@ -669,7 +669,7 @@ public class MyGA {
 				this.genAvgFitness[iGen] = getAvgFitness();
 
 					//windowSize 5  % popolazione
-					if(iGen > windowSize){
+					//if(iGen > windowSize){
 						double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
 						
 						if( getAvgFitness(iGen) >= windowAvgFitness - windowAvgFitness/100*threshold
@@ -680,7 +680,7 @@ public class MyGA {
 							swapMutation(population);
 							mutationDone++;
 						}			
-					}
+					//}
 			}
 			
 			iGen++;
@@ -698,21 +698,27 @@ System.out.println("mutation done: "+mutationDone);
 		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
 	}
 
-	public MySolution[] getNBestSolution(int n) {
+	public ArrayList<MySolution> getNDifferentBestSolutions(int nMax) {
 		Chromosome c;
-		MyGASolution[] solution;
-
-		solution = new MyGASolution[n];
+		
+		ArrayList<MyGASolution> solution;
+		solution = new ArrayList<MyGASolution>();
 
 		population.sort();
-
-		for(int i=0; i< n; i++){
+		c = population.getChromosome(0);
+		solution.add(0, c.getSolution());
+		System.out.println(String.format("Selected best chromosome. Its fitness is: %5.2f", + c.getSolution().getFitness()));
+		
+		for(int i=1, nSelected = 1; nSelected < nMax && i < populationDim; i++){
 			c = population.getChromosome(i);
-			solution[i] = c.getSolution();
-			System.out.println("Selected best chromosome. Its fitness is: " + c.getFitness());
+			if(Math.floor(c.getSolution().getFitness()) != Math.floor(solution.get(nSelected-1).getFitness())){
+				solution.add(nSelected, c.getSolution());
+				System.out.println(String.format("Selected best chromosome. Its fitness is: %5.2f", + c.getSolution().getFitness()));
+				nSelected++;
+			}
 		}
 
-		return (MySolution[])solution;
+		return new ArrayList<MySolution>(solution);
 	}
 
 	/**

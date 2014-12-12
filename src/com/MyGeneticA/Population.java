@@ -34,7 +34,7 @@ public class Population {
 		currentDim++;
 	}
 	
-	Chromosome getChromosome(int index) { 
+	public Chromosome getChromosome(int index) { 
 		return chromosomes[index]; 
 	}
 	
