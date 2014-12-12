@@ -55,7 +55,7 @@ public class VRPTW_main {
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr();
-			int populationDim = 100;
+			int populationDim = instance.getCustomersNr();
 			int NBestSolution, countBestSolution;
 			
 			MySolution BestGASolutions[];
@@ -66,20 +66,26 @@ public class VRPTW_main {
 					instance, 
 					50, 
 					true,
-					25);
+					7);
 
 
 			myGA.initPopulation();
 			
 			
-			iter = 3;
+			iter = 4;
 			NBestSolution = 3;
 			
 			double bestSolutionFound = Double.MAX_VALUE;
 			bestRoutesNr = 0;
 			count = 0;
+			Boolean doMutation;
+			
+			doMutation = false;
+			
 			while(count < iter){
-				myGA.evolve2();
+				
+				
+				myGA.evolve2(doMutation);
 
 				//population.printPopulation();
 
@@ -125,6 +131,8 @@ public class VRPTW_main {
 					countBestSolution++;
 				}
 
+				if(myGA.isComputeStatistics())
+					doMutation = true;
 				count++;
 			}
 			

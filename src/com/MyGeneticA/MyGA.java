@@ -25,6 +25,7 @@ public class MyGA {
 	private int maxGenerations;
 
 	private int crossoverProb;
+	
 	private boolean computeStatistics; 
 
 	/**
@@ -48,6 +49,14 @@ public class MyGA {
 		this.genAvgFitness = new double[maxGenerations];
 		this.computeStatistics = computeStatistics;
 		this.threshold = threshold;
+	}
+
+	public boolean isComputeStatistics() {
+		return computeStatistics;
+	}
+
+	public void setComputeStatistics(boolean computeStatistics) {
+		this.computeStatistics = computeStatistics;
 	}
 
 	private void GenerateRandomChromosome(int i)
@@ -554,7 +563,7 @@ public class MyGA {
 		int k = 0;
 		boolean matrix[][];
 
-		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 20% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP
+		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP
 
 		while(i < populationDim){
 
@@ -646,14 +655,15 @@ public class MyGA {
 	}
 
 
-	public void evolve2() {
+	public void evolve2(Boolean doMutation) {
 		int iGen;
-		int windowSize = populationDim/100*5;
+		int windowSize = populationDim/100*7;
 		iGen = 0;
 		int mutationDone=0;
+		
 		do{
 			doGeneticMating(iGen);
-			if (computeStatistics == true)
+			if (doMutation)
 			{
 				this.genAvgDeviation[iGen] = getAvgDeviationAmongChroms();
 				this.genAvgFitness[iGen] = getAvgFitness();
@@ -662,8 +672,8 @@ public class MyGA {
 					if(iGen > windowSize){
 						double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
 						
-						if( getAvgFitness(iGen) >= windowAvgFitness-threshold
-								&& getAvgFitness(iGen) <= windowAvgFitness+threshold
+						if( getAvgFitness(iGen) >= windowAvgFitness - windowAvgFitness/100*threshold
+								&& getAvgFitness(iGen) <= windowAvgFitness+windowAvgFitness/100*threshold
 								){
 							//System.out.println("mutation done!");
 							//System.out.println("media finestra: "+windowAvgFitness+ " media questa popolazione: "+getAvgFitness(iGen));
