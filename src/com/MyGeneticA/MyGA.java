@@ -146,28 +146,26 @@ public class MyGA {
 	{
 
 		MyCW generator = new MyCW(chromosomeDim, instance);
-		Random r = new Random();
-
-		// randIndex tra 0 e populationDim-1
-		int randIndex = r.nextInt(populationDim);
-
-
-		// Un cromosoma viene generato mediante un algoritmo (no time window aware)
-		// e messo in una posizione casuale
-		population.setChromosome(randIndex, generator.GenerateChromosome());
-
 		MySolution initialSol = new MySolution(instance);
-
+		MyPFIH pfihSol = new MyPFIH(chromosomeDim, instance);
 		Chromosome c = new Chromosome(initialSol.getRoutes(), chromosomeDim);
-
-		population.setChromosome((randIndex+1)%populationDim, c);
-		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
+		
+		// CW
+		population.setChromosome(0, generator.GenerateChromosome());
+		// InitialSol del package
+		population.setChromosome(1, c);
+		// PFIH
+		population.setChromosome(2, pfihSol.PerformPFIH());
 		// Tutti gli altri sono randomici
-		for (int i = 0; i < randIndex; i++)
+		for(int i = 3; i < populationDim; i++)
 			GenerateRandomChromosome(i);
-
-		for (int j = populationDim-1; j > randIndex+1; j--)
-			GenerateRandomChromosome(j);
+		
+		System.out.println("FITNESS");
+		System.out.println("CW: " + population.getChromosome(0).getFitness());
+		System.out.println("Tesista: " + population.getChromosome(1).getFitness());
+		System.out.println("PFIH: " + population.getChromosome(2).getFitness());
+		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
+		
 
 		//test code (stub)
 
