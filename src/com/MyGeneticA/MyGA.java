@@ -12,6 +12,11 @@ public class MyGA {
 	private int populationDim;
 	private int chromosomeDim;
 	private Instance instance;
+	private MyGASolution[] initialSolutions;
+	
+	public MyGASolution getInitialSolutions(int index) {
+		return initialSolutions[index];
+	}
 
 	/** statistics--average deviation of current generation */
 	double[] genAvgDeviation; 
@@ -49,6 +54,8 @@ public class MyGA {
 		this.genAvgFitness = new double[maxGenerations];
 		this.computeStatistics = computeStatistics;
 		this.threshold = threshold;
+		//array stores solutions made by heuristics
+		this.initialSolutions = new MyGASolution[3];
 	}
 
 	public boolean isComputeStatistics() {
@@ -148,14 +155,23 @@ public class MyGA {
 		MyCW generator = new MyCW(chromosomeDim, instance);
 		MySolution initialSol = new MySolution(instance);
 		MyPFIH pfihSol = new MyPFIH(chromosomeDim, instance);
-		Chromosome c = new Chromosome(initialSol.getRoutes(), chromosomeDim);
+		
+		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim);
+		Chromosome cw = generator.GenerateChromosome();
+		Chromosome pfih = pfihSol.PerformPFIH();
 		
 		// CW
-		population.setChromosome(0, generator.GenerateChromosome());
+		population.setChromosome(0, cw);
 		// InitialSol del package
-		population.setChromosome(1, c);
+		population.setChromosome(1, tesista);
 		// PFIH
-		population.setChromosome(2, pfihSol.PerformPFIH());
+		population.setChromosome(2, pfih);
+		
+		initialSolutions[0] = tesista.getSolution();
+		initialSolutions[1] = cw.getSolution();
+		initialSolutions[2] = pfih.getSolution();
+		
+		
 		// Tutti gli altri sono randomici
 		for(int i = 3; i < populationDim; i++)
 			GenerateRandomChromosome(i);
@@ -826,6 +842,11 @@ System.out.println("mutation done: "+mutationDone);
 		}
 		
 		return count > 0 ? avg/count : getAvgFitness(boundary);
+	}
+
+	public Population getPopulation() {
+		// TODO Auto-generated method stub
+		return population;
 	}
 
 }

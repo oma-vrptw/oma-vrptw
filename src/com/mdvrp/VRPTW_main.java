@@ -7,9 +7,12 @@ import java.util.ArrayList;
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
-import com.MyGeneticA.Chromosome;
-import com.MyGeneticA.MyGA;
-import com.MyGeneticA.MyGASolution;
+
+import com.MyGeneticA.*;
+
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 public class VRPTW_main {
 
@@ -23,11 +26,15 @@ public class VRPTW_main {
 		TabuList            tabuList;
 		Parameters          parameters 		= new Parameters(); 	// holds all the parameters passed from the input line
 		Instance            instance; 								// holds all the problem data extracted from the input file
-		Duration            duration 		= new Duration(); 		// used to calculate the elapsed time
 		PrintStream         outPrintSream 	= null;					// used to redirect the output
 		int count, iter;
 		int bestRoutesNr;
 
+		Instant previous, current;
+		long gap = 0, totalTime = 0;
+
+		previous = Instant.now();
+		
 		try {			
 			// check to see if an input file was specified
 			parameters.updateParameters(args);
@@ -36,8 +43,6 @@ public class VRPTW_main {
 				System.out.println("You must specify an input file name");
 				return;
 			}
-
-			duration.start();
 
 			// get the instance from the file			
 			instance = new Instance(parameters); 
@@ -50,8 +55,6 @@ public class VRPTW_main {
 			int dimension[] = {instance.getDepotsNr(), instance.getVehiclesNr(), instance.getCustomersNr(), 1, 1};
 			tabuList 		= new MyTabuList(parameters.getTabuTenure(), dimension);
 
-			// Create Tabu Search object
-
 			/*
 			 * allocate space for all the customers 
 			 * and routes delimiters (=vehicles number)
@@ -60,7 +63,6 @@ public class VRPTW_main {
 			int chromosomeDim = instance.getCustomersNr();
 			int populationDim = instance.getCustomersNr();
 			int NBestSolution, countBestSolution;
-			
 			ArrayList<MySolution> BestGASolutions;
 			
 			// Init data for Genetic Algorithm
@@ -68,42 +70,64 @@ public class VRPTW_main {
 					populationDim,
 					instance, 
 					3, 
-					true,
+					false,
 					10);
-
 
 			myGA.initPopulation();
 			
+			double bestSolutionFound = Double.MAX_VALUE;
+			bestRoutesNr = 0;
+			
+			for(int k=0; k <= 2; k++){
+				if(k==0){
+					initialSol 		= new MySolution(instance);
+				}else{
+					initialSol 		= myGA.getInitialSolutions(k);
+				}
+				// Start solving  
+				search 			= new MySearchProgram(instance, initialSol, moveManager,
+						objFunc, tabuList, false,  outPrintSream);
+
+				search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
+				search.tabuSearch.startSolving();	        
+
+				int routesNr = 0;
+				for(int i =0; i < search.feasibleRoutes.length; ++i)
+					for(int j=0; j < search.feasibleRoutes[i].length; ++j)
+						if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
+							routesNr++;
+	
+				if(bestSolutionFound > search.feasibleCost.total){
+					bestSolutionFound = search.feasibleCost.total;
+					bestRoutesNr = routesNr;
+					current = Instant.now();
+					if (previous != null) {
+					    gap = ChronoUnit.SECONDS.between(previous,current);
+					}
+					
+				}
+
+				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
+			}
 			
 			iter = 3;
 			NBestSolution = 3;
-			
-			double bestSolutionFound = Double.MAX_VALUE;
-			bestRoutesNr = 0;
 			count = 0;
 			Boolean doMutation;
-			int seconds4Best=0;
+		
 			doMutation = false;
 			
 			while(count < iter){
-				
 				
 				myGA.evolve2(doMutation);
 				//myGA.evolve();
 				//population.printPopulation();
 
-				// Init memory for Tabu Search
-				
-				
-				
 				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
 				NBestSolution = BestGASolutions.size();
-				//BestGASolutions = myGA.getNBestSolution(NBestSolution);
-				System.out.println(NBestSolution);
 				
 				countBestSolution = 0;
-				while(countBestSolution < NBestSolution){
-					
+				while(countBestSolution < NBestSolution){					
 					initialSol 		= BestGASolutions.get(countBestSolution);
 					
 					// Start solving  
@@ -118,25 +142,16 @@ public class VRPTW_main {
 						for(int j=0; j < search.feasibleRoutes[i].length; ++j)
 							if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
 								routesNr++;
-					duration.stop();
-					/* Print results
-					String outSol = String.format(
-							"\nInstance file: %s\n"
-									+ "Total cost: %5.2f\n"
-									+ "Execution time: %d sec\n"
-									+ "Number of routes: %4d\n",
-									instance.getParameters().getInputFileName(), search.feasibleCost.total,
-									duration.getSeconds(), routesNr);
-					System.out.println(outSol);
-*/
 					
 					if(bestSolutionFound > search.feasibleCost.total){
 						bestSolutionFound = search.feasibleCost.total;
 						bestRoutesNr = routesNr;
-						seconds4Best += duration.getSeconds() + duration.getMinutes()*60;
+						current = Instant.now();
+						if (previous != null) {
+						    gap = ChronoUnit.SECONDS.between(previous,current);
+						}
 					}
 
-					
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
 					countBestSolution++;
 				}
@@ -153,13 +168,17 @@ public class VRPTW_main {
 		        		+ "Execution time: %d sec\n"
 		        		+ "Number of routes: %4d\n",
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
-		            	seconds4Best, bestRoutesNr);
+		        		gap, bestRoutesNr);
 		        System.out.println(outSol);
 		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 		        fw.write(outSol);
 		        fw.close();
 			
-			
+		        current = Instant.now();
+		        if (previous != null) {
+				    totalTime = ChronoUnit.SECONDS.between(previous,current);
+				    System.out.println("time to compute all of the stuff= "+totalTime+" secondssssss");
+				}
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
