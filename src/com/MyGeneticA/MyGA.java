@@ -577,16 +577,16 @@ public class MyGA {
 		int k = 0;
 		boolean matrix[][];
 
-		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP
+		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
 
-		while(i < populationDim){
+		while(i < ((populationDim/100)*5)){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
 
-			while(k<numSwap){
+			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
 
-				matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
-
-				for(int h=0; h<instance.getCustomersNr(); h++){
-					matrix[h][h]=false;}
+			for(int h=0; h<instance.getCustomersNr(); h++){
+				matrix[h][h]=false;} 
+			
+			while(k<numSwap){ //faccio 3(%) swap di geni sui primi 5(%) cromosomi della popolazione
 
 				int sw1=rnd1.nextInt(instance.getCustomersNr()-1);
 				int sw2=rnd2.nextInt(instance.getCustomersNr()-1);
