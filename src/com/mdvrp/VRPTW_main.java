@@ -66,7 +66,7 @@ public class VRPTW_main {
 					instance, 
 					50, 
 					true,
-					50);
+					25);
 
 
 			myGA.initPopulation();
@@ -79,7 +79,7 @@ public class VRPTW_main {
 			bestRoutesNr = 0;
 			count = 0;
 			while(count < iter){
-				myGA.evolve();
+				myGA.evolve2();
 
 				//population.printPopulation();
 
@@ -104,7 +104,7 @@ public class VRPTW_main {
 							if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
 								routesNr++;
 					duration.stop();
-					// Print results
+					/* Print results
 					String outSol = String.format(
 							"\nInstance file: %s\n"
 									+ "Total cost: %5.2f\n"
@@ -113,7 +113,7 @@ public class VRPTW_main {
 									instance.getParameters().getInputFileName(), search.feasibleCost.total,
 									duration.getSeconds(), routesNr);
 					System.out.println(outSol);
-
+*/
 					
 					if(bestSolutionFound > search.feasibleCost.total){
 						bestSolutionFound = search.feasibleCost.total;
@@ -128,8 +128,9 @@ public class VRPTW_main {
 				count++;
 			}
 			
+			System.out.println("best solution found:");
 			 String outSol = String.format(
-		        		"\nInstance file: %s\n"
+		        		"Instance file: %s\n"
 		        		+ "Total cost: %5.2f\n"
 		        		+ "Execution time: %d sec\n"
 		        		+ "Number of routes: %4d\n",

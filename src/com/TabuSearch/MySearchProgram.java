@@ -92,7 +92,7 @@ public class MySearchProgram implements TabuSearchListener{
 				panel.feasibleIndex = panel.iterations;
 			}
 			
-			System.out.println("It " + tabuSearch.getIterationsCompleted() +" - New solution " + sol.getCost().total);
+			//System.out.println("It " + tabuSearch.getIterationsCompleted() +" - New solution " + sol.getCost().total);
 		}
 		
 		if(graphicsVisible) {

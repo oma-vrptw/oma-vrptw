@@ -152,7 +152,7 @@ public class MyGA {
 		Chromosome c = new Chromosome(initialSol.getRoutes(), chromosomeDim);
 
 		population.setChromosome((randIndex+1)%populationDim, c);
-		System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
+		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
 		// Tutti gli altri sono randomici
 		for (int i = 0; i < randIndex; i++)
 			GenerateRandomChromosome(i);
@@ -554,7 +554,7 @@ public class MyGA {
 		int k = 0;
 		boolean matrix[][];
 
-		int numSwap = (instance.getCustomersNr()/100)*20; //FACCIO UN NUMERO DI SWAP PARI AL 20% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP
+		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 20% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP
 
 		while(i < populationDim){
 
@@ -588,7 +588,7 @@ public class MyGA {
 		best = population.getBestChromosome();
 		bestSolution = best.getSolution();
 
-		System.out.println("Selected best chromosome. Its fitness is: " + best.getFitness());
+		//System.out.println("Selected best chromosome. Its fitness is: " + best.getFitness());
 		bestSolution.getChromosome().print();
 		return (MySolution)bestSolution;
 	}
@@ -648,8 +648,9 @@ public class MyGA {
 
 	public void evolve2() {
 		int iGen;
-
+		int windowSize = populationDim/100*5;
 		iGen = 0;
+		int mutationDone=0;
 		do{
 			doGeneticMating(iGen);
 			if (computeStatistics == true)
@@ -658,21 +659,23 @@ public class MyGA {
 				this.genAvgFitness[iGen] = getAvgFitness();
 
 					//windowSize 5  % popolazione
-					int windowSize = populationDim/100*5;
-					double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
-
-					if( getAvgFitness(iGen) >= windowAvgFitness-threshold
-							&& getAvgFitness(iGen) <= windowAvgFitness+threshold
-							){
-						System.out.println("mutation done!");
-						System.out.println("media finestra: "+windowAvgFitness+ " media questa popolazione: "+getAvgFitness(iGen));
-						swapMutation(population);
-					}			
+					if(iGen > windowSize){
+						double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
+						
+						if( getAvgFitness(iGen) >= windowAvgFitness-threshold
+								&& getAvgFitness(iGen) <= windowAvgFitness+threshold
+								){
+							//System.out.println("mutation done!");
+							//System.out.println("media finestra: "+windowAvgFitness+ " media questa popolazione: "+getAvgFitness(iGen));
+							swapMutation(population);
+							mutationDone++;
+						}			
+					}
 			}
 			
 			iGen++;
 		}while(iGen < maxGenerations);
-
+System.out.println("mutation done: "+mutationDone);
 	}
 
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
@@ -682,7 +685,7 @@ public class MyGA {
 
 
 		population.swapChromosome(c, population.getWorstChromosomeIndex());
-		System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
+		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
 	}
 
 	public MySolution[] getNBestSolution(int n) {

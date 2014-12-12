@@ -28,7 +28,7 @@ public class Chromosome implements Comparable<Chromosome>{
 			}
 		}
 		
-		System.out.println("chromosome from TABU: "+this.toString());
+		//System.out.println("chromosome from TABU: "+this.toString());
 	}
 
 	public int getNumberOfGenes() {
