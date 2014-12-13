@@ -84,6 +84,8 @@ public class VRPTW_main {
 				System.out.println("start TABU with initial solution number "+(k+1));
 				if(k==0){
 					initialSol 		= new MySolution(instance);
+				}else if(k==2){
+					initialSol 		= new MyGASolution(instance, myGA.getPfihSol().getRoutes());
 				}else{
 					initialSol 		= myGA.getInitialSolutions(k);
 				}

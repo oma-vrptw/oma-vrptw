@@ -14,11 +14,16 @@ public class MyGA {
 	private int chromosomeDim;
 	private Instance instance;
 	private MyGASolution[] initialSolutions;
+	private MyPFIH pfihSol;
 	
 	public MyGASolution getInitialSolutions(int index) {
 		return initialSolutions[index];
 	}
 
+	public MyPFIH getPfihSol() {
+		return pfihSol;
+	}
+	
 	/** statistics--average deviation of current generation */
 	double[] genAvgDeviation; 
 
@@ -155,11 +160,11 @@ public class MyGA {
 
 		MyCW generator = new MyCW(chromosomeDim, instance);
 		MySolution initialSol = new MySolution(instance);
-		MyPFIH pfihSol = new MyPFIH(chromosomeDim, instance);
+		this.pfihSol = new MyPFIH(chromosomeDim, instance);
 		
 		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim);
 		Chromosome cw = generator.GenerateChromosome();
-		Chromosome pfih = pfihSol.PerformPFIH();
+		Chromosome pfih = new Chromosome(pfihSol.getRoutes(), chromosomeDim);
 		
 		// CW
 		population.setChromosome(0, cw);
