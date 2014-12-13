@@ -50,7 +50,10 @@ public class MyCW {
 	private ArrayList<Saving> savings;
 	
 	private Map<Integer, Integer> assignedRoute;
+	
 	private Map<Integer, Route> routes;
+	private Route[][] routesMatrix;
+	
 	private Map<Integer, Boolean> from, to;
 	
 	public MyCW(int numberOfGenes, Instance instance) 
@@ -64,19 +67,26 @@ public class MyCW {
 		distances = instance.getDistances();
 		savings = new ArrayList<>();
 		
-		routes = new HashMap<>();		
+		routes = new HashMap<>();	
+		routesMatrix = new Route[instance.getDepotsNr()][instance.getVehiclesNr()];
+		
 		assignedRoute = new HashMap<>();
 		from = new HashMap<>();
 		to = new HashMap<>();
+		
+		PerformCW();
 	}
 	
+	public Route[][] getRoutes() {
+		return routesMatrix;
+	}
+
 	private boolean IsUsable(Saving s)
 	{
 		boolean esito = from.get(s.from) && to.get(s.to);
 		return esito;
 	}
 
-	
 	private void InitSavings()
 	{	
 		double value;
@@ -368,14 +378,151 @@ public class MyCW {
 		
 	}
 	
-	public Chromosome GenerateChromosome()
+	protected void evaluateRoute(Route route) 
+	{	
+		double totalTime = 0;
+    	double waitingTime = 0;
+    	double twViol = 0;
+    	Customer customerK;
+    	route.initializeTimes();
+    	// do the math only if the route is not empty
+		if(!route.isEmpty()){
+	    	// sum distances between each node in the route
+			for (int k = 0; k < route.getCustomersLength(); ++k){
+				// get the actual customer
+				customerK = route.getCustomer(k);
+				// add travel time to the route
+				if(k == 0){
+					route.getCost().travelTime += instance.getTravelTime(route.getDepotNr(), customerK.getNumber());
+					totalTime += instance.getTravelTime(route.getDepotNr(), customerK.getNumber());
+				}else{
+					route.getCost().travelTime += instance.getTravelTime(route.getCustomerNr(k -1), customerK.getNumber());
+					totalTime += instance.getTravelTime(route.getCustomerNr(k -1), customerK.getNumber());
+				} // end if else
+				
+				customerK.setArriveTime(totalTime);
+				// add waiting time if any
+				waitingTime = Math.max(0, customerK.getStartTw() - totalTime); //ritorna zero se il customer è pronto a ricevere il pacco altrimenti ritorna il tempo di attesa quindi potrei andare da un altro customer
+				route.getCost().waitingTime += waitingTime;
+				// update customer timings information
+				customerK.setWaitingTime(waitingTime);
+				
+				totalTime = Math.max(customerK.getStartTw(), totalTime);
+
+				// add time window violation if any
+				twViol = Math.max(0, totalTime - customerK.getEndTw());
+				route.getCost().addTWViol(twViol);
+				customerK.setTwViol(twViol);
+				// add the service time to the total
+				totalTime += customerK.getServiceDuration();
+				// add service time to the route
+				route.getCost().serviceTime += customerK.getServiceDuration();
+				// add capacity to the route
+				route.getCost().load += customerK.getCapacity();
+				
+			} // end for customers
+			
+			// add the distance to return to depot: from last node to depot
+			totalTime += instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr());
+			route.getCost().travelTime += instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr());
+			// add the depot time window violation if any
+			twViol = Math.max(0, totalTime - route.getDepot().getEndTw());
+			route.getCost().addTWViol(twViol);
+			// update route with timings of the depot
+			route.setDepotTwViol(twViol);
+			route.setReturnToDepotTime(totalTime);
+			route.getCost().setLoadViol(Math.max(0, route.getCost().load - route.getLoadAdmited()));
+			route.getCost().setDurationViol(Math.max(0, route.getDuration() - route.getDurationAdmited()));
+			
+			// update total violation
+			route.getCost().calculateTotalCostViol();
+			
+		} // end if route not empty
+		
+    } // end method evaluate route
+	
+	private void ConvertRoutesMapToMatrix()
+	{
+		Route route;
+		Cost cost;
+		Vehicle vehicle;
+		
+		Iterator<Route> it = routes.values().iterator();
+		
+		int i;
+		for(i=0; it.hasNext() && i<instance.getVehiclesNr(); i++)
+		{
+			route = it.next();
+			cost = new Cost();
+			vehicle = new Vehicle();
+			
+			vehicle.setCapacity(instance.getCapacity(0, 0));
+			vehicle.setDuration(instance.getDuration(0, 0));
+			
+			route.setAssignedVehicle(vehicle);
+			route.setDepot(instance.getDepot(0));
+			route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
+			route.setCapacity(vehicle.getCapacity());
+			
+			route.setIndex(i+1);
+			route.setCost(cost);
+			evaluateRoute(route);
+			
+			routesMatrix[0][i] = route;
+		}
+		
+		for(int j=i;  j<numberOfVehicles; j++)
+		{
+			route = new Route();
+			cost = new Cost();
+			vehicle = new Vehicle();
+			
+			vehicle.setCapacity(instance.getCapacity(0, 0));
+			vehicle.setDuration(instance.getDuration(0, 0));
+			
+			route.setAssignedVehicle(vehicle);
+			route.setDepot(instance.getDepot(0));
+			route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
+			route.setCapacity(vehicle.getCapacity());
+			
+			cost.initialize();
+			route.setCost(cost);
+			route.setIndex(j+1);
+			
+			routesMatrix[0][j] = route;
+		}
+		
+		for(int k=1; k<instance.getDepotsNr(); k++)
+		{
+			for(int w=0; w<numberOfVehicles; w++)
+			{
+				route = new Route();
+				cost = new Cost();
+				vehicle = new Vehicle();
+				
+				vehicle.setCapacity(instance.getCapacity(0, 0));
+				vehicle.setDuration(instance.getDuration(0, 0));
+				
+				route.setAssignedVehicle(vehicle);
+				route.setDepot(instance.getDepot(0));
+				route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
+				route.setCapacity(vehicle.getCapacity());
+				
+				cost.initialize();
+				route.setCost(cost);
+				route.setIndex(k*numberOfVehicles + w +1);
+				
+				routesMatrix[k][w] = route;
+			}
+		}
+		
+	}
+	
+	private void PerformCW()
 	{	
 		InitSavings();
 		PerformSequencialCW();
-		Chromosome result = ConvertRoutesToChromosome();
-		
-		return result;
-		
+		ConvertRoutesMapToMatrix();
 	}
 
 }

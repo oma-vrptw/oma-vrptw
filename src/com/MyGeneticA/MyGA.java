@@ -14,7 +14,9 @@ public class MyGA {
 	private int chromosomeDim;
 	private Instance instance;
 	private MyGASolution[] initialSolutions;
+	
 	private MyPFIH pfihSol;
+	private MyCW cwSol;
 	
 	private HashSet<Chromosome> optChrom;
 	
@@ -26,6 +28,10 @@ public class MyGA {
 		return pfihSol;
 	}
 	
+	public MyCW getCwSol() {
+		return cwSol;
+	}
+
 	/** statistics--average deviation of current generation */
 	double[] genAvgDeviation; 
 
@@ -162,12 +168,12 @@ public class MyGA {
 	public void initPopulation() 
 	{
 
-		MyCW generator = new MyCW(chromosomeDim, instance);
+		this.cwSol = new MyCW(chromosomeDim, instance);
 		MySolution initialSol = new MySolution(instance);
 		this.pfihSol = new MyPFIH(chromosomeDim, instance);
 		
 		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim);
-		Chromosome cw = generator.GenerateChromosome();
+		Chromosome cw = new Chromosome(cwSol.getRoutes(), chromosomeDim);
 		Chromosome pfih = new Chromosome(pfihSol.getRoutes(), chromosomeDim);
 		
 		// CW
@@ -177,6 +183,7 @@ public class MyGA {
 		// PFIH
 		population.setChromosome(2, pfih);
 		
+		// Oggetti MyGASolution ottenuti dalla decodifica dei rispettivi cromosomi
 		initialSolutions[0] = tesista.getSolution();
 		initialSolutions[1] = cw.getSolution();
 		initialSolutions[2] = pfih.getSolution();

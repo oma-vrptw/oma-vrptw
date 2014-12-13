@@ -82,12 +82,26 @@ public class VRPTW_main {
 			
 			for(int k=0; k <= 2; k++){
 				System.out.println("start TABU with initial solution number "+(k+1));
-				if(k==0){
-					initialSol 		= new MySolution(instance);
-				}else if(k==2){
-					initialSol 		= new MyGASolution(instance, myGA.getPfihSol().getRoutes());
-				}else{
-					initialSol 		= myGA.getInitialSolutions(k);
+				
+				switch(k)
+				{
+					case 0:
+						// Tesista
+						initialSol = new MySolution(instance);
+						break;
+					
+					case 1:
+						// CW
+						initialSol = new MyGASolution(instance, myGA.getCwSol().getRoutes());
+						break;
+					case 2:
+						// PFIH
+						initialSol = new MyGASolution(instance, myGA.getPfihSol().getRoutes());
+						break;
+						
+					default:
+						// Impossibile che si verifichi ma chi se ne frega
+						initialSol = new MySolution(instance);
 				}
 				// Start solving  
 				search 			= new MySearchProgram(instance, initialSol, moveManager,
