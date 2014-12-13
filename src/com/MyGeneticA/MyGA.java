@@ -16,6 +16,8 @@ public class MyGA {
 	private MyGASolution[] initialSolutions;
 	private MyPFIH pfihSol;
 	
+	private HashSet<Chromosome> optChrom;
+	
 	public MyGASolution getInitialSolutions(int index) {
 		return initialSolutions[index];
 	}
@@ -62,6 +64,8 @@ public class MyGA {
 		this.threshold = threshold;
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
+		
+		this.optChrom = new HashSet<Chromosome>();
 	}
 
 	public boolean isComputeStatistics() {
@@ -241,7 +245,7 @@ public class MyGA {
         	found = false;
         	for(int j = i+1; j < populationDim; j++){
         		c2 = population.getChromosome(j);
-        		if(differentGenesAmongTwoChroms(c1, c2) > diversityRate){
+        		if(c1.differentGenesAmongTwoChroms(c2) > diversityRate){
         			//a good partner found, good in terms of fitness but different enough
         			found = true; 
         			parents[i][1] = c2; 
@@ -285,7 +289,7 @@ public class MyGA {
             		
             	if(map[R2] && R2!=R1){
             		c2 = population.getChromosome(R2);
-            		if(differentGenesAmongTwoChroms(c1, c2) > diversityRate){
+            		if(c1.differentGenesAmongTwoChroms(c2) > diversityRate){
             			//a good partner found, good in terms of fitness but different enough
             			c2 = population.getChromosome(R2);
                     	parents[i][1] = c2;
@@ -771,17 +775,25 @@ System.out.println("mutation done: "+mutationDone);
 		solution = new ArrayList<MyGASolution>();
 
 		population.sort();
-		c = population.getChromosome(0);
-		solution.add(0, c.getSolution());
-		System.out.println("1. Its fitness is: " + Math.round(c.getFitness()));
-		
-		for(int i=1, nSelected = 1; nSelected < nMax && i < populationDim; i++){
+		int i;
+		for(i = 0; i < populationDim; i++){
 			c = population.getChromosome(i);
-			int x = differentGenesAmongTwoChroms(c, solution.get(nSelected-1).getChromosome());
-			if(Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness())
-					|| x >= 20){
-
+			if(!optChrom.contains(c)){
+				solution.add(0, c.getSolution());
+				optChrom.add(c);
+				System.out.println("1. Its fitness is: " + Math.round(c.getFitness()));
+				break;
+			}
+		}
+		
+		for(int j=i, nSelected = 1; nSelected < nMax && j < populationDim; j++){
+			c = population.getChromosome(j);
+			int x = c.differentGenesAmongTwoChroms(solution.get(nSelected-1).getChromosome());
+			if(!optChrom.contains(c) &&
+					//Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness()) ||
+					 x >= 20){
 					solution.add(nSelected, c.getSolution());
+					optChrom.add(c);
 					nSelected++;
 					System.out.println(nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1));
 			}
@@ -830,17 +842,7 @@ System.out.println("mutation done: "+mutationDone);
 		return ((double)devCnt);
 	}
 
-	protected int differentGenesAmongTwoChroms(Chromosome c1, Chromosome c2)
-	{
-		int devCnt = 0;
-		for (int iGene = 0; iGene < this.chromosomeDim; iGene++)
-		{
-			if (c1.getGene(iGene) != c2.getGene(iGene))
-				devCnt++;
-		}
 
-		return devCnt;
-	}
 	
 	/**
 	 * Gets the average deviation of the given generation of chromosomes
