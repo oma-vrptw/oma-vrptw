@@ -3,13 +3,12 @@ package com.mdvrp;
 import java.io.FileWriter;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
-
 import com.MyGeneticA.*;
-
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -73,12 +72,16 @@ public class VRPTW_main {
 					true,
 					10);
 
+			System.out.println("Hi there, we are going to start the job! Are u ready?");
+			System.out.println("Init population");
 			myGA.initPopulation();
+			System.out.println("done.");
 			
 			double bestSolutionFound = Double.MAX_VALUE;
 			bestRoutesNr = 0;
 			
 			for(int k=0; k <= 2; k++){
+				System.out.println("start TABU with initial solution number "+(k+1));
 				if(k==0){
 					initialSol 		= new MySolution(instance);
 				}else{
@@ -104,10 +107,23 @@ public class VRPTW_main {
 					if (previous != null) {
 					    gap = ChronoUnit.SECONDS.between(previous,current);
 					}
+					System.out.println("current solution changed:");
+					 String outSol = String.format(
+				        		"Instance file: %s\n"
+				        		+ "Total cost: %5.2f\n"
+				        		+ "Execution time: %d sec\n"
+				        		+ "Number of routes: %4d\n",
+				        		instance.getParameters().getInputFileName(), bestSolutionFound,
+				        		gap, bestRoutesNr);
+				        System.out.println(outSol);
 					
 				}
-
+				System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total));
+				System.out.println("end of TABU.");
+				
+				System.out.println("insert this solution into population");
 				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
+				System.out.println("done.");
 			}
 			
 			iter = 3;
@@ -117,17 +133,19 @@ public class VRPTW_main {
 		
 			doMutation = false;
 			
+			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
 			while(count < iter){
-				
+				System.out.println("iteration "+(count+1));
 				myGA.evolve2(doMutation);
 				//myGA.evolve();
 				//population.printPopulation();
-
+				System.out.println("select best chromosomes from population");
 				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
 				NBestSolution = BestGASolutions.size();
 				
 				countBestSolution = 0;
-				while(countBestSolution < NBestSolution){					
+				while(countBestSolution < NBestSolution){	
+					System.out.println("start TABU with solution "+(countBestSolution+1)+ " as input");
 					initialSol 		= BestGASolutions.get(countBestSolution);
 					
 					// Start solving  
@@ -150,20 +168,40 @@ public class VRPTW_main {
 						if (previous != null) {
 						    gap = ChronoUnit.SECONDS.between(previous,current);
 						}
+						
+						System.out.println("current solution changed:");
+						 String outSol = String.format(
+					        		"Instance file: %s\n"
+					        		+ "Total cost: %5.2f\n"
+					        		+ "Execution time: %d sec\n"
+					        		+ "Number of routes: %4d\n",
+					        		instance.getParameters().getInputFileName(), bestSolutionFound,
+					        		gap, bestRoutesNr);
+					        System.out.println(outSol);
 					}
 
+					System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total));
+					System.out.println("done.");
+					
+					System.out.println("insert this solution into population");
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
+					System.out.println("done.");
+					
 					countBestSolution++;
 				}
 
 				if(myGA.isComputeStatistics())
 					doMutation = true;
+				
 				count++;
+				System.out.println("end of iteration "+count);
 			}
 			
-			System.out.println("best solution found:");
+			System.out.println("the game is over.");
+
 			 String outSol = String.format(
-		        		"Instance file: %s\n"
+					 	"\nThis one the best solution found\n"
+		        		+ "Instance file: %s\n"
 		        		+ "Total cost: %5.2f\n"
 		        		+ "Execution time: %d sec\n"
 		        		+ "Number of routes: %4d\n",
@@ -179,6 +217,7 @@ public class VRPTW_main {
 				    totalTime = ChronoUnit.SECONDS.between(previous,current);
 				    System.out.println("time to compute all of the stuff= "+totalTime+" secondssssss");
 				}
+		        System.out.println("see u soon.");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
