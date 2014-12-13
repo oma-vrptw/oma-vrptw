@@ -68,7 +68,7 @@ public class VRPTW_main {
 			myGA = new MyGA(chromosomeDim, 
 					populationDim,
 					instance, 
-					3, 
+					10, 
 					true,
 					10);
 
