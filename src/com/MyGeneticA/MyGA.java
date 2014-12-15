@@ -13,6 +13,7 @@ public class MyGA {
 	private int chromosomeDim;
 	private Instance instance;
 	private MyGASolution[] initialSolutions;
+	private Properties prop;
 	
 	public MyGASolution getInitialSolutions(int index) {
 		return initialSolutions[index];
@@ -41,8 +42,9 @@ public class MyGA {
 	 * @param maxGenerations
 	 * @param computeStatistics
 	 * @param threshold
+	 * @param properties
 	 */
-	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics, double threshold) { 
+	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics, double threshold, Properties p) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
@@ -56,6 +58,7 @@ public class MyGA {
 		this.threshold = threshold;
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
+		this.prop = p;
 	}
 
 	public boolean isComputeStatistics() {
@@ -576,9 +579,9 @@ public class MyGA {
 		int k = 0;
 		boolean matrix[][];
 
-		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
+		int numSwap = (int) (chromosomeDim*Double.parseDouble(prop.getProperty("numSwap"))); //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 3 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
 
-		while(i < ((populationDim/100)*5)){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
+		while(i < ((int) (populationDim*Double.parseDouble(prop.getProperty("mutationChromosomeN"))))){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
 
 			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
 
@@ -670,7 +673,7 @@ public class MyGA {
 
 	public void evolve2(Boolean doMutation) {
 		int iGen;
-		int windowSize = populationDim/100*7;
+		int windowSize = (int) (populationDim*Double.parseDouble(prop.getProperty("windowSize")));
 		iGen = 0;
 		int mutationDone=0;
 		

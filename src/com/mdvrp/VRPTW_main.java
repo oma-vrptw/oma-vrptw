@@ -1,15 +1,16 @@
 package com.mdvrp;
 
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
+import java.util.Properties;
 
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
-
 import com.MyGeneticA.*;
-
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -44,6 +45,20 @@ public class VRPTW_main {
 				return;
 			}
 
+			/*load configuration file*/
+			Properties prop = new Properties();
+			String propFileName = "./config.properties";
+			
+			InputStream inputStream = VRPTW_main.class.getClassLoader().getResourceAsStream(propFileName);
+
+			if(inputStream != null){
+				prop.load(inputStream);
+			}else{
+				throw new FileNotFoundException("property file '"+propFileName+"' not found on the classpath");
+			}
+			
+			parameters.setIterations(Integer.parseInt(prop.getProperty("tsIterationN")));
+			
 			// get the instance from the file			
 			instance = new Instance(parameters); 
 			instance.populateFromHombergFile(parameters.getInputFileName());
@@ -54,24 +69,27 @@ public class VRPTW_main {
 			// Tabu list
 			int dimension[] = {instance.getDepotsNr(), instance.getVehiclesNr(), instance.getCustomersNr(), 1, 1};
 			tabuList 		= new MyTabuList(parameters.getTabuTenure(), dimension);
-
+			
 			/*
 			 * allocate space for all the customers 
 			 * and routes delimiters (=vehicles number)
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr();
-			int populationDim = instance.getCustomersNr();
+			int populationDim = (int) (instance.getCustomersNr()*Double.parseDouble(prop.getProperty("populationDim")));
 			int NBestSolution, countBestSolution;
 			ArrayList<MySolution> BestGASolutions;
+			
+			System.out.println("populationDim: "+populationDim+" TS It: "+parameters.getIterations());
 			
 			// Init data for Genetic Algorithm
 			myGA = new MyGA(chromosomeDim, 
 					populationDim,
 					instance, 
-					3, 
-					true,
-					10);
+					Integer.parseInt(prop.getProperty("gaIterationN")), 
+					Boolean.parseBoolean(prop.getProperty("enableMutation")),
+					Integer.parseInt(prop.getProperty("threshold")),
+					prop);
 
 			myGA.initPopulation();
 			
@@ -110,8 +128,8 @@ public class VRPTW_main {
 				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
 			}
 			
-			iter = 3;
-			NBestSolution = 3;
+			iter = Integer.parseInt(prop.getProperty("totalIteration"));
+			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
 			count = 0;
 			Boolean doMutation;
 		
