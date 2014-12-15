@@ -280,38 +280,44 @@ public class MyPFIH
 		return chromosome;		
 	}*/
 	
-	//TODO: rivedi
+	/**
+	 * Imposta parametri per la route (depot, veicolo, costi)
+	 * @param i
+	 * @param route
+	 * @param vehicle
+	 * @param cost
+	 */
+	private void setupRoute(int i, Instance instance, Route route, Vehicle vehicle, Cost cost)
+	{
+		vehicle.setCapacity(instance.getCapacity(0, 0));
+		vehicle.setDuration(instance.getDuration(0, 0));
+		
+		route.setAssignedVehicle(vehicle);
+		route.setDepot(instance.getDepot(0));
+		route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
+		route.setCapacity(vehicle.getCapacity());
+
+		route.setCost(cost);
+		route.setIndex(i+1);
+		
+		evaluateRoute(route);
+	}
+	
 	private void PerformPFIH()
 	{
 		Route route;
-		Vehicle vehicle;
-		Cost cost;
 		
 		InitCustomers();
 		
-		
-		int i = 0;
-		
+		int i = 0;		
 		
 		route = new Route();
 		
 		for(; !customers.isEmpty() && i<numberOfVehicles; i++)
 		{
 			route = new Route();
-			cost = new Cost();
-			vehicle = new Vehicle();
 			
-			vehicle.setCapacity(instance.getCapacity(0, 0));
-			vehicle.setDuration(instance.getDuration(0, 0));
-			
-			route.setAssignedVehicle(vehicle);
-			route.setDepot(instance.getDepot(0));
-			route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
-			route.setCapacity(capacityOfVehicle);
-			
-			cost.initialize();
-			route.setCost(cost);
-			route.setIndex(i+1);
+			setupRoute(i, instance, route, new Vehicle(), new Cost());
 			
 			//TODO: gestire caso limite in cui una rotta non può essere riempita
 			InsertFirstCustomer(route);
@@ -343,20 +349,8 @@ public class MyPFIH
 		for(int j=i;  j<numberOfVehicles; j++)
 		{
 			route = new Route();
-			cost = new Cost();
-			vehicle = new Vehicle();
-			
-			vehicle.setCapacity(instance.getCapacity(0, 0));
-			vehicle.setDuration(instance.getDuration(0, 0));
-			
-			route.setAssignedVehicle(vehicle);
-			route.setDepot(instance.getDepot(0));
-			route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
-			route.setCapacity(capacityOfVehicle);
-			
-			cost.initialize();
-			route.setCost(cost);
-			route.setIndex(j+1);
+
+			setupRoute(j, instance, route, new Vehicle(), new Cost());
 			
 			routes[0][j] = route;
 		}
@@ -367,23 +361,11 @@ public class MyPFIH
 		{
 			for(int w=0; w<numberOfVehicles; w++)
 			{
-			route = new Route();
-			cost = new Cost();
-			vehicle = new Vehicle();
-			
-			vehicle.setCapacity(instance.getCapacity(0, 0));
-			vehicle.setDuration(instance.getDuration(0, 0));
-			
-			route.setAssignedVehicle(vehicle);
-			route.setDepot(instance.getDepot(0));
-			route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
-			route.setCapacity(capacityOfVehicle);
-			
-			cost.initialize();
-			route.setCost(cost);
-			route.setIndex(k*numberOfVehicles + w +1);
-			
-			routes[k][w] = route;
+				route = new Route();
+	
+				setupRoute(k*numberOfVehicles + w, instance, route, new Vehicle(), new Cost());
+
+				routes[k][w] = route;
 			}
 		}
 		
