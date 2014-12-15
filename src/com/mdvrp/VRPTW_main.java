@@ -84,28 +84,45 @@ public class VRPTW_main {
 				System.out.println("start TABU with initial solution number "+(k+1));
 				if(k==0){
 					initialSol 		= new MySolution(instance);
+					//System.out.println("----TESISTA----");
+					//System.out.println(initialSol);
 				}else if(k==2){
 					initialSol 		= new MyGASolution(instance, myGA.getPfihSol().getRoutes());
+					//initialSol 		= myGA.getInitialSolutions(k);
+					//System.out.println("----PFIH----");
+					//System.out.println(initialSol);
+					
 				}else{
 					initialSol 		= myGA.getInitialSolutions(k);
+//					System.out.println("----CW----");
+//					System.out.println(initialSol);
+
 				}
 				// Start solving  
 				search 			= new MySearchProgram(instance, initialSol, moveManager,
 						objFunc, tabuList, false,  outPrintSream);
 
 				search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
+				
+				current = Instant.now();
+				
 				search.tabuSearch.startSolving();	        
-
+				int numberOfCustomers = 0;
 				int routesNr = 0;
 				for(int i =0; i < search.feasibleRoutes.length; ++i)
 					for(int j=0; j < search.feasibleRoutes[i].length; ++j)
-						if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
-							routesNr++;
+						if(search.feasibleRoutes[i][j].getCustomersLength() > 0){
+							numberOfCustomers += search.feasibleRoutes[i][j].getCustomersLength();
+							routesNr++;	
+						}
 	
+				System.out.println("number of customers: "+numberOfCustomers);
+				
 				if(bestSolutionFound > search.feasibleCost.total){
 					bestSolutionFound = search.feasibleCost.total;
+					
 					bestRoutesNr = routesNr;
-					current = Instant.now();
+					
 					if (previous != null) {
 					    gap = ChronoUnit.SECONDS.between(previous,current);
 					}
@@ -118,7 +135,6 @@ public class VRPTW_main {
 				        		instance.getParameters().getInputFileName(), bestSolutionFound,
 				        		gap, bestRoutesNr);
 				        System.out.println(outSol);
-					
 				}
 				System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total));
 				System.out.println("end of TABU.");
@@ -210,6 +226,7 @@ public class VRPTW_main {
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
 		        		gap, bestRoutesNr);
 		        System.out.println(outSol);
+		        
 		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 		        fw.write(outSol);
 		        fw.close();

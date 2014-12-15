@@ -165,6 +165,7 @@ public class MyPFIH
 	{
 		
 		//5
+		//System.out.println("customers size: "+customers.size());
 		while(!customers.isEmpty())
 		{
 			for(CostAwareCustomer c : customers)
@@ -186,6 +187,7 @@ public class MyPFIH
 				//goto 5
 			}
 		}
+		
 	}
 	
     /**
@@ -291,7 +293,7 @@ public class MyPFIH
 		int i = 0;
 		
 		
-		
+		route = new Route();
 		
 		for(; !customers.isEmpty() && i<numberOfVehicles; i++)
 		{
@@ -318,6 +320,26 @@ public class MyPFIH
 			routes[0][i] = route;
 		}
 		
+		/*
+		 * CASO DA GESTIRE: uscita dal ciclo precedente solo per (i<numberOfVehicles)
+		 * io qui ho messo una pezza solo per non ottenere risultati falsati
+		 * 
+		 */
+		if(!customers.isEmpty()){
+			int k = route.getCustomersLength();
+			for(CostAwareCustomer c : customers){
+					route.addCustomer(c, k);
+					evaluateRoute(route);
+					//dovrei eliminare i customer ma non lo posso fare perchè non posso 
+					//agire sulla collezione mentre sto iterando tramite for each.
+					//non credo sia un problema comunque.
+					k++;
+			}
+			customers.clear();//per completezza svuoto la collezione
+		}
+		
+		//System.out.println("customers size: "+customers.size());
+		
 		for(int j=i;  j<numberOfVehicles; j++)
 		{
 			route = new Route();
@@ -338,6 +360,8 @@ public class MyPFIH
 			
 			routes[0][j] = route;
 		}
+		
+		
 		
 		for(int k=1; k<instance.getDepotsNr(); k++)
 		{

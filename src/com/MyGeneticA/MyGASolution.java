@@ -36,7 +36,7 @@ public class MyGASolution extends MySolution{
     	feasibleIndex = 0;
     	MySolution.setIterationsDone(0);
     	Bs = new int[instance.getCustomersNr()][instance.getVehiclesNr()][instance.getDepotsNr()];	
-		
+    	
 		this.chromosome = ch;
 	}
 	
@@ -45,6 +45,7 @@ public class MyGASolution extends MySolution{
 		objectiveFunction = new MyGAObjectiveFunction(instance);
 		MySolution.setInstance(instance);
 		cost = new Cost();
+		
 		alpha 	= 1;
     	beta 	= 1;
     	gamma	= 1;
@@ -55,6 +56,7 @@ public class MyGASolution extends MySolution{
     	MySolution.setIterationsDone(0);
     	Bs = new int[instance.getCustomersNr()][instance.getVehiclesNr()][instance.getDepotsNr()];
     	this.routes = routes;
+    	this.objectiveFunction.evaluateAbsolutely(this);
 	}
 	
 	/**
