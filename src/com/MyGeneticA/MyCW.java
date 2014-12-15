@@ -343,6 +343,92 @@ public class MyCW {
 		return(!r1.equals(r2));
 		
 	}
+
+	private void evaluateRoute(Route route) {
+    	double totalTime = 0;
+    	double waitingTime = 0;
+    	double twViol = 0;
+    	Customer customerK;
+    	route.initializeTimes();
+    	// do the math only if the route is not empty
+		if(!route.isEmpty()){
+	    	// sum distances between each node in the route
+			for (int k = 0; k < route.getCustomersLength(); ++k){
+				// get the actual customer
+				customerK = route.getCustomer(k);
+				// add travel time to the route
+				if(k == 0){
+					route.getCost().travelTime += instance.getTravelTime(route.getDepotNr(), customerK.getNumber());
+					totalTime += instance.getTravelTime(route.getDepotNr(), customerK.getNumber());
+				}else{
+					route.getCost().travelTime += instance.getTravelTime(route.getCustomerNr(k -1), customerK.getNumber());
+					totalTime += instance.getTravelTime(route.getCustomerNr(k -1), customerK.getNumber());
+				} // end if else
+				
+				customerK.setArriveTime(totalTime);
+				// add waiting time if any
+				waitingTime = Math.max(0, customerK.getStartTw() - totalTime);
+				route.getCost().waitingTime += waitingTime;
+				// update customer timings information
+				customerK.setWaitingTime(waitingTime);
+				
+				totalTime = Math.max(customerK.getStartTw(), totalTime);
+
+				// add time window violation if any
+				twViol = Math.max(0, totalTime - customerK.getEndTw());
+				route.getCost().addTWViol(twViol);
+				customerK.setTwViol(twViol);
+				// add the service time to the total
+				totalTime += customerK.getServiceDuration();
+				// add service time to the route
+				route.getCost().serviceTime += customerK.getServiceDuration();
+				// add capacity to the route
+				route.getCost().load += customerK.getCapacity();
+				
+			} // end for customers
+			
+			// add the distance to return to depot: from last node to depot
+			totalTime += instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr());
+			route.getCost().travelTime += instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr());
+			// add the depot time window violation if any
+			twViol = Math.max(0, totalTime - route.getDepot().getEndTw());
+			route.getCost().addTWViol(twViol);
+			// update route with timings of the depot
+			route.setDepotTwViol(twViol);
+			route.setReturnToDepotTime(totalTime);
+			route.getCost().setLoadViol(Math.max(0, route.getCost().load - route.getLoadAdmited()));
+			route.getCost().setDurationViol(Math.max(0, route.getDuration() - route.getDurationAdmited()));
+			
+			route.getCost().setTravelTime(route.getCost().travelTime);
+			// update total violation
+			route.getCost().calculateTotalCostViol();
+			
+		} // end if route not empty
+		
+    } // end method evaluate route
+    
+	/**
+	 * Imposta parametri per la route (depot, veicolo, costi)
+	 * @param i
+	 * @param route
+	 * @param vehicle
+	 * @param cost
+	 */
+	private void setupRoute(int i, Instance instance, Route route, Vehicle vehicle, Cost cost)
+	{
+		vehicle.setCapacity(instance.getCapacity(0, 0));
+		vehicle.setDuration(instance.getDuration(0, 0));
+		
+		route.setAssignedVehicle(vehicle);
+		route.setDepot(instance.getDepot(0));
+		route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
+		route.setCapacity(vehicle.getCapacity());
+
+		route.setCost(cost);
+		route.setIndex(i+1);
+		
+		evaluateRoute(route);
+	}
 	
 	private Chromosome ConvertRoutesToChromosome()
 	{
@@ -351,17 +437,20 @@ public class MyCW {
 		
 		Iterator<Route> it = routes.values().iterator();
 		
-		for(int i=0; it.hasNext();)
+		
+		for(int i=0, j=0; it.hasNext(); i++)
 		{
-			Route r = it.next();
-			List<Customer> cList = r.getCustomers();
+			Route route = it.next();
+			
+			setupRoute(i, instance, route, new Vehicle(), new Cost());
+			
+			List<Customer> cList = route.getCustomers();
 			
 			for(Customer c : cList)
 			{
-				chromosome.setGene(i, c.getNumber());
-				i++;
+				chromosome.setGene(j, c.getNumber());
+				j++;
 			}
-
 		}
 		
 		return chromosome;

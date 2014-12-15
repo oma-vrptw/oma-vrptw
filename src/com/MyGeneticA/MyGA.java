@@ -1,5 +1,6 @@
 package com.MyGeneticA;
 
+import java.lang.reflect.Array;
 import java.util.*;
 
 import com.TabuSearch.MySolution;
@@ -14,11 +15,17 @@ public class MyGA {
 	private Instance instance;
 	private MyGASolution[] initialSolutions;
 	private Properties prop;
+	private MyPFIH pfihSol;
+	private HashSet<Chromosome> optChrom;
 	
 	public MyGASolution getInitialSolutions(int index) {
 		return initialSolutions[index];
 	}
 
+	public MyPFIH getPfihSol() {
+		return pfihSol;
+	}
+	
 	/** statistics--average deviation of current generation */
 	double[] genAvgDeviation; 
 
@@ -59,6 +66,7 @@ public class MyGA {
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
 		this.prop = p;
+		this.optChrom = new HashSet<Chromosome>();
 	}
 
 	public boolean isComputeStatistics() {
@@ -157,11 +165,11 @@ public class MyGA {
 
 		MyCW generator = new MyCW(chromosomeDim, instance);
 		MySolution initialSol = new MySolution(instance);
-		MyPFIH pfihSol = new MyPFIH(chromosomeDim, instance);
+		this.pfihSol = new MyPFIH(chromosomeDim, instance);
 		
 		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim);
 		Chromosome cw = generator.GenerateChromosome();
-		Chromosome pfih = pfihSol.PerformPFIH();
+		Chromosome pfih = new Chromosome(pfihSol.getRoutes(), chromosomeDim);
 		
 		// CW
 		population.setChromosome(0, cw);
@@ -174,15 +182,14 @@ public class MyGA {
 		initialSolutions[1] = cw.getSolution();
 		initialSolutions[2] = pfih.getSolution();
 		
+		System.out.println("1. Tesista solution, fitness: " + Math.round(population.getChromosome(1).getFitness()));
+		System.out.println("2. CW solution, fitness: " + Math.round(population.getChromosome(0).getFitness()));
+		System.out.println("3. PFIH solution, fitness: " + Math.round(population.getChromosome(2).getFitness()));
 		
 		// Tutti gli altri sono randomici
 		for(int i = 3; i < populationDim; i++)
 			GenerateRandomChromosome(i);
 		
-		System.out.println("FITNESS");
-		System.out.println("CW: " + population.getChromosome(0).getFitness());
-		System.out.println("Tesista: " + population.getChromosome(1).getFitness());
-		System.out.println("PFIH: " + population.getChromosome(2).getFitness());
 		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
 		
 
@@ -211,48 +218,96 @@ public class MyGA {
 	private Chromosome[][] selectParents() {
 		
 		int numberOfParents = populationDim/4, R1 = 0, R2 = 0;;
-		
+		int diversityRate;
+		int maxIteration ;
+        int iterationDone;
 	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
-		boolean[] map = new boolean[numberOfParents];
-		boolean flag1=false, flag2=false;
+		boolean[] map = new boolean[populationDim];
+		boolean flag1, flag2, found;
 
 		Random R= new Random();	
+		
+		Chromosome c1, c2;
     	
 	    //riempimento iniziale mappa a true
     	Arrays.fill(map, true);
     	
     	population.sort();
     	
+    	diversityRate =  populationDim/100*20;
+    	
         for(int i=0; i < numberOfParents/2; i++)
         {	   	
-        	parents[i][0] = population.getChromosome(i);
-        	parents[i][1] = population.getChromosome(i+1);
+        	c1 = population.getChromosome(i);
+        	parents[i][0] = c1;
+        	map[i] = false; //mark chromosome as already taken
         	
-        	map[i] = false;
-        	map[i+1] = false;
+        	//search a good partner for c1
+        	found = false;
+        	for(int j = i+1; j < populationDim; j++){
+        		c2 = population.getChromosome(j);
+        		if(c1.differentGenesAmongTwoChroms(c2) > diversityRate){
+        			//a good partner found, good in terms of fitness but different enough
+        			found = true; 
+        			parents[i][1] = c2; 
+        			map[j] = false; //mark chromosome as already taken
+        			break;
+        		}
+        	}
+        	
+        	if(!found){
+        		//if we haven't found any good partner choose the nearest in terms of fitness
+        		parents[i][1] = population.getChromosome(i+1);
+        		map[i+1] = false;
+        	}
         }
+        
         
         for(int i=numberOfParents/2; i < numberOfParents; i++)
         {
-
-        	while(true)
+        	flag1=false;
+        	//keep one parent not already taken randomly
+        	iterationDone = 0; //deterministic loop exit condition 
+        	while(!flag1 && iterationDone < chromosomeDim)
             {
-            	if(!flag1) R1=R.nextInt(numberOfParents);
-            	if(!flag2) R2=R.nextInt(numberOfParents);
-            		
+            	R1=R.nextInt(populationDim);
+            	
             	if(map[R1]) flag1 = true;
-            	if(map[R2] && R2!=R1) flag2 = true;
+            	iterationDone++;
+            }
+        	
+        	c1 = population.getChromosome(R1);
+            parents[i][0] = c1 ;
+            map[R1] = false; //mark chromosome as already taken
+            
+            //search a good partner for c1
+            flag2=false;
+            c2 = null;
+            iterationDone = 0;//deterministic loop exit condition 
+			while(!flag2 && iterationDone < chromosomeDim)
+            {
+            	R2=R.nextInt(populationDim);
             		
-            	if(flag1 && flag2) break;
+            	if(map[R2] && R2!=R1){
+            		c2 = population.getChromosome(R2);
+            		if(c1.differentGenesAmongTwoChroms(c2) > diversityRate){
+            			//a good partner found, good in terms of fitness but different enough
+            			c2 = population.getChromosome(R2);
+                    	parents[i][1] = c2;
+            			flag2 = true;
+            		}
+            	}
+            	iterationDone++;
             }
             	
-            parents[i][0] = population.getChromosome(R1);
-            parents[i][1] = population.getChromosome(R2);
-            	
-            //inserisco i due ficcaioli in una mappa per evitare di riprenderli per un seccessivo ficcaggio
-            map[R1] = false;
+            if(c2 == null){
+            	//if we haven't found any good partner choose the best
+            	R2=0;
+            	c2 = population.getChromosome(R2);
+            	parents[i][1] = c2;
+            }
+            
             map[R2] = false;
-              
         }             
 	
         return parents;
@@ -721,20 +776,27 @@ System.out.println("mutation done: "+mutationDone);
 		solution = new ArrayList<MyGASolution>();
 
 		population.sort();
-		c = population.getChromosome(0);
-		solution.add(0, c.getSolution());
-		System.out.println("Selected best chromosome. Its fitness is: " + Math.round(c.getFitness()));
-		
-		for(int i=1, nSelected = 1; nSelected < nMax && i < populationDim; i++){
+		int i;
+		for(i = 0; i < populationDim; i++){
 			c = population.getChromosome(i);
-			int x = getAvgDeviationAmongTwoChroms(c, solution.get(nSelected-1).getChromosome());
-			if(Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness())
-					|| x >= 20){
-
+			if(!optChrom.contains(c)){
+				solution.add(0, c.getSolution());
+				optChrom.add(c);
+				System.out.println("1. Its fitness is: " + Math.round(c.getFitness()));
+				break;
+			}
+		}
+		
+		for(int j=i, nSelected = 1; nSelected < nMax && j < populationDim; j++){
+			c = population.getChromosome(j);
+			int x = c.differentGenesAmongTwoChroms(solution.get(nSelected-1).getChromosome());
+			if(!optChrom.contains(c) &&
+					//Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness()) ||
+					 x >= 20){
 					solution.add(nSelected, c.getSolution());
-					System.out.println("Selected best chromosome. Its fitness is: " + Math.round(c.getFitness())+" its deviation is: "+x);
+					optChrom.add(c);
 					nSelected++;
-
+					System.out.println(nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1));
 			}
 		}
 
@@ -781,17 +843,7 @@ System.out.println("mutation done: "+mutationDone);
 		return ((double)devCnt);
 	}
 
-	protected int getAvgDeviationAmongTwoChroms(Chromosome c1, Chromosome c2)
-	{
-		int devCnt = 0;
-		for (int iGene = 0; iGene < this.chromosomeDim; iGene++)
-		{
-			if (c1.getGene(iGene) != c2.getGene(iGene))
-				devCnt++;
-		}
 
-		return devCnt;
-	}
 	
 	/**
 	 * Gets the average deviation of the given generation of chromosomes

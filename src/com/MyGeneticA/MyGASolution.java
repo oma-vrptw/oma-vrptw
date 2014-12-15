@@ -13,6 +13,7 @@ import com.mdvrp.Cost;
 import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
+import com.TabuSearch.MyObjectiveFunction;
 import com.TabuSearch.MySolution;
 
 @SuppressWarnings("serial")
@@ -35,8 +36,27 @@ public class MyGASolution extends MySolution{
     	feasibleIndex = 0;
     	MySolution.setIterationsDone(0);
     	Bs = new int[instance.getCustomersNr()][instance.getVehiclesNr()][instance.getDepotsNr()];	
-		
+    	
 		this.chromosome = ch;
+	}
+	
+	public MyGASolution(Instance instance, Route[][] routes)
+	{
+		objectiveFunction = new MyGAObjectiveFunction(instance);
+		MySolution.setInstance(instance);
+		cost = new Cost();
+		
+		alpha 	= 1;
+    	beta 	= 1;
+    	gamma	= 1;
+    	delta	= 0.005;
+    	upLimit = 10000000;
+    	resetValue = 0.1;
+    	feasibleIndex = 0;
+    	MySolution.setIterationsDone(0);
+    	Bs = new int[instance.getCustomersNr()][instance.getVehiclesNr()][instance.getDepotsNr()];
+    	this.routes = routes;
+    	this.objectiveFunction.evaluateAbsolutely(this);
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package com.MyGeneticA;
 
 import java.util.*;
 
+import com.TabuSearch.MySolution;
 import com.mdvrp.*;
 
 /**
@@ -64,7 +65,12 @@ public class MyPFIH
 	
 	private List<CostAwareCustomer> customers;
 	
-	private List<Route> routes;
+	//private List<Route> routes;
+	private Route[][] routes;
+
+	public Route[][] getRoutes() {
+		return routes;
+	}
 
 	public MyPFIH(int numberOfGenes, Instance instance)
 	{
@@ -78,8 +84,12 @@ public class MyPFIH
 		numberOfVehicles = instance.getVehiclesNr();
 		capacityOfVehicle = instance.getCapacity(0, 0);
 
-		routes = new ArrayList<>();
+		//routes = new ArrayList<>();
+		routes = new Route[instance.getDepotsNr()][numberOfVehicles];
+		
 		customers = new ArrayList<>();
+		
+		PerformPFIH();
 	}
 	
 	private void InitCustomers()
@@ -155,6 +165,7 @@ public class MyPFIH
 	{
 		
 		//5
+		//System.out.println("customers size: "+customers.size());
 		while(!customers.isEmpty())
 		{
 			for(CostAwareCustomer c : customers)
@@ -176,6 +187,7 @@ public class MyPFIH
 				//goto 5
 			}
 		}
+		
 	}
 	
     /**
@@ -245,6 +257,7 @@ public class MyPFIH
 		
     } // end method evaluate route
 
+	/*
 	private Chromosome ConvertRoutesToChromosome()
 	{
 		Chromosome chromosome = new Chromosome(numberOfGenes);
@@ -263,49 +276,101 @@ public class MyPFIH
 			}
 
 		}
-		/*
-		System.out.println("CW CHROMOSOME");
-		for(int i=0; i<chromosome.getNumberOfGenes(); i++)
-			System.out.print(chromosome.getGene(i) + " ");
-			*/
-		return chromosome;
+
+		return chromosome;		
+	}*/
+	
+	/**
+	 * Imposta parametri per la route (depot, veicolo, costi)
+	 * @param i
+	 * @param route
+	 * @param vehicle
+	 * @param cost
+	 */
+	private void setupRoute(int i, Instance instance, Route route, Vehicle vehicle, Cost cost)
+	{
+		vehicle.setCapacity(instance.getCapacity(0, 0));
+		vehicle.setDuration(instance.getDuration(0, 0));
 		
+		route.setAssignedVehicle(vehicle);
+		route.setDepot(instance.getDepot(0));
+		route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
+		route.setCapacity(vehicle.getCapacity());
+
+		route.setCost(cost);
+		route.setIndex(i+1);
+		
+		evaluateRoute(route);
 	}
 	
-	//TODO: rivedi
-	public Chromosome PerformPFIH()
+	private void PerformPFIH()
 	{
 		Route route;
-		Vehicle vehicle;
-		Cost cost;
 		
 		InitCustomers();
 		
-		for(int i=0; !customers.isEmpty() && i<numberOfVehicles; i++)
+		int i = 0;		
+		
+		route = new Route();
+		
+		for(; !customers.isEmpty() && i<numberOfVehicles; i++)
 		{
 			route = new Route();
-			cost = new Cost();
-			vehicle = new Vehicle();
 			
-			vehicle.setCapacity(instance.getCapacity(0, 0));
-			vehicle.setDuration(instance.getDuration(0, 0));
-			
-			route.setAssignedVehicle(vehicle);
-			route.setDepot(instance.getDepot(0));
-			route.setReturnToDepotTime(instance.getDepot(0).getEndTw());
-			route.setCapacity(capacityOfVehicle);
-			
-			cost.initialize();
-			route.setCost(cost);
+			setupRoute(i, instance, route, new Vehicle(), new Cost());
 			
 			//TODO: gestire caso limite in cui una rotta non può essere riempita
 			InsertFirstCustomer(route);
 			InsertOtherCustomers(route);
 			
-			routes.add(route);
+			routes[0][i] = route;
 		}
 		
-		return ConvertRoutesToChromosome();
+		/*
+		 * CASO DA GESTIRE: uscita dal ciclo precedente solo per (i<numberOfVehicles)
+		 * io qui ho messo una pezza solo per non ottenere risultati falsati
+		 * 
+		 */
+		if(!customers.isEmpty()){
+			int k = route.getCustomersLength();
+			for(CostAwareCustomer c : customers){
+					route.addCustomer(c, k);
+					evaluateRoute(route);
+					//dovrei eliminare i customer ma non lo posso fare perchè non posso 
+					//agire sulla collezione mentre sto iterando tramite for each.
+					//non credo sia un problema comunque.
+					k++;
+			}
+			customers.clear();//per completezza svuoto la collezione
+		}
+		
+		//System.out.println("customers size: "+customers.size());
+		
+		for(int j=i;  j<numberOfVehicles; j++)
+		{
+			route = new Route();
+
+			setupRoute(j, instance, route, new Vehicle(), new Cost());
+			
+			routes[0][j] = route;
+		}
+		
+		
+		
+		for(int k=1; k<instance.getDepotsNr(); k++)
+		{
+			for(int w=0; w<numberOfVehicles; w++)
+			{
+				route = new Route();
+	
+				setupRoute(k*numberOfVehicles + w, instance, route, new Vehicle(), new Cost());
+
+				routes[k][w] = route;
+			}
+		}
+		
+		
+		//return ConvertRoutesToChromosome();
 	
 	}
 	

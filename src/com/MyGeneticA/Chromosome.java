@@ -113,4 +113,25 @@ public class Chromosome implements Comparable<Chromosome>{
 		return routesNumber;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if(!(obj instanceof Chromosome)) return false;
+		
+		Chromosome c = (Chromosome)obj;
+
+		//sono uguali se hanno i geni nelle stesse posizioni oppure hanno la stessa fitness (probabile cambio di posizione per intere rotte)
+		return this.differentGenesAmongTwoChroms(c) == 0 || this.getFitness() == c.getFitness();
+	}
+	
+	protected int differentGenesAmongTwoChroms(Chromosome c2)
+	{
+		int devCnt = 0;
+		for (int iGene = 0; iGene < this.numberOfGenes; iGene++)
+		{
+			if (this.getGene(iGene) != c2.getGene(iGene))
+				devCnt++;
+		}
+
+		return devCnt;
+	}
 }
