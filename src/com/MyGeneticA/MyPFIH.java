@@ -17,6 +17,7 @@ public class MyPFIH
 	{
 		private double cost, minInsertionCost;
 		private int minCostPosition;
+		boolean routed;
 		
 		public CostAwareCustomer(Customer c)
 		{
@@ -25,8 +26,19 @@ public class MyPFIH
 			cost = 0;	
 			minInsertionCost = Double.MAX_VALUE;
 			minCostPosition = -1;
+			routed = false;
 		}
 		
+		
+		public boolean isRouted() {
+			return routed;
+		}
+
+
+		public void setRouted(boolean routed) {
+			this.routed = routed;
+		}
+
 		public void setCost(double cost)
 		{
 			this.cost = cost;
@@ -34,9 +46,10 @@ public class MyPFIH
 		
 		public void ComputeInsertionMinCost(Route currentRoute)
 		{
+			int actualCustomersLength = currentRoute.getCustomersLength();
 			List<Double> costs = new ArrayList<>();
 			
-			for(int i=0; i<currentRoute.getCustomersLength(); i++)
+			for(int i=0; i<actualCustomersLength; i++)
 			{
 				currentRoute.addCustomer(this, i);
 				evaluateRoute(currentRoute);
@@ -65,10 +78,10 @@ public class MyPFIH
 	
 	private List<CostAwareCustomer> customers;
 	
-	//private List<Route> routes;
 	private Route[][] routes;
 
-	public Route[][] getRoutes() {
+	public Route[][] getRoutes() 
+	{
 		return routes;
 	}
 
@@ -84,7 +97,6 @@ public class MyPFIH
 		numberOfVehicles = instance.getVehiclesNr();
 		capacityOfVehicle = instance.getCapacity(0, 0);
 
-		//routes = new ArrayList<>();
 		routes = new Route[instance.getDepotsNr()][numberOfVehicles];
 		
 		customers = new ArrayList<>();
@@ -92,18 +104,85 @@ public class MyPFIH
 		PerformPFIH();
 	}
 	
+	private void PerformPFIH()
+	{
+		int i;
+		Route route;
+		
+		InitCustomers();
+		
+		for(i=0; !customers.isEmpty() && i<numberOfVehicles; i++)
+		{
+			route = new Route();
+			
+			setupRoute(i, instance, route, new Vehicle(), new Cost());
+			
+			InsertFirstCustomer(route);
+			InsertOtherCustomers(route);
+			
+			routes[0][i] = route;
+		}
+		
+		// Uscita dal ciclo precedente solo per (i<numberOfVehicles)
+		
+		if(!customers.isEmpty())
+		{
+			route = routes[0][i-1];
+			
+			int k = route.getCustomersLength();
+			
+			for(CostAwareCustomer c : customers)
+			{
+				route.addCustomer(c, k);
+				k++;
+			}
+			
+			evaluateRoute(route);
+			
+			customers.clear();//per completezza svuoto la collezione
+		}
+		
+		// Gestione uscita dal ciclo solo per !customers.isEmpty()
+		for(int j=i;  j<numberOfVehicles; j++)
+		{
+			route = new Route();
+	
+			setupRoute(j, instance, route, new Vehicle(), new Cost());
+			
+			routes[0][j] = route;
+		}	
+		
+		for(i=1; i<instance.getDepotsNr(); i++)
+		{
+			for(int j=0; j<numberOfVehicles; j++)
+			{
+				route = new Route();
+	
+				setupRoute(i*numberOfVehicles + j, instance, route, new Vehicle(), new Cost());
+
+				routes[i][j] = route;
+			}
+		}
+	}
+	
 	private void InitCustomers()
 	{
 		double[][] distances = instance.getDistances();
 		
-		double cost = 0;
+		double cost = 0, di0, pi, li;
 		CostAwareCustomer c = null;
 		
 		for(int i=0; i<numberOfCustomers; i++)
 		{
 			c = new CostAwareCustomer(instance.getCustomer(i));
 			
-			cost = -alpha*distances[i][numberOfCustomers] + beta*c.getEndTw() + gamma*c.getAngleToDepot(0)*distances[i][numberOfCustomers]/360;
+			di0 = distances[i][numberOfCustomers];
+			pi = c.getAngleToDepot(0);
+			li = c.getEndTw();
+			
+			//System.out.println("Polar(" + i + ")=" + pi);
+			
+			cost = -alpha*di0 + beta*li + gamma*pi*di0;
 			
 			c.setCost(cost);
 			c.setNumber(i);
@@ -114,21 +193,23 @@ public class MyPFIH
 		/*
 		System.out.println("COSTI");
 		
-		for(int i=0; i<customers.size(); i++)
-			System.out.println(customers.get(i).getCost());
+		for(CostAwareCustomer cu : customers)
+			System.out.println(cu.cost);
 			*/
 	}
 
 	private void InsertFirstCustomer(Route currentRoute)
 	{
-		CostAwareCustomer cStar;
+		CostAwareCustomer cStar = null;
+		boolean FirstCustomerInserted = false;
 		
-		for(int j=0; j<customers.size(); j++)
+		Iterator<CostAwareCustomer> it = customers.iterator();
+		
+		while(!FirstCustomerInserted && it.hasNext())
 		{
-			cStar = customers.get(j);
+			cStar = it.next();
 			
 			currentRoute.addCustomer(cStar);
-	
 			evaluateRoute(currentRoute);
 			
 			if(!currentRoute.getCost().checkFeasible())
@@ -138,12 +219,79 @@ public class MyPFIH
 			}
 			else
 			{
-				customers.remove(j);
-				break;
+				FirstCustomerInserted = true;
+				cStar.setRouted(true);
+				cStar.minInsertionCost = Double.MAX_VALUE;
 			}
 		}
+		
+		// Se il ciclo è terminato per it.hasNext()
+		if(!FirstCustomerInserted)
+		{
+			Random rand = new Random();
+			int index, i=0;
+			CostAwareCustomer randCustomer;
+			do
+			{
+				index = rand.nextInt(customers.size());
+				randCustomer = customers.get(index);
+				i++;
+			}
+			while(randCustomer.isRouted() && i<customers.size());
+			
+			currentRoute.addCustomer(randCustomer);
+			randCustomer.setRouted(true);
+			randCustomer.minInsertionCost = Double.MAX_VALUE;
+			
+			evaluateRoute(currentRoute);
+			
+			customers.remove(randCustomer);
+		}
+		
+		// Se il ciclo è terminato per !FirstCustomerInserted
+		if(FirstCustomerInserted && cStar!=null) customers.remove(cStar);
+			
+
 	}
 	
+	private void InsertOtherCustomers(Route currentRoute)
+	{
+
+		List<CostAwareCustomer> customersToBeRemoved = new ArrayList<>();
+		
+		for(int i=0; i<customers.size(); i++)
+		{
+			UpdateInsertionMinCostsForRoute(currentRoute);
+			
+			CostAwareCustomer customer = MinInsertionCostCustomer();
+			
+			currentRoute.addCustomer(customer, customer.minCostPosition);
+			evaluateRoute(currentRoute);
+			
+			if(!currentRoute.getCost().checkFeasible())
+			{
+				currentRoute.removeCustomer(customer.minCostPosition);
+				evaluateRoute(currentRoute);
+				break;
+			}
+			else
+			{
+				customer.setRouted(true);
+				customer.minInsertionCost = Double.MAX_VALUE;
+				
+				customersToBeRemoved.add(customer);
+			}
+		}
+		
+		for(CostAwareCustomer c : customersToBeRemoved)
+		{
+			customers.remove(c);
+		}
+		
+		customersToBeRemoved.clear();
+	}
+	
+	// >-------------------- METODI AUSILIARI --------------------------<
 	private CostAwareCustomer MinInsertionCostCustomer()
 	{
 		CostAwareCustomer mincustomer = null;
@@ -151,7 +299,7 @@ public class MyPFIH
 		
 		for(CostAwareCustomer c : customers)
 		{
-			if(c.minInsertionCost < mincost)
+			if(!c.isRouted() && c.minInsertionCost < mincost)
 			{
 				mincost = c.minInsertionCost;
 				mincustomer = c;
@@ -161,33 +309,11 @@ public class MyPFIH
 		return mincustomer;
 	}
 	
-	private void InsertOtherCustomers(Route currentRoute)
+	private void UpdateInsertionMinCostsForRoute(Route currentRoute)
 	{
-		
-		//5
-		//System.out.println("customers size: "+customers.size());
-		while(!customers.isEmpty())
-		{
-			for(CostAwareCustomer c : customers)
+		for(CostAwareCustomer c : customers)
+			if(!c.isRouted())
 				c.ComputeInsertionMinCost(currentRoute);
-		//6
-			CostAwareCustomer customer = MinInsertionCostCustomer();
-			
-			currentRoute.addCustomer(customer, customer.minCostPosition);
-			evaluateRoute(currentRoute);
-			if(!currentRoute.getCost().checkFeasible())
-			{
-				currentRoute.removeCustomer(customer.minCostPosition);
-				evaluateRoute(currentRoute);
-				break; //goto 7
-			}
-			else
-			{
-				customers.remove(customer);
-				//goto 5
-			}
-		}
-		
 	}
 	
     /**
@@ -302,76 +428,6 @@ public class MyPFIH
 		
 		evaluateRoute(route);
 	}
-	
-	private void PerformPFIH()
-	{
-		Route route;
-		
-		InitCustomers();
-		
-		int i = 0;		
-		
-		route = new Route();
-		
-		for(; !customers.isEmpty() && i<numberOfVehicles; i++)
-		{
-			route = new Route();
-			
-			setupRoute(i, instance, route, new Vehicle(), new Cost());
-			
-			//TODO: gestire caso limite in cui una rotta non può essere riempita
-			InsertFirstCustomer(route);
-			InsertOtherCustomers(route);
-			
-			routes[0][i] = route;
-		}
-		
-		/*
-		 * CASO DA GESTIRE: uscita dal ciclo precedente solo per (i<numberOfVehicles)
-		 * io qui ho messo una pezza solo per non ottenere risultati falsati
-		 * 
-		 */
-		if(!customers.isEmpty()){
-			int k = route.getCustomersLength();
-			for(CostAwareCustomer c : customers){
-					route.addCustomer(c, k);
-					evaluateRoute(route);
-					//dovrei eliminare i customer ma non lo posso fare perchè non posso 
-					//agire sulla collezione mentre sto iterando tramite for each.
-					//non credo sia un problema comunque.
-					k++;
-			}
-			customers.clear();//per completezza svuoto la collezione
-		}
-		
-		//System.out.println("customers size: "+customers.size());
-		
-		for(int j=i;  j<numberOfVehicles; j++)
-		{
-			route = new Route();
 
-			setupRoute(j, instance, route, new Vehicle(), new Cost());
-			
-			routes[0][j] = route;
-		}
-		
-		
-		
-		for(int k=1; k<instance.getDepotsNr(); k++)
-		{
-			for(int w=0; w<numberOfVehicles; w++)
-			{
-				route = new Route();
-	
-				setupRoute(k*numberOfVehicles + w, instance, route, new Vehicle(), new Cost());
-
-				routes[k][w] = route;
-			}
-		}
-		
-		
-		//return ConvertRoutesToChromosome();
-	
-	}
 	
 }
