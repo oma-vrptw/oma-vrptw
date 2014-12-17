@@ -33,6 +33,7 @@ public class VRPTW_main {
 
 		Instant previous, current;
 		long gap = 0, totalTime = 0;
+		double epsilon = 0.001;
 
 		previous = Instant.now();
 		
@@ -40,6 +41,8 @@ public class VRPTW_main {
 			// check to see if an input file was specified
 			parameters.updateParameters(args);
 
+			parameters.setOutputFileName(parameters.getCurrDir() + "/output/" + "res_" + parameters.getInputFileName());
+			
 			if(parameters.getInputFileName() == null){
 				System.out.println("You must specify an input file name");
 				return;
@@ -137,7 +140,9 @@ public class VRPTW_main {
 	
 				System.out.println("number of customers: "+numberOfCustomers);
 				
-				if(bestSolutionFound > search.feasibleCost.total){
+				double diff = Math.abs(bestSolutionFound - search.feasibleCost.total);
+				
+				if(bestSolutionFound > search.feasibleCost.total && diff>epsilon){
 					bestSolutionFound = search.feasibleCost.total;
 					
 					bestRoutesNr = routesNr;
@@ -145,6 +150,7 @@ public class VRPTW_main {
 					if (previous != null) {
 					    gap = ChronoUnit.SECONDS.between(previous,current);
 					}
+					
 					System.out.println("current solution changed:");
 					 String outSol = String.format(
 				        		"Instance file: %s\n"
@@ -198,7 +204,10 @@ public class VRPTW_main {
 							if(search.feasibleRoutes[i][j].getCustomersLength() > 0)
 								routesNr++;
 					
-					if(bestSolutionFound > search.feasibleCost.total){
+					double diff = Math.abs(bestSolutionFound - search.feasibleCost.total);
+					
+					if(bestSolutionFound > search.feasibleCost.total && diff>epsilon)
+					{
 						bestSolutionFound = search.feasibleCost.total;
 						bestRoutesNr = routesNr;
 						current = Instant.now();
@@ -245,6 +254,11 @@ public class VRPTW_main {
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
 		        		gap, bestRoutesNr);
 		        System.out.println(outSol);
+		        
+		        outSol = String.format(
+					 	"%5.2f " + "%d\n\n  ",
+		        		bestSolutionFound,
+		        		gap);
 		        
 		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 		        fw.write(outSol);
