@@ -17,6 +17,17 @@ import java.time.temporal.ChronoUnit;
 
 public class VRPTW_main {
 
+	private static double UpdateGap(Instant t1, Instant t2)
+	{
+		return (double)ChronoUnit.MILLIS.between(t1, t2)/1000
+				+
+				(double)ChronoUnit.SECONDS.between(t1, t2)
+				+
+				(double)ChronoUnit.MINUTES.between(t1, t2)*60
+				+
+				(double)ChronoUnit.HOURS.between(t1, t2)*60*60;
+	}
+	
 	public static void main(String[] args) {
 
 		MyGA				myGA;
@@ -32,7 +43,7 @@ public class VRPTW_main {
 		int bestRoutesNr;
 
 		Instant previous, current;
-		long gap = 0, totalTime = 0;
+		double gap = 0, totalTime = 0;
 		double epsilon = 0.001;
 
 		previous = Instant.now();
@@ -148,14 +159,15 @@ public class VRPTW_main {
 					bestRoutesNr = routesNr;
 					
 					if (previous != null) {
-					    gap = ChronoUnit.SECONDS.between(previous,current);
+						
+						gap = 	UpdateGap(previous,current);
 					}
 					
 					System.out.println("current solution changed:");
 					 String outSol = String.format(
 				        		"Instance file: %s\n"
 				        		+ "Total cost: %5.2f\n"
-				        		+ "Execution time: %d sec\n"
+				        		+ "Execution time: %5.3f sec\n"
 				        		+ "Number of routes: %4d\n",
 				        		instance.getParameters().getInputFileName(), bestSolutionFound,
 				        		gap, bestRoutesNr);
@@ -212,7 +224,7 @@ public class VRPTW_main {
 						bestRoutesNr = routesNr;
 						current = Instant.now();
 						if (previous != null) {
-						    gap = ChronoUnit.SECONDS.between(previous,current);
+						    gap = 	UpdateGap(previous,current);
 						}
 						
 						System.out.println("current solution changed:");
@@ -249,14 +261,14 @@ public class VRPTW_main {
 					 	"\nThis one the best solution found\n"
 		        		+ "Instance file: %s\n"
 		        		+ "Total cost: %5.2f\n"
-		        		+ "Execution time: %d sec\n"
+		        		+ "Execution time: %5.3f sec\n"
 		        		+ "Number of routes: %4d\n",
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
 		        		gap, bestRoutesNr);
 		        System.out.println(outSol);
 		        
 		        outSol = String.format(
-					 	"%5.2f " + "%d\n\n  ",
+					 	"%5.2f " + "%f\n\n  ",
 		        		bestSolutionFound,
 		        		gap);
 		        
