@@ -4,8 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.Properties;
+
 
 import org.coinor.opents.TabuList;
 
@@ -14,6 +13,8 @@ import com.MyGeneticA.*;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Properties;
 
 public class VRPTW_main {
 
@@ -29,7 +30,7 @@ public class VRPTW_main {
 	}
 	
 	public static void main(String[] args) {
-
+		
 		MyGA				myGA;
 		MySearchProgram     search;
 		MySolution          initialSol;
@@ -48,13 +49,15 @@ public class VRPTW_main {
 
 		previous = Instant.now();
 		
-		try {			
+		try 
+		{			
 			// check to see if an input file was specified
 			parameters.updateParameters(args);
 
 			parameters.setOutputFileName(parameters.getCurrDir() + "/output/" + "res_" + parameters.getInputFileName());
 			
-			if(parameters.getInputFileName() == null){
+			if(parameters.getInputFileName() == null)
+			{
 				System.out.println("You must specify an input file name");
 				return;
 			}
@@ -256,31 +259,27 @@ public class VRPTW_main {
 			}
 			
 			System.out.println("the game is over.");
-
+			
+			current = Instant.now();
+	        if (previous != null) {
+			    totalTime = UpdateGap(previous,current);
+			    //System.out.println("time to compute all of the stuff= "+totalTime+" secondssssss");
+			}
 			 String outSol = String.format(
 					 	"\nThis one the best solution found\n"
 		        		+ "Instance file: %s\n"
 		        		+ "Total cost: %5.2f\n"
-		        		+ "Execution time: %5.3f sec\n"
+		        		+ "Time to compute best solution: %5.3f sec\n"
+		        		+ "Total time: %5.3f sec\n"
 		        		+ "Number of routes: %4d\n",
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
-		        		gap, bestRoutesNr);
+		        		gap, totalTime, bestRoutesNr);
 		        System.out.println(outSol);
-		        
-		        outSol = String.format(
-					 	"%5.2f " + "%f\n\n  ",
-		        		bestSolutionFound,
-		        		gap);
 		        
 		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 		        fw.write(outSol);
 		        fw.close();
 			
-		        current = Instant.now();
-		        if (previous != null) {
-				    totalTime = ChronoUnit.SECONDS.between(previous,current);
-				    System.out.println("time to compute all of the stuff= "+totalTime+" secondssssss");
-				}
 		        System.out.println("see u soon.");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
