@@ -75,6 +75,7 @@ public class VRPTW_main {
 			}
 			
 			parameters.setIterations(Integer.parseInt(prop.getProperty("tsIterationN")));
+			parameters.setTabuTenure(Integer.parseInt(prop.getProperty("tabuTenure")));
 			
 			// get the instance from the file			
 			instance = new Instance(parameters); 
@@ -231,14 +232,19 @@ public class VRPTW_main {
 						}
 						
 						System.out.println("current solution changed:");
-						 String outSol = String.format(
+						/*String outSol = String.format(
 					        		"Instance file: %s\n"
-					        		+ "Total cost: %5.2f\n"
+					        		+ "Total cost: %f\n"
 					        		+ "Execution time: %d sec\n"
-					        		+ "Number of routes: %4d\n",
+					        		+ "Number of routes: %d\n",
 					        		instance.getParameters().getInputFileName(), bestSolutionFound,
 					        		gap, bestRoutesNr);
-					        System.out.println(outSol);
+						 System.out.println(outSol);*/
+						 
+					     System.out.println("Instance file: " + instance.getParameters().getInputFileName()
+					        				 + "\nTotal cost: " + bestSolutionFound 
+					        				 + "\nExecution time: "+ gap +" sec"
+					        				 + "\nNumber of routes: " + bestRoutesNr);
 					}
 
 					System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total));
