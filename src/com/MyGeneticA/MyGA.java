@@ -325,9 +325,9 @@ public class MyGA {
 
 		case 1: return crossover2pt(parents);
 
-		case 2: return crossoverUniform(parents);
+		case 2: return pmxCrossover(parents);
 
-		default: return crossoverUniform(parents);
+		default: return pmxCrossover(parents);
 		}
 	}
 
@@ -448,6 +448,66 @@ public class MyGA {
 		}
 	}
 
+	Chromosome[] pmxCrossover(Chromosome[][] parents) {
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
+
+		Random rnd = new Random();
+
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
+
+		for(int i = 0; i < parents.length; i++){
+			children[k] = new Chromosome(chromosomeDim);
+			children[k+1] = new Chromosome(chromosomeDim);
+			
+			for(int j = 0; j < chromosomeDim; j++){
+				children[k].setGene(j, parents[i][0].getGene(j));
+				children[k+1].setGene(j, parents[i][1].getGene(j));
+			}
+			
+			boolean[][] matrix = new boolean[chromosomeDim][chromosomeDim];
+			int numSwap = (int) (chromosomeDim*0.3);
+			
+			int z = 0;
+			while(z < numSwap){
+				int sw1 = rnd.nextInt(chromosomeDim);
+				int sw2 = rnd.nextInt(chromosomeDim);
+				
+				if(matrix[sw1][sw2] == false && sw1 != sw2){
+					int tmp = children[k].getGene(sw1);
+					children[k].setGene(sw1, children[k].getGene(sw2));
+					children[k].setGene(sw2, tmp);
+					
+					tmp = children[k+1].getGene(sw1);
+					children[k+1].setGene(sw1, children[k+1].getGene(sw2));
+					children[k+1].setGene(sw2, tmp);
+					
+					matrix[sw1][sw2] = true;
+					matrix[sw2][sw1] = true;
+					z++;
+				}
+			}
+			
+			k += 2;
+		}
+		
+		int newDim = deleteDuplicates(children);
+		if(childrenNum == newDim) return children;
+		else {
+			//System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < childrenNum; i++){
+				if(children[i] != null) {
+					childrenWithoutDuplicates[j] = children[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
+	}
+	
+	/*
 	Chromosome[] crossoverUniform(Chromosome[][] parents) { 
 
 		int childrenNum = parents.length*2;
@@ -489,7 +549,8 @@ public class MyGA {
 			return childrenWithoutDuplicates;
 		}
 	}
-
+	*/
+	
 	void copyGenesInFrom(Chromosome dest, int init_d, int end_d, Chromosome src, int init_s, int end_s){
 		for(int i = init_d, j = init_s; i < end_d; i++, j++){
 			dest.setGene(i, src.getGene(j));
@@ -640,8 +701,8 @@ public class MyGA {
 
 			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
 
-			for(int h=0; h<instance.getCustomersNr(); h++){
-				matrix[h][h]=false;} 
+			/*for(int h=0; h<instance.getCustomersNr(); h++){ //ERR
+				matrix[h][h]=false;} */
 			
 			while(k<numSwap){ //faccio 3(%) swap di geni sui primi 5(%) cromosomi della popolazione
 
@@ -867,10 +928,11 @@ System.out.println("mutation done: "+mutationDone);
 
 	void doGeneticMating(int iGen)
 	{
-		Chromosome[] result ;
+		Chromosome[] result;
 		Chromosome[][] selection = selectParents();
 		
 			int selectedCrossover = getRandom(3);
+			
 			switch(selectedCrossover){
 			case 0: 
 				result = crossover1pt(selection);
@@ -881,9 +943,27 @@ System.out.println("mutation done: "+mutationDone);
 				break;
 
 			default: 
-				result = crossoverUniform(selection);
+				result = pmxCrossover(selection);
 			}
-
+			
+/////////////////////////////////
+		/*
+		for(int i = 0; i < result.length; i++){
+			for(int j = 1; j <= chromosomeDim; j++){
+				int count = 0;
+				for(int k = 0; k < chromosomeDim; k++){
+					if(result[i].getGene(k) == j) count++;
+					if(count >= 2) {
+						System.out.println("**************************************BUG FOUND!!!**********************************"+j);
+						break;
+					}
+				}
+				if(count >= 2) break;
+			}
+		}	
+		*/
+/////////////////////////////////
+		
 		generateNewPopulation(result);
 
 	}
