@@ -104,6 +104,7 @@ public class VRPTW_main {
 			myGA = new MyGA(chromosomeDim, 
 					populationDim,
 					instance, 
+					parameters,
 					Integer.parseInt(prop.getProperty("gaIterationN")), 
 					Boolean.parseBoolean(prop.getProperty("enableMutation")),
 					Integer.parseInt(prop.getProperty("threshold")),

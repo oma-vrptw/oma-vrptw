@@ -1,10 +1,14 @@
 package com.MyGeneticA;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
+import com.mdvrp.Parameters;
 import com.mdvrp.Route;
 
 
@@ -13,10 +17,11 @@ public class MyGA {
 	private int populationDim;
 	private int chromosomeDim;
 	private Instance instance;
+	private Parameters parameters;
 	private MyGASolution[] initialSolutions;
 	private Properties prop;
 	private MyPFIH pfihSol;
-	private HashSet<Chromosome> optChrom;
+	private HashSet<Long> optChrom;
 	
 	public MyGASolution getInitialSolutions(int index) {
 		return initialSolutions[index];
@@ -51,10 +56,11 @@ public class MyGA {
 	 * @param threshold
 	 * @param properties
 	 */
-	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics, double threshold, Properties p) { 
+	public MyGA(int chromosomeDim, int populationDim, Instance instance, Parameters parameters, int maxGenerations, boolean computeStatistics, double threshold, Properties p) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
+		this.parameters = parameters;
 
 		this.population = new Population(populationDim, instance);
 
@@ -66,7 +72,7 @@ public class MyGA {
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
 		this.prop = p;
-		this.optChrom = new HashSet<Chromosome>();
+		this.optChrom = new HashSet<>();
 	}
 
 	public boolean isComputeStatistics() {
@@ -840,10 +846,21 @@ System.out.println("mutation done: "+mutationDone);
 		int i;
 		for(i = 0; i < populationDim; i++){
 			c = population.getChromosome(i);
-			if(!optChrom.contains(c)){
+			if(!optChrom.contains(Math.round(c.getFitness()))){
 				solution.add(0, c.getSolution());
-				optChrom.add(c);
-				System.out.println("1. Its fitness is: " + Math.round(c.getFitness()));
+				optChrom.add(Math.round(c.getFitness()));
+				String msg = "1. Its fitness is: " + Math.round(c.getFitness());
+				System.out.println(msg);
+				FileWriter fw;
+				try {
+					fw = new FileWriter(parameters.getOutputFileName(),true);
+					fw.write(msg);
+					fw.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		        
 				break;
 			}
 		}
@@ -851,13 +868,23 @@ System.out.println("mutation done: "+mutationDone);
 		for(int j=i, nSelected = 1; nSelected < nMax && j < populationDim; j++){
 			c = population.getChromosome(j);
 			int x = c.differentGenesAmongTwoChroms(solution.get(nSelected-1).getChromosome());
-			if(!optChrom.contains(c) &&
+			if(!optChrom.contains(Math.round(c.getFitness())) &&
 					//Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness()) ||
 					 x >= 20){
 					solution.add(nSelected, c.getSolution());
-					optChrom.add(c);
+					optChrom.add(Math.round(c.getFitness()));
 					nSelected++;
-					System.out.println(nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1));
+					String msg = nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1);
+					System.out.println(msg);
+					FileWriter fw;
+					try {
+						fw = new FileWriter(parameters.getOutputFileName(),true);
+						fw.write(msg);
+						fw.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 			}
 		}
 
