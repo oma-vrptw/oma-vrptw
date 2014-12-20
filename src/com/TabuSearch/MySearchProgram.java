@@ -1,5 +1,6 @@
 package com.TabuSearch;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
 
@@ -27,7 +28,7 @@ public class MySearchProgram implements TabuSearchListener{
 	public int bestIndex;
 	public DecimalFormat df = new DecimalFormat("#.##");
 	
-	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager, ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream)
+	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager, ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream) throws IOException
 	{
 		tabuSearch = new SingleThreadedTabuSearch(initialSol, moveManager, objFunc,tabuList,	new BestEverAspirationCriteria(), minmax );
 		feasibleIndex = -1;
