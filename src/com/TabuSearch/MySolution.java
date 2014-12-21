@@ -266,7 +266,7 @@ public class MySolution extends SolutionAdapter{
 	 * this function calculates the cost of a route from scratch
 	 * @param route
 	 */
-	protected void evaluateRoute(Route route) {
+	public static void evaluateRoute(Route route) {
     	double totalTime = 0;
     	double waitingTime = 0;
     	double twViol = 0;

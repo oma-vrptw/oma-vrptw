@@ -4,8 +4,11 @@ import java.lang.reflect.Array;
 import java.util.*;
 
 import com.TabuSearch.MySolution;
+import com.mdvrp.Cost;
+import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
+import com.mdvrp.Vehicle;
 
 
 public class MyGA {
@@ -14,8 +17,8 @@ public class MyGA {
 	private int chromosomeDim;
 	private Instance instance;
 	private MyGASolution[] initialSolutions;
+	private Properties prop;
 	private MyPFIH pfihSol;
-	
 	private HashSet<Chromosome> optChrom;
 	
 	public MyGASolution getInitialSolutions(int index) {
@@ -49,8 +52,9 @@ public class MyGA {
 	 * @param maxGenerations
 	 * @param computeStatistics
 	 * @param threshold
+	 * @param properties
 	 */
-	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics, double threshold) { 
+	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics, double threshold, Properties p) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
@@ -64,7 +68,7 @@ public class MyGA {
 		this.threshold = threshold;
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
-		
+		this.prop = p;
 		this.optChrom = new HashSet<Chromosome>();
 	}
 
@@ -189,8 +193,7 @@ public class MyGA {
 		for(int i = 3; i < populationDim; i++)
 			GenerateRandomChromosome(i);
 		
-		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
-		
+		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());		
 
 		//test code (stub)
 
@@ -308,26 +311,199 @@ public class MyGA {
             
             map[R2] = false;
         }             
-	
+        
+        /*
+        for(int i=0; i<parents.length; i++){
+        	System.out.println("coppia: "+parents[i][0] +" - "+parents[i][1]);
+        	System.out.println("fitness: "+parents[i][0].getFitness() + " - "+parents[i][1].getFitness());
+        }
+        
+        System.out.println();
+        */
         return parents;
 	}
 		
 
 
-	Chromosome[] crossover(Chromosome[][] parents) { 
+	Chromosome[] crossover(Chromosome[][] parents, boolean tempHigh) { 
+		Chromosome[] children;
+		
+		if(tempHigh){
+			children = crossoverSpecial(parents);
+		}else{
 		Random rnd = new Random();
 
 		int selectedCrossover = rnd.nextInt(3);
 
 		switch(selectedCrossover){
-		case 0: return crossover1pt(parents);
-
-		case 1: return crossover2pt(parents);
-
-		case 2: return crossoverUniform(parents);
-
-		default: return crossoverUniform(parents);
+			case 0: children =  crossover1pt(parents);
+	
+			case 1: children =  crossover2pt(parents);
+	
+			case 2: children =  crossoverUniform(parents);
+	
+			default: children =  crossoverUniform(parents);
+			}
 		}
+		
+		return children;
+	}
+
+	void initializeRoute(Route r){		
+		
+		// add the depot as the first node to the route
+		r.setDepot(instance.getDepot(0));
+		
+		// set the cost of the route
+		Cost cost = new Cost();
+		r.setCost(cost);
+		
+		// assign vehicle
+		Vehicle vehicle = new Vehicle();
+		vehicle.setCapacity(instance.getCapacity(0, 0));
+		vehicle.setDuration(instance.getDuration(0, 0));
+		r.setAssignedVehicle(vehicle);
+	}
+	
+	Chromosome[] crossoverSpecial(Chromosome[][] partners) {
+		int childrenNum = partners.length*2;
+		Chromosome[] children = new Chromosome[childrenNum];
+		int cuttingPoint;
+		int customerChosen;
+		Customer customerChosenPtr;
+		boolean[] taken = new boolean[chromosomeDim];
+		boolean endRoute;
+		
+		Chromosome child, mom, dad;
+		System.out.println("partners");
+//		for(int i=0; i < partners.length; i++){
+//			
+//			System.out.println(partners[i][0]);
+//			System.out.println(partners[i][1]);
+//			System.out.println("----");
+//		}
+		
+		for(int i=0; i < partners.length; i++){	
+			cuttingPoint = getRandom(chromosomeDim);
+			
+			for(int j=1; j <= 2; j++){
+				dad = partners[i][j / 2];
+				mom = partners[i][j % 2];
+				for(int m=0; m<taken.length; m++)taken[m]=false;
+//				System.out.println("mom: "+mom);
+//				System.out.println("dad: "+dad);
+//				System.out.println("---");
+				child = new Chromosome(chromosomeDim);
+				
+				Route route = new Route();
+				initializeRoute(route);
+				int k=0;
+				child.setGene(k, dad.getGene(k));
+				customerChosen = dad.getGene(k);
+				customerChosenPtr = instance.getCustomer(customerChosen);
+				route.addCustomer(customerChosenPtr);
+				MySolution.evaluateRoute(route);
+				
+				
+				//for(k = 1; (k < cuttingPoint || !endRoute) && k < chromosomeDim; k++){
+				for(k = 1; k < cuttingPoint ; k++){
+					
+					child.setGene(k, dad.getGene(k));
+					taken[dad.getGene(k)] = true;
+					if(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
+							&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(child.getGene(k-1), child.getGene(k))+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
+							//&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(child.getGene(k-1), child.getGene(k))+customerChosenPtr.getServiceDuration() - instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr()) <= customerChosenPtr.getEndTw()
+							){
+						route.addCustomer(customerChosenPtr);
+						MySolution.evaluateRoute(route);
+					}else{
+						
+						route = new Route();
+						initializeRoute(route);
+						route.addCustomer(customerChosenPtr);
+						MySolution.evaluateRoute(route);
+					}
+				}
+				
+				//calculate how many genes to complete the route starting to cutting point
+				int y = k;
+				do{
+					customerChosen = dad.getGene(y);
+					customerChosenPtr = instance.getCustomer(customerChosen);
+					route.addCustomer(customerChosenPtr);
+					MySolution.evaluateRoute(route);
+					y++;
+				}while(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
+						&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(dad.getGene(y-1), dad.getGene(y))+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
+						);
+				
+				//System.out.println("child before cutting point"+child);
+				
+				
+				
+					double min = Double.MAX_VALUE;
+					int w = -1;
+
+					for(int z = 0; z < chromosomeDim ; z++){
+						if(taken[mom.getGene(z)])continue;
+						customerChosen = mom.getGene(z);
+						customerChosenPtr = instance.getCustomer(customerChosen);
+						if(min > instance.getTravelTime(child.getGene(k-1), mom.getGene(z)) && 
+								customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
+								&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(child.getGene(k-1), customerChosen)+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
+								//&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(child.getGene(k-1), customerChosen)+customerChosenPtr.getServiceDuration() - instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr()) <= customerChosenPtr.getEndTw()
+								){
+							min = instance.getTravelTime(child.getGene(k-1), mom.getGene(z));
+							w = z;
+						}
+					}
+					if(min == Double.MAX_VALUE){
+						w = k;
+						route = new Route();
+						initializeRoute(route);
+					}
+					
+					child.setGene(k, mom.getGene(w));
+					taken[mom.getGene(w)] = true;
+					
+					k++;
+					w++;
+				for(; k < y; k++){
+					if(taken[mom.getGene(w)])continue;
+					customerChosen = mom.getGene(w);
+					customerChosenPtr = instance.getCustomer(customerChosen);
+				
+					if(		customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
+							&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(child.getGene(k-1), customerChosen)+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
+							//&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(child.getGene(k-1), customerChosen)+customerChosenPtr.getServiceDuration() - instance.getTravelTime(route.getLastCustomerNr(), route.getDepotNr()) <= customerChosenPtr.getEndTw()
+							){
+						
+					route.addCustomer(instance.getCustomer(mom.getGene(w)));
+					MySolution.evaluateRoute(route);
+					
+					child.setGene(k, mom.getGene(w));
+					taken[mom.getGene(w)] = true;
+					}
+				}
+				
+				
+				while(k < chromosomeDim){
+					if(taken[dad.getGene(y)]){
+						y++;
+						continue;
+					}
+					child.setGene(k, dad.getGene(y));
+				}
+				
+//				System.out.println("child after: cutting point"+child);
+//				System.out.println("---");
+				children[(j-1) + (2*i)] = child;
+				
+			}		
+			
+		}
+				
+		return children;
 	}
 
 	Chromosome[] crossover1pt(Chromosome[][] parents) { 
@@ -633,9 +809,9 @@ public class MyGA {
 		int k = 0;
 		boolean matrix[][];
 
-		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
+		int numSwap = (int) (chromosomeDim*Double.parseDouble(prop.getProperty("numSwap"))); //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 3 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
 
-		while(i < ((populationDim/100)*5)){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
+		while(i < ((int) (populationDim*Double.parseDouble(prop.getProperty("mutationChromosomeN"))))){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
 
 			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
 
@@ -691,7 +867,7 @@ public class MyGA {
 			System.out.println("[[[CROSSOVER]]]");
 			 */
 
-			Chromosome[] result = crossover(selection);
+			Chromosome[] result = crossover(selection, true);
 
 			/*System.out.println("result.length: "+result.length);
 
@@ -727,12 +903,19 @@ public class MyGA {
 
 	public void evolve2(Boolean doMutation) {
 		int iGen;
-		int windowSize = populationDim/100*7;
+		int windowSize = (int) (populationDim*Double.parseDouble(prop.getProperty("windowSize")));
 		iGen = 0;
 		int mutationDone=0;
+		boolean temp;
 		
+		temp = true;
 		do{
-			doGeneticMating(iGen);
+			if(iGen > (maxGenerations / 2))
+				temp = false;
+			
+			if(temp)
+				doGeneticMating(temp);
+			
 			if (doMutation)
 			{
 				this.genAvgDeviation[iGen] = getAvgDeviationAmongChroms();
@@ -751,11 +934,12 @@ public class MyGA {
 							mutationDone++;
 						}			
 					//}
+						//System.out.println("deviation in respect of the best: "+this.genAvgDeviation[iGen]);
 			}
 			
 			iGen++;
 		}while(iGen < maxGenerations);
-System.out.println("mutation done: "+mutationDone);
+System.out.println("mutation done "+mutationDone+" times.");
 	}
 
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
@@ -772,6 +956,9 @@ System.out.println("mutation done: "+mutationDone);
 		Chromosome c;
 		
 		ArrayList<MyGASolution> solution;
+		boolean toInsert;
+		int x;
+		
 		solution = new ArrayList<MyGASolution>();
 
 		population.sort();
@@ -786,19 +973,31 @@ System.out.println("mutation done: "+mutationDone);
 			}
 		}
 		
-		for(int j=i, nSelected = 1; nSelected < nMax && j < populationDim; j++){
+		for(int j=i, nSelected = 1; nSelected < (nMax) && j < populationDim; j++){
 			c = population.getChromosome(j);
-			int x = c.differentGenesAmongTwoChroms(solution.get(nSelected-1).getChromosome());
-			if(!optChrom.contains(c) &&
+			
+			if(!optChrom.contains(c)
 					//Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness()) ||
-					 x >= 20){
+					 ){
+				toInsert = true;
+				for(Chromosome chrom : optChrom){
+					x = c.differentGenesAmongTwoChroms(chrom);
+					if(x < 10 || c.getFitness() > 5*solution.get(0).getChromosome().getFitness())
+						toInsert = false;
+				}
+				if(toInsert){
 					solution.add(nSelected, c.getSolution());
 					optChrom.add(c);
 					nSelected++;
-					System.out.println(nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1));
+					System.out.println(nSelected+". Its fitness is: " + Math.round(c.getFitness()));
 			}
 		}
-
+		}
+/*
+		c = population.getChromosome(getRandom(populationDim/2));
+		System.out.println((nMax)+". Its fitness is: " + Math.round(c.getFitness()));
+		solution.add(nMax-1, c.getSolution());
+		*/
 		return new ArrayList<MySolution>(solution);
 	}
 
@@ -864,27 +1063,38 @@ System.out.println("mutation done: "+mutationDone);
 		return (this.genAvgFitness[iGeneration]);
 	}
 
-	void doGeneticMating(int iGen)
+	void doGeneticMating(boolean tempHigh)
 	{
-		Chromosome[] result ;
-		Chromosome[][] selection = selectParents();
+		Chromosome[][] parents = selectParents();
 		
-			int selectedCrossover = getRandom(3);
-			switch(selectedCrossover){
-			case 0: 
-				result = crossover1pt(selection);
-				break;
+Chromosome[] children;
+//for(int i=0; i < parents.length; i++){
+//	
+//	System.out.println(parents[i][0]);
+//	System.out.println(parents[i][1]);
+//	System.out.println("----");
+//}
 
-			case 1: 
-				result = crossover2pt(selection);
-				break;
+//		if(tempHigh){
+//			children = crossoverSpecial(parents);
+//		}else{
 
-			default: 
-				result = crossoverUniform(selection);
+		Random rnd = new Random();
+
+		int selectedCrossover = rnd.nextInt(3);
+
+		switch(selectedCrossover){
+			case 0: children =  crossover1pt(parents);
+	
+			case 1: children =  crossover2pt(parents);
+	
+			case 2: children =  crossoverUniform(parents);
+	
+			default: children =  crossoverUniform(parents);
 			}
-
-		generateNewPopulation(result);
-
+//		}
+		
+		generateNewPopulation(children);
 	}
 
 	int getRandom(int upperBound)

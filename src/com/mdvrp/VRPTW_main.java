@@ -1,9 +1,11 @@
 package com.mdvrp;
 
+import java.io.FileNotFoundException;
 import java.io.FileWriter;
+import java.io.InputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Properties;
 
 import org.coinor.opents.TabuList;
 
@@ -43,6 +45,20 @@ public class VRPTW_main {
 				return;
 			}
 
+			/*load configuration file*/
+			Properties prop = new Properties();
+			String propFileName = "./config.properties";
+			
+			InputStream inputStream = VRPTW_main.class.getClassLoader().getResourceAsStream(propFileName);
+
+			if(inputStream != null){
+				prop.load(inputStream);
+			}else{
+				throw new FileNotFoundException("property file '"+propFileName+"' not found on the classpath");
+			}
+			
+			parameters.setIterations(Integer.parseInt(prop.getProperty("tsIterationN")));
+			
 			// get the instance from the file			
 			instance = new Instance(parameters); 
 			instance.populateFromHombergFile(parameters.getInputFileName());
@@ -53,33 +69,54 @@ public class VRPTW_main {
 			// Tabu list
 			int dimension[] = {instance.getDepotsNr(), instance.getVehiclesNr(), instance.getCustomersNr(), 1, 1};
 			tabuList 		= new MyTabuList(parameters.getTabuTenure(), dimension);
-
+			
 			/*
 			 * allocate space for all the customers 
 			 * and routes delimiters (=vehicles number)
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr();
-			int populationDim = instance.getCustomersNr();
+			int populationDim = (int) (instance.getCustomersNr()*Double.parseDouble(prop.getProperty("populationDim")));
 			int NBestSolution, countBestSolution;
 			ArrayList<MySolution> BestGASolutions;
+			
+			System.out.println("populationDim: "+populationDim+" TS It: "+parameters.getIterations());
 			
 			// Init data for Genetic Algorithm
 			myGA = new MyGA(chromosomeDim, 
 					populationDim,
 					instance, 
-					10, 
-					true,
-					10);
+					Integer.parseInt(prop.getProperty("gaIterationN")), 
+					Boolean.parseBoolean(prop.getProperty("enableMutation")),
+					Integer.parseInt(prop.getProperty("threshold")),
+					prop);
+
 
 			System.out.println("Hi there, we are going to start the job! Are u ready?");
 			System.out.println("Init population");
 			myGA.initPopulation();
 			System.out.println("done.");
 			
+			
+			Population pop =  myGA.getPopulation();
+			Chromosome c;
+			
+			for(int i = 0; i < populationDim/4; i++){
+				c = pop.getChromosome(i);
+				initialSol 		= c.getSolution();
+				
+				// Start solving  
+				search 			= new MySearchProgram(instance, initialSol, moveManager,
+						objFunc, tabuList, false,  outPrintSream);
+
+				search.tabuSearch.setIterationsToGo(100);	// Set number of iterations
+				search.tabuSearch.startSolving();
+				myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes);
+			}
+			
 			double bestSolutionFound = Double.MAX_VALUE;
 			bestRoutesNr = 0;
-			
+		
 			for(int k=0; k <= 2; k++){
 				System.out.println("start TABU with initial solution number "+(k+1));
 				if(k==0){
@@ -143,26 +180,30 @@ public class VRPTW_main {
 				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
 				System.out.println("done.");
 			}
+		
 			
-			iter = 3;
-			NBestSolution = 3;
-			count = 0;
+			iter = Integer.parseInt(prop.getProperty("totalIteration"));
+			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
+			count = 1;
 			Boolean doMutation;
 		
 			doMutation = false;
 			
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
-			while(count < iter){
-				System.out.println("iteration "+(count+1));
+			while(count <= iter){
+				System.out.println("iteration "+count);
 				myGA.evolve2(doMutation);
 				//myGA.evolve();
 				//population.printPopulation();
-				System.out.println("select best chromosomes from population");
+				System.out.println("select best chromosomes from population: "+NBestSolution);
 				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
-				NBestSolution = BestGASolutions.size();
+				
+					
+				int NBestSolutionSelected = BestGASolutions.size();
+				
 				
 				countBestSolution = 0;
-				while(countBestSolution < NBestSolution){	
+				while(countBestSolution < NBestSolutionSelected){	
 					System.out.println("start TABU with solution "+(countBestSolution+1)+ " as input");
 					initialSol 		= BestGASolutions.get(countBestSolution);
 					
