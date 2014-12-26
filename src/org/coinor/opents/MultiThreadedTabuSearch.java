@@ -1,5 +1,7 @@
 package org.coinor.opents;
 
+import java.io.IOException;
+
 
 /**
  * This version of the {@link TabuSearch} can create multiple threads to take advantage
@@ -87,6 +89,7 @@ public class MultiThreadedTabuSearch extends SingleThreadedTabuSearch
      * @param tabuList The tabu list
      * @param aspirationCriteria The aspiration criteria or <tt>null</tt> if none is to be used
      * @param maximizing Whether or not the tabu search should be maximizing the objective function
+     * @throws IOException 
      *
      * @see Solution
      * @see ObjectiveFunction
@@ -102,7 +105,7 @@ public class MultiThreadedTabuSearch extends SingleThreadedTabuSearch
     ObjectiveFunction objectiveFunction,
     TabuList tabuList,
     AspirationCriteria aspirationCriteria,
-    boolean maximizing)
+    boolean maximizing) throws IOException
     {
     	
         super( initialSolution, moveManager, objectiveFunction, tabuList, aspirationCriteria, maximizing);

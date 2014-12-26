@@ -1,10 +1,15 @@
 package com.MyGeneticA;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Array;
+import java.lang.reflect.Parameter;
 import java.util.*;
 
+import com.TabuSearch.MySearchProgram;
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
+import com.mdvrp.Parameters;
 import com.mdvrp.Route;
 
 
@@ -13,10 +18,11 @@ public class MyGA {
 	private int populationDim;
 	private int chromosomeDim;
 	private Instance instance;
+	private Parameters parameters;
 	private MyGASolution[] initialSolutions;
+	private Properties prop;
 	private MyPFIH pfihSol;
-	
-	private HashSet<Chromosome> optChrom;
+	private HashSet<Long> optChrom;
 	
 	public MyGASolution getInitialSolutions(int index) {
 		return initialSolutions[index];
@@ -49,11 +55,13 @@ public class MyGA {
 	 * @param maxGenerations
 	 * @param computeStatistics
 	 * @param threshold
+	 * @param properties
 	 */
-	public MyGA(int chromosomeDim, int populationDim, Instance instance, int maxGenerations, boolean computeStatistics, double threshold) { 
+	public MyGA(int chromosomeDim, int populationDim, Instance instance, Parameters parameters, int maxGenerations, boolean computeStatistics, double threshold, Properties p) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
+		this.parameters = parameters;
 
 		this.population = new Population(populationDim, instance);
 
@@ -64,8 +72,8 @@ public class MyGA {
 		this.threshold = threshold;
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
-		
-		this.optChrom = new HashSet<Chromosome>();
+		this.prop = p;
+		this.optChrom = new HashSet<>();
 	}
 
 	public boolean isComputeStatistics() {
@@ -324,9 +332,9 @@ public class MyGA {
 
 		case 1: return crossover2pt(parents);
 
-		case 2: return crossoverUniform(parents);
+		case 2: return pmxCrossover(parents);
 
-		default: return crossoverUniform(parents);
+		default: return pmxCrossover(parents);
 		}
 	}
 
@@ -447,6 +455,66 @@ public class MyGA {
 		}
 	}
 
+	Chromosome[] pmxCrossover(Chromosome[][] parents) {
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
+
+		Random rnd = new Random();
+
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
+
+		for(int i = 0; i < parents.length; i++){
+			children[k] = new Chromosome(chromosomeDim);
+			children[k+1] = new Chromosome(chromosomeDim);
+			
+			for(int j = 0; j < chromosomeDim; j++){
+				children[k].setGene(j, parents[i][0].getGene(j));
+				children[k+1].setGene(j, parents[i][1].getGene(j));
+			}
+			
+			boolean[][] matrix = new boolean[chromosomeDim][chromosomeDim];
+			int numSwap = (int) (chromosomeDim*0.3);
+			
+			int z = 0;
+			while(z < numSwap){
+				int sw1 = rnd.nextInt(chromosomeDim);
+				int sw2 = rnd.nextInt(chromosomeDim);
+				
+				if(matrix[sw1][sw2] == false && sw1 != sw2){
+					int tmp = children[k].getGene(sw1);
+					children[k].setGene(sw1, children[k].getGene(sw2));
+					children[k].setGene(sw2, tmp);
+					
+					tmp = children[k+1].getGene(sw1);
+					children[k+1].setGene(sw1, children[k+1].getGene(sw2));
+					children[k+1].setGene(sw2, tmp);
+					
+					matrix[sw1][sw2] = true;
+					matrix[sw2][sw1] = true;
+					z++;
+				}
+			}
+			
+			k += 2;
+		}
+		
+		int newDim = deleteDuplicates(children);
+		if(childrenNum == newDim) return children;
+		else {
+			//System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < childrenNum; i++){
+				if(children[i] != null) {
+					childrenWithoutDuplicates[j] = children[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
+	}
+	
+	/*
 	Chromosome[] crossoverUniform(Chromosome[][] parents) { 
 
 		int childrenNum = parents.length*2;
@@ -488,7 +556,8 @@ public class MyGA {
 			return childrenWithoutDuplicates;
 		}
 	}
-
+	*/
+	
 	void copyGenesInFrom(Chromosome dest, int init_d, int end_d, Chromosome src, int init_s, int end_s){
 		for(int i = init_d, j = init_s; i < end_d; i++, j++){
 			dest.setGene(i, src.getGene(j));
@@ -633,14 +702,14 @@ public class MyGA {
 		int k = 0;
 		boolean matrix[][];
 
-		int numSwap = (instance.getCustomersNr()/100)*3; //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 20 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
+		int numSwap = (int) (chromosomeDim*Double.parseDouble(prop.getProperty("numSwap"))); //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 3 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
 
-		while(i < ((populationDim/100)*5)){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
+		while(i < ((int) (populationDim*Double.parseDouble(prop.getProperty("mutationChromosomeN"))))){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
 
 			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
 
-			for(int h=0; h<instance.getCustomersNr(); h++){
-				matrix[h][h]=false;} 
+			/*for(int h=0; h<instance.getCustomersNr(); h++){ //ERR
+				matrix[h][h]=false;} */
 			
 			while(k<numSwap){ //faccio 3(%) swap di geni sui primi 5(%) cromosomi della popolazione
 
@@ -727,7 +796,7 @@ public class MyGA {
 
 	public void evolve2(Boolean doMutation) {
 		int iGen;
-		int windowSize = populationDim/100*7;
+		int windowSize = (int) (populationDim*Double.parseDouble(prop.getProperty("windowSize")));
 		iGen = 0;
 		int mutationDone=0;
 		
@@ -758,6 +827,42 @@ public class MyGA {
 System.out.println("mutation done: "+mutationDone);
 	}
 
+	public void evolve3() {
+		int iGen;
+		int windowSize = (int) (populationDim*Double.parseDouble(prop.getProperty("windowSize")));
+		iGen = 0;
+		int mutationDone=0;
+
+		do{
+			double rand = getRandom(1);
+
+			this.genAvgDeviation[iGen] = getAvgDeviationAmongChroms();
+			this.genAvgFitness[iGen] = getAvgFitness();
+
+			if(rand < 0.75){
+				doGeneticMating(iGen);
+			}else{
+
+				//windowSize 5  % popolazione
+				//if(iGen > windowSize){
+				double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
+
+				if( getAvgFitness(iGen) >= windowAvgFitness - windowAvgFitness/100*threshold
+						&& getAvgFitness(iGen) <= windowAvgFitness+windowAvgFitness/100*threshold
+						){
+					//System.out.println("mutation done!");
+					//System.out.println("media finestra: "+windowAvgFitness+ " media questa popolazione: "+getAvgFitness(iGen));
+					swapMutation(population);
+					mutationDone++;
+				}
+			}
+
+			iGen++;
+		}while(iGen < maxGenerations);
+		
+		System.out.println("mutation done: "+mutationDone);
+	}
+	
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
 		Chromosome c;
 		//build a chromosome from a route 
@@ -778,10 +883,21 @@ System.out.println("mutation done: "+mutationDone);
 		int i;
 		for(i = 0; i < populationDim; i++){
 			c = population.getChromosome(i);
-			if(!optChrom.contains(c)){
+			if(!optChrom.contains(Math.round(c.getFitness()))){
 				solution.add(0, c.getSolution());
-				optChrom.add(c);
-				System.out.println("1. Its fitness is: " + Math.round(c.getFitness()));
+				optChrom.add(Math.round(c.getFitness()));
+				String msg = "1. Its fitness is: " + Math.round(c.getFitness());
+				System.out.println(msg);
+				FileWriter fw;
+				try {
+					fw = new FileWriter(parameters.getOutputFileName(),true);
+					fw.write(msg);
+					fw.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+		        
 				break;
 			}
 		}
@@ -789,13 +905,23 @@ System.out.println("mutation done: "+mutationDone);
 		for(int j=i, nSelected = 1; nSelected < nMax && j < populationDim; j++){
 			c = population.getChromosome(j);
 			int x = c.differentGenesAmongTwoChroms(solution.get(nSelected-1).getChromosome());
-			if(!optChrom.contains(c) &&
+			if(!optChrom.contains(Math.round(c.getFitness())) &&
 					//Math.round(c.getFitness()) != Math.round(solution.get(nSelected-1).getChromosome().getFitness()) ||
-					 x >= 20){
+					 x >= 5){
 					solution.add(nSelected, c.getSolution());
-					optChrom.add(c);
+					optChrom.add(Math.round(c.getFitness()));
 					nSelected++;
-					System.out.println(nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1));
+					String msg = nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1);
+					System.out.println(msg);
+					FileWriter fw;
+					try {
+						fw = new FileWriter(parameters.getOutputFileName(),true);
+						fw.write(msg);
+						fw.close();
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 			}
 		}
 
@@ -823,7 +949,7 @@ System.out.println("mutation done: "+mutationDone);
 	 * the deviation.
 	 * @return
 	 */
-	protected double getAvgDeviationAmongChroms()
+	public double getAvgDeviationAmongChroms()
 	{
 		int devCnt = 0;
 		for (int iGene = 0; iGene < this.chromosomeDim; iGene++)
@@ -866,10 +992,11 @@ System.out.println("mutation done: "+mutationDone);
 
 	void doGeneticMating(int iGen)
 	{
-		Chromosome[] result ;
+		Chromosome[] result;
 		Chromosome[][] selection = selectParents();
 		
 			int selectedCrossover = getRandom(3);
+			
 			switch(selectedCrossover){
 			case 0: 
 				result = crossover1pt(selection);
@@ -880,9 +1007,27 @@ System.out.println("mutation done: "+mutationDone);
 				break;
 
 			default: 
-				result = crossoverUniform(selection);
+				result = pmxCrossover(selection);
 			}
-
+			
+/////////////////////////////////
+		/*
+		for(int i = 0; i < result.length; i++){
+			for(int j = 1; j <= chromosomeDim; j++){
+				int count = 0;
+				for(int k = 0; k < chromosomeDim; k++){
+					if(result[i].getGene(k) == j) count++;
+					if(count >= 2) {
+						System.out.println("**************************************BUG FOUND!!!**********************************"+j);
+						break;
+					}
+				}
+				if(count >= 2) break;
+			}
+		}	
+		*/
+/////////////////////////////////
+		
 		generateNewPopulation(result);
 
 	}
@@ -918,4 +1063,14 @@ System.out.println("mutation done: "+mutationDone);
 		return population;
 	}
 
+	public void insertBestTabuSolutionIntoInitPopulation(Route[][] routes,
+			int i) {
+		
+		Chromosome c;
+		//build a chromosome from a route 
+		c = new Chromosome(routes, chromosomeDim);
+
+
+		population.swapChromosome(c, i);
+	}
 }

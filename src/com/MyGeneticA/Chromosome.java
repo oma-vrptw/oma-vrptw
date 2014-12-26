@@ -45,6 +45,7 @@ public class Chromosome implements Comparable<Chromosome>{
 			if(genes[i] == -1) System.out.print("] :::"+genes[i]+"::: [");
 			else System.out.print(" "+genes[i]+" ");
 		}
+		System.out.println("]");
 	}
 
 	public void setSolution(MyGASolution sol) {

@@ -1,5 +1,14 @@
 package org.coinor.opents;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+
+import javax.swing.text.StyledEditorKit.ItalicAction;
+
+import com.mdvrp.VRPTW_main;
+
 
 /**
  * This version of the {@link TabuSearch} does not create any new threads, making it
@@ -82,7 +91,10 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
     
     /** Print errors to this stream. */
     protected static java.io.PrintStream err = System.err;
-    
+ 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////start my mod    
+    private Properties prop;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////end my mod    
     
 /* ********  C O N S T R U C T O R S  ******** */
     
@@ -112,7 +124,7 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
      * @param tabuList The tabu list
      * @param aspirationCriteria The aspiration criteria or <tt>null</tt> if none is to be used
      * @param maximizing Whether or not the tabu search should be maximizing the objective function
-     *
+     * @throws IOException 
      * @see Solution
      * @see ObjectiveFunction
      * @see MoveManager
@@ -127,9 +139,42 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
     ObjectiveFunction objectiveFunction,
     TabuList tabuList,
     AspirationCriteria aspirationCriteria,
-    boolean maximizing )
+    boolean maximizing ) throws IOException
     {
-        this();
+    	this(initialSolution, moveManager, objectiveFunction, tabuList, aspirationCriteria, maximizing, null);
+    }   // end constructor
+    
+    /**
+     * Constructs a <tt>SingleThreadedTabuSearch</tt> with all tabu objects set.
+     * The initial solution is evaluated with the objective function,
+     * becomes the <tt>currentSolution</tt> 
+     * and a copy becomes the <tt>bestSolution</tt>.
+     *
+     * @param initialSolution The initial <tt>currentSolution</tt>
+     * @param moveManager The move manager
+     * @param objectiveFunction The objective function
+     * @param tabuList The tabu list
+     * @param aspirationCriteria The aspiration criteria or <tt>null</tt> if none is to be used
+     * @param maximizing Whether or not the tabu search should be maximizing the objective function
+     * @throws IOException 
+     * @see Solution
+     * @see ObjectiveFunction
+     * @see MoveManager
+     * @see TabuList
+     * @see AspirationCriteria
+     *
+     * @since 1.0
+     */
+    public SingleThreadedTabuSearch(
+    Solution initialSolution,
+    MoveManager moveManager,
+    ObjectiveFunction objectiveFunction,
+    TabuList tabuList,
+    AspirationCriteria aspirationCriteria,
+    boolean maximizing, 
+    Properties prop ) throws IOException
+    {
+    	this();
         
         // Make sure initial solution is evaluated.
         double[] val = objectiveFunction.evaluate( initialSolution, null );
@@ -149,8 +194,23 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
         this.aspirationCriteria     =   aspirationCriteria;
         this.maximizing             =   maximizing;
         
-    }   // end constructor
-    
+        if(prop == null){
+        	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////start my mod        
+        	/*load configuration file*/
+        	prop = new Properties();
+        	String propFileName = "./config.properties";
+
+        	InputStream inputStream = VRPTW_main.class.getClassLoader().getResourceAsStream(propFileName);
+
+        	if(inputStream != null){
+        		prop.load(inputStream);
+        	}else{
+        		throw new FileNotFoundException("property file '"+propFileName+"' not found on the classpath");
+        	}
+        	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////end my mod
+        }
+        this.prop = prop;
+    }
     
     /**
      * This large method goes through one iteration. It performs these steps:
@@ -240,11 +300,41 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
             this.fireImprovingMoveMade = true;
         else this.fireNoChangeInValueMoveMade = true;
         
+        boolean enableCheckImprovment = Boolean.parseBoolean(prop.getProperty("enableCheckImprovement"));
+        
         // If the new value is improving, see if it's a new best solution
         boolean newBestSoln = false;
         if( this.fireImprovingMoveMade )
-            if( isFirstBetterThanSecond( bestMoveVal, bestSolution.getObjectiveValue(), maximizing ) )
-                newBestSoln = true;
+            if( isFirstBetterThanSecond( bestMoveVal, bestSolution.getObjectiveValue(), maximizing ) ){
+            	newBestSoln = true;
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////start my mod
+            	double[] bestOldSolution = bestSolution.getObjectiveValue();
+            	double comparableBestOldSolution;
+            	double comparableBestNewSolution;
+            	int numLastIteration = Integer.parseInt(prop.getProperty("numLastIteration"));
+            	double thresholdPercentage = Double.parseDouble(prop.getProperty("thresholdPercentage"));
+            	int incrementFactor = Integer.parseInt(prop.getProperty("incrementFactor"));
+            	
+
+            	if(enableCheckImprovment){
+	            	if(!maximizing && iterationsToGo < numLastIteration){
+	                	comparableBestOldSolution = bestOldSolution[0]*(1-thresholdPercentage);
+	                	comparableBestNewSolution = bestMoveVal[0];
+	                	if(comparableBestNewSolution <= comparableBestOldSolution){
+	                		System.out.println("Found best solution ("+thresholdPercentage*100+"% best) in the last "+numLastIteration+" iterations of TS...let's increment the number of iteration of "+incrementFactor+" (maybe we found another best solution)!!!");
+	                		iterationsToGo += incrementFactor;
+	                	}
+	                }else if(maximizing && iterationsToGo < numLastIteration){
+	                	comparableBestOldSolution = bestOldSolution[0]*(1+thresholdPercentage);
+	                	comparableBestNewSolution = bestMoveVal[0];
+	                	if(comparableBestNewSolution >= comparableBestOldSolution){
+	                		iterationsToGo += incrementFactor;
+	                	}
+	                }
+            	}
+            	
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////end my mod            	
+            }    
         
         
         // Operate on the solution
@@ -774,7 +864,7 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
         // While not canceled and iterations left to go
         while( keepSolving && ( iterationsToGo > 0 ) )
         {   
-            Thread.yield();       
+            //Thread.yield();       
             synchronized( this )
             {
                 iterationsToGo--;

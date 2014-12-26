@@ -1,7 +1,9 @@
 package com.TabuSearch;
 
+import java.io.IOException;
 import java.io.PrintStream;
 import java.text.DecimalFormat;
+import java.util.Properties;
 
 import org.coinor.opents.*;
 
@@ -27,9 +29,14 @@ public class MySearchProgram implements TabuSearchListener{
 	public int bestIndex;
 	public DecimalFormat df = new DecimalFormat("#.##");
 	
-	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager, ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream)
+	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager, ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream) throws IOException
 	{
-		tabuSearch = new SingleThreadedTabuSearch(initialSol, moveManager, objFunc,tabuList,	new BestEverAspirationCriteria(), minmax );
+		this(instance, initialSol, moveManager, objFunc, tabuList, minmax, outPrintStream, null);
+	}
+
+	public MySearchProgram(Instance instance, Solution initialSol, MoveManager moveManager, ObjectiveFunction objFunc, TabuList tabuList, boolean minmax, PrintStream outPrintStream, Properties prop) throws IOException
+	{
+		tabuSearch = new SingleThreadedTabuSearch(initialSol, moveManager, objFunc,tabuList,	new BestEverAspirationCriteria(), minmax, prop);
 		feasibleIndex = -1;
 		bestIndex = 0;
 		this.instance = instance;
@@ -44,8 +51,9 @@ public class MySearchProgram implements TabuSearchListener{
 		MySearchProgram.setIterationsDone(0);
 		tabuSearch.addTabuSearchListener( this );
 		tabuSearch.addTabuSearchListener((MyTabuList)tabuList);
+		
 	}
-
+	
 	public void improvingMoveMade(TabuSearchEvent event) {}
 
 	/**
