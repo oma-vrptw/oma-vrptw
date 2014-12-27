@@ -10,6 +10,7 @@ import java.io.PrintStream;
 
 
 
+
 import org.coinor.opents.MoveManager;
 import org.coinor.opents.ObjectiveFunction;
 import org.coinor.opents.TabuList;
@@ -17,6 +18,7 @@ import org.coinor.opents.TabuList;
 import com.TabuSearch.*;
 import com.MyGeneticA.*;
 
+import java.sql.Date;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -126,6 +128,8 @@ public class VRPTW_main {
 					prop);
 
 			System.out.println("Hi there, we are going to start the job! Are u ready?");
+			System.out.println("It's "+Date.from(previous));
+			
 			System.out.println("Init population");
 			myGA.initPopulation();
 			System.out.println("done.");
@@ -311,6 +315,7 @@ public class VRPTW_main {
 		        fw.write(outSol);
 		        fw.close();
 			
+		        System.out.println("Finish at "+Date.from(Instant.now()));
 		        System.out.println("see u soon.");
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
