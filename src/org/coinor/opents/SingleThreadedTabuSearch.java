@@ -332,6 +332,7 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
 	                	}
 	                }
             	}
+
             	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////end my mod            	
             }    
@@ -862,8 +863,17 @@ public class SingleThreadedTabuSearch extends TabuSearchBase
         
         
         // While not canceled and iterations left to go
-        while( keepSolving && ( iterationsToGo > 0 ) )
+        boolean timeExceeded=true;
+        while( keepSolving && ( iterationsToGo > 0 ) && timeExceeded)
         {   
+        	//check for time constraint only each 500 iterations
+        	if(iterationsToGo % 500 == 0){
+        		if(VRPTW_main.TimeExpired()){
+        			System.out.println("time exceeded");
+        			timeExceeded = false;
+        		}
+        	}
+        	
             //Thread.yield();       
             synchronized( this )
             {

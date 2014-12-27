@@ -8,9 +8,10 @@ import java.io.PrintStream;
 
 
 
+
+
 import org.coinor.opents.MoveManager;
 import org.coinor.opents.ObjectiveFunction;
-import org.coinor.opents.Solution;
 import org.coinor.opents.TabuList;
 
 import com.TabuSearch.*;
@@ -23,15 +24,20 @@ import java.util.Properties;
 
 public class VRPTW_main {
 
-	private static double UpdateGap(Instant t1, Instant t2)
+	static Instant previous;
+	static double timeLimit = 0;
+	
+	public static boolean TimeExpired(){
+		if(previous == null || timeLimit == 0) System.out.println("azz, da gestire con un eccezione");
+		
+		return UpdateGap(previous) > timeLimit;
+	}
+	
+	private static double UpdateGap(Instant previous)
 	{
-		return (double)ChronoUnit.MILLIS.between(t1, t2)/1000
-				+
-				(double)ChronoUnit.SECONDS.between(t1, t2)
-				+
-				(double)ChronoUnit.MINUTES.between(t1, t2)*60
-				+
-				(double)ChronoUnit.HOURS.between(t1, t2)*60*60;
+		Instant current = Instant.now();
+		
+		return ChronoUnit.SECONDS.between(previous, current)+(double)ChronoUnit.MILLIS.between(previous, current)%1000/1000;
 	}
 	
 	public static void main(String[] args) {
@@ -47,11 +53,11 @@ public class VRPTW_main {
 		PrintStream         outPrintSream 	= null;					// used to redirect the output
 		int count, iter;
 		int bestRoutesNr;
-
-		Instant previous, current;
+		
 		double gap = 0, totalTime = 0;
 		double epsilon = 0.001;
-
+		double norm; //norm = fattore di normalizzazione
+	
 		previous = Instant.now();
 		
 		try 
@@ -81,6 +87,10 @@ public class VRPTW_main {
 			
 			parameters.setIterations(Integer.parseInt(prop.getProperty("tsIterationN")));
 			parameters.setTabuTenure(Integer.parseInt(prop.getProperty("tabuTenure")));
+			
+			//set time limit to 5 minutes normalized in respect of Perboli's performance
+			norm = Double.parseDouble(prop.getProperty("fattore_di_normalizzazione"));
+			timeLimit = ((300 * norm)-5);
 			
 			// get the instance from the file			
 			instance = new Instance(parameters); 
@@ -152,8 +162,6 @@ public class VRPTW_main {
 
 				search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
 				
-				current = Instant.now();
-				
 				search.tabuSearch.startSolving();	        
 				int numberOfCustomers = 0;
 				int routesNr = 0;
@@ -175,7 +183,7 @@ public class VRPTW_main {
 					
 					if (previous != null) {
 						
-						gap = 	UpdateGap(previous,current);
+						gap = 	UpdateGap(previous);
 					}
 					
 					System.out.println("current solution changed:");
@@ -208,9 +216,9 @@ public class VRPTW_main {
 			doMutation = false;
 			
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
-			while(count < iter){
+			while(!TimeExpired()){
 				System.out.println("iteration "+(count+1));
-				myGA.evolve2(doMutation);
+				myGA.evolve3();
 				//myGA.evolve3();
 				//myGA.evolve();
 				//population.printPopulation();
@@ -219,8 +227,8 @@ public class VRPTW_main {
 				NBestSolution = BestGASolutions.size();
 				
 				countBestSolution = 0;
-				while(countBestSolution < NBestSolution){	
-					System.out.println("start TABU with solution "+(countBestSolution+1)+ " as input");
+				while(countBestSolution < NBestSolution && !TimeExpired()){	
+					System.out.println("start TABU with solution "+(countBestSolution+1)+ " as input at "+UpdateGap(previous));
 					initialSol 		= BestGASolutions.get(countBestSolution);
 					
 					// Start solving  
@@ -229,7 +237,7 @@ public class VRPTW_main {
 
 					search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
 					search.tabuSearch.startSolving();	        
-
+					System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total)+ " at "+UpdateGap(previous));
 					int routesNr = 0;
 					for(int i =0; i < search.feasibleRoutes.length; ++i)
 						for(int j=0; j < search.feasibleRoutes[i].length; ++j)
@@ -242,9 +250,9 @@ public class VRPTW_main {
 					{
 						bestSolutionFound = search.feasibleCost.total;
 						bestRoutesNr = routesNr;
-						current = Instant.now();
+						
 						if (previous != null) {
-						    gap = 	UpdateGap(previous,current);
+						    gap = 	UpdateGap(previous);
 						}
 						
 						System.out.println("current solution changed:");
@@ -261,9 +269,10 @@ public class VRPTW_main {
 					        				 + "\nTotal cost: " + bestSolutionFound 
 					        				 + "\nExecution time: "+ gap +" sec"
 					        				 + "\nNumber of routes: " + bestRoutesNr);
+
 					}
 
-					System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total));
+					
 					System.out.println("done.");
 					
 					System.out.println("insert this solution into population");
@@ -272,19 +281,19 @@ public class VRPTW_main {
 					
 					countBestSolution++;
 				}
-
-				if(myGA.isComputeStatistics())
-					doMutation = true;
+//				
+//				if(myGA.isComputeStatistics())
+//					doMutation = true;
 				
 				count++;
-				System.out.println("end of iteration "+count);
+				System.out.println("end of iteration "+count+" at " + UpdateGap(previous));
 			}
 			
 			System.out.println("the game is over.");
 			
-			current = Instant.now();
+
 	        if (previous != null) {
-			    totalTime = UpdateGap(previous,current);
+			    totalTime = UpdateGap(previous);
 			    //System.out.println("time to compute all of the stuff= "+totalTime+" secondssssss");
 			}
 			 String outSol = String.format(

@@ -828,39 +828,12 @@ System.out.println("mutation done: "+mutationDone);
 	}
 
 	public void evolve3() {
-		int iGen;
-		int windowSize = (int) (populationDim*Double.parseDouble(prop.getProperty("windowSize")));
-		iGen = 0;
-		int mutationDone=0;
-
+		int iGen = 0;
+		
 		do{
-			double rand = getRandom(1);
-
-			this.genAvgDeviation[iGen] = getAvgDeviationAmongChroms();
-			this.genAvgFitness[iGen] = getAvgFitness();
-
-			if(rand < 0.75){
-				doGeneticMating(iGen);
-			}else{
-
-				//windowSize 5  % popolazione
-				//if(iGen > windowSize){
-				double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
-
-				if( getAvgFitness(iGen) >= windowAvgFitness - windowAvgFitness/100*threshold
-						&& getAvgFitness(iGen) <= windowAvgFitness+windowAvgFitness/100*threshold
-						){
-					//System.out.println("mutation done!");
-					//System.out.println("media finestra: "+windowAvgFitness+ " media questa popolazione: "+getAvgFitness(iGen));
-					swapMutation(population);
-					mutationDone++;
-				}
-			}
-
+			doGeneticMating(iGen);
 			iGen++;
 		}while(iGen < maxGenerations);
-		
-		System.out.println("mutation done: "+mutationDone);
 	}
 	
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
@@ -997,7 +970,7 @@ System.out.println("mutation done: "+mutationDone);
 		
 			int selectedCrossover = getRandom(3);
 			
-			switch(selectedCrossover){
+			switch(1){
 			case 0: 
 				result = crossover1pt(selection);
 				break;
