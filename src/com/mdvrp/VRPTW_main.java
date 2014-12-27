@@ -4,13 +4,6 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintStream;
-
-
-
-
-
-
-
 import org.coinor.opents.MoveManager;
 import org.coinor.opents.ObjectiveFunction;
 import org.coinor.opents.TabuList;
@@ -215,17 +208,11 @@ public class VRPTW_main {
 			iter = Integer.parseInt(prop.getProperty("totalIteration"));
 			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
 			count = 0;
-			Boolean doMutation;
-		
-			doMutation = false;
 			
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
 			while(!TimeExpired()){
 				System.out.println("iteration "+(count+1));
-				myGA.evolve3();
-				//myGA.evolve3();
-				//myGA.evolve();
-				//population.printPopulation();
+				myGA.evolve();
 				System.out.println("select best chromosomes from population");
 				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
 				NBestSolution = BestGASolutions.size();
@@ -285,9 +272,6 @@ public class VRPTW_main {
 					
 					countBestSolution++;
 				}
-//				
-//				if(myGA.isComputeStatistics())
-//					doMutation = true;
 				
 				count++;
 				System.out.println("end of iteration "+count+" at " + UpdateGap(previous));

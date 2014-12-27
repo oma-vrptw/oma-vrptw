@@ -745,89 +745,7 @@ public class MyGA {
 		return c.getFitness();
 	}
 
-
 	public void evolve() {
-
-		int count;
-		int iteration = 1;
-
-		count = 0;
-		do{
-
-			Chromosome[][] selection = selectParents();
-
-			/*population.printPopulation();
-			System.out.println("[[[CROSSOVER]]]");
-			 */
-
-			Chromosome[] result = crossover(selection);
-
-			/*System.out.println("result.length: "+result.length);
-
-			for(int i = 0; i < result.length; i++){
-				System.out.print("Child["+i+"]: ");
-				result[i].print();
-				System.out.println();
-			}*/
-
-			generateNewPopulation(result);
-
-			/*if((count % 20) == 0){
-
-
-
-				for(int i = 0; i < result.length; i++){
-					System.out.print("Child["+i+"]: ");
-					result[i].print();
-					System.out.println();
-				}
-
-				population.printPopulation();
-				for(int i = 0; i < populationDim; i++){
-					System.out.println("fitness("+i+"): " + getFitness(population.getChromosome(i)));
-				}
-			}*/
-
-			count++;
-		}while(count < iteration);
-
-	}
-
-
-	public void evolve2(Boolean doMutation) {
-		int iGen;
-		int windowSize = (int) (populationDim*Double.parseDouble(prop.getProperty("windowSize")));
-		iGen = 0;
-		int mutationDone=0;
-		
-		do{
-			doGeneticMating(iGen);
-			if (doMutation)
-			{
-				this.genAvgDeviation[iGen] = getAvgDeviationAmongChroms();
-				this.genAvgFitness[iGen] = getAvgFitness();
-
-					//windowSize 5  % popolazione
-					//if(iGen > windowSize){
-						double windowAvgFitness = getWindowAvgFitness(iGen, windowSize);
-						
-						if( getAvgFitness(iGen) >= windowAvgFitness - windowAvgFitness/100*threshold
-								&& getAvgFitness(iGen) <= windowAvgFitness+windowAvgFitness/100*threshold
-								){
-							//System.out.println("mutation done!");
-							//System.out.println("media finestra: "+windowAvgFitness+ " media questa popolazione: "+getAvgFitness(iGen));
-							swapMutation(population);
-							mutationDone++;
-						}			
-					//}
-			}
-			
-			iGen++;
-		}while(iGen < maxGenerations);
-System.out.println("mutation done: "+mutationDone);
-	}
-
-	public void evolve3() {
 		int iGen = 0;
 		
 		do{
@@ -941,8 +859,6 @@ System.out.println("mutation done: "+mutationDone);
 		return ((double)devCnt);
 	}
 
-
-	
 	/**
 	 * Gets the average deviation of the given generation of chromosomes
 	 * @param iGeneration
@@ -968,9 +884,9 @@ System.out.println("mutation done: "+mutationDone);
 		Chromosome[] result;
 		Chromosome[][] selection = selectParents();
 		
-			int selectedCrossover = getRandom(3);
+		int selectedCrossover = getRandom(3);
 			
-			switch(1){
+		switch(selectedCrossover){
 			case 0: 
 				result = crossover1pt(selection);
 				break;
@@ -981,7 +897,7 @@ System.out.println("mutation done: "+mutationDone);
 
 			default: 
 				result = pmxCrossover(selection);
-			}
+		}
 			
 /////////////////////////////////
 		/*
