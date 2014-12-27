@@ -90,7 +90,7 @@ public class VRPTW_main {
 			
 			//set time limit to 5 minutes normalized in respect of Perboli's performance
 			norm = Double.parseDouble(prop.getProperty("fattore_di_normalizzazione"));
-			timeLimit = ((300 * norm)-5);
+			timeLimit = ((Double.parseDouble(prop.getProperty("timeLimit")) * norm)-5);
 			
 			// get the instance from the file			
 			instance = new Instance(parameters); 
@@ -135,7 +135,7 @@ public class VRPTW_main {
 			
 			//sort once only, not for each TABU solution inserting in initPopulation
 			myGA.getPopulation().sort();
-			System.out.println("get avg fitness before TABU pass: "+myGA.getAvgFitness());
+			//System.out.println("get avg fitness before TABU pass: "+myGA.getAvgFitness());
 			for(int k=0, index = populationDim-1; k <= 2; k++, index-=2){
 				
 				
@@ -172,7 +172,7 @@ public class VRPTW_main {
 							routesNr++;	
 						}
 	
-				System.out.println("number of customers: "+numberOfCustomers);
+				//System.out.println("number of customers: "+numberOfCustomers);
 				
 				double diff = Math.abs(bestSolutionFound - search.feasibleCost.total);
 				
