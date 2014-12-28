@@ -76,6 +76,17 @@ public class MDVRPTW {
 	        			routesNr++;
 	        duration.stop();
 	        // Print results
+	        String outSol = String.format("%s; %5.2f; %5.3f; %4d\r\n" ,
+	        		instance.getParameters().getInputFileName(), search.feasibleCost.total,
+	        		(double)duration.getMilliSeconds()/1000
+	        		+
+	        		(double)duration.getSeconds() 
+	            	+
+	            	(double)duration.getMinutes()*60
+	            	+
+	            	(double)duration.getHours()*60*60,
+	            	routesNr);
+	       /*
 	        String outSol = String.format(
 	        		"\nInstance file: %s\n"
 	        		+ "Total cost: %5.2f\n"
@@ -90,6 +101,7 @@ public class MDVRPTW {
 	            	+
 	            	(double)duration.getHours()*60*60,
 	            	routesNr);
+	            	*/
 	        System.out.println(outSol);
 	        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
 	        fw.write(outSol);

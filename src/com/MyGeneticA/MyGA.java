@@ -779,6 +779,7 @@ public class MyGA {
 				optChrom.add(Math.round(c.getFitness()));
 				String msg = "1. Its fitness is: " + Math.round(c.getFitness());
 				System.out.println(msg);
+				/*
 				FileWriter fw;
 				try {
 					fw = new FileWriter(parameters.getOutputFileName(),true);
@@ -788,6 +789,7 @@ public class MyGA {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
+				*/
 		        
 				break;
 			}
@@ -804,6 +806,7 @@ public class MyGA {
 					nSelected++;
 					String msg = nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1);
 					System.out.println(msg);
+					/*
 					FileWriter fw;
 					try {
 						fw = new FileWriter(parameters.getOutputFileName(),true);
@@ -813,6 +816,7 @@ public class MyGA {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					*/
 			}
 		}
 
