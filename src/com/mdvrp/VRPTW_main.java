@@ -33,7 +33,7 @@ public class VRPTW_main {
 	{
 		Instant current = Instant.now();
 		
-		return ChronoUnit.SECONDS.between(previous, current)+(double)ChronoUnit.MILLIS.between(previous, current)%1000/1000;
+		return ChronoUnit.SECONDS.between(previous, current)/*+(double)ChronoUnit.MILLIS.between(previous, current)%1000/1000*/;
 	}
 	
 	public static void main(String[] args) {

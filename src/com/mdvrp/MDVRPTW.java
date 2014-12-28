@@ -78,13 +78,8 @@ public class MDVRPTW {
 	        // Print results
 	        String outSol = String.format("%s; %5.2f; %5.3f; %4d\r\n" ,
 	        		instance.getParameters().getInputFileName(), search.feasibleCost.total,
-	        		(double)duration.getMilliSeconds()/1000
-	        		+
-	        		(double)duration.getSeconds() 
-	            	+
-	            	(double)duration.getMinutes()*60
-	            	+
-	            	(double)duration.getHours()*60*60,
+	        		(double)duration.getSeconds() +
+	            	(double)duration.getMinutes()*60,
 	            	routesNr);
 	       /*
 	        String outSol = String.format(
