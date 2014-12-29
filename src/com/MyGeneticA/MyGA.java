@@ -790,7 +790,9 @@ public class MyGA {
 				solution.add(0, c.getSolution());
 				optChrom.add(Math.round(c.getFitness()));
 				String msg = "1. Its fitness is: " + Math.round(c.getFitness());
+
 				System.out.println(msg);	        
+
 				break;
 			}
 		}

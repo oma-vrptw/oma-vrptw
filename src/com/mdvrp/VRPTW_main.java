@@ -4,6 +4,7 @@ import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.InputStream;
 import java.io.PrintStream;
+
 import org.coinor.opents.MoveManager;
 import org.coinor.opents.ObjectiveFunction;
 import org.coinor.opents.TabuList;
@@ -32,7 +33,7 @@ public class VRPTW_main {
 	{
 		Instant current = Instant.now();
 		
-		return ChronoUnit.SECONDS.between(previous, current)+(double)ChronoUnit.MILLIS.between(previous, current)%1000/1000;
+		return ChronoUnit.SECONDS.between(previous, current)/*+(double)ChronoUnit.MILLIS.between(previous, current)%1000/1000*/;
 	}
 	
 	public static void main(String[] args) {
@@ -59,8 +60,6 @@ public class VRPTW_main {
 		{			
 			// check to see if an input file was specified
 			parameters.updateParameters(args);
-
-			parameters.setOutputFileName(parameters.getCurrDir() + "/output/" + "res_" + parameters.getInputFileName());
 			
 			if(parameters.getInputFileName() == null)
 			{
@@ -290,6 +289,11 @@ public class VRPTW_main {
 			    totalTime = UpdateGap(previous);
 			    //System.out.println("time to compute all of the stuff= "+totalTime+" secondssssss");
 			}
+	        
+	        String outSol = String.format("%s; %5.2f; %5.3f; %5.3f; %4d\r\n" ,
+	        		instance.getParameters().getInputFileName(), bestSolutionFound,
+	        		gap, totalTime, bestRoutesNr);
+	        /*
 			 String outSol = String.format(
 					 	"\nThis one the best solution found\n"
 		        		+ "Instance file: %s\n"
@@ -299,6 +303,7 @@ public class VRPTW_main {
 		        		+ "Number of routes: %4d\n",
 		        		instance.getParameters().getInputFileName(), bestSolutionFound,
 		        		gap, totalTime, bestRoutesNr);
+		        		*/
 		        System.out.println(outSol);
 		        
 		        FileWriter fw = new FileWriter(parameters.getOutputFileName(),true);
