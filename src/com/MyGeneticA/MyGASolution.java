@@ -252,7 +252,7 @@ public class MyGASolution extends MySolution{
 					costViol += cost - L;
 				}
 				
-				totalCost = cost + 1000 * loadViol + 1000 * costViol + 1000 * TWViol;
+				totalCost = cost + alpha * loadViol + beta * costViol + gamma * TWViol;
 				totalViol = loadViol + costViol + TWViol;
 				//totalCost = cost + beta * costViol;
 					if( labelV[i-1] + totalCost < labelV[j]){// || (labelV[i-1] + totalCost >= labelV[j] && (totalCost - totalViol) < labelViol[j])){
