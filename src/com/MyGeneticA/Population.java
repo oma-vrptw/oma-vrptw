@@ -2,6 +2,7 @@ package com.MyGeneticA;
 
 import java.util.Arrays;
 
+import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
 
 public class Population {
@@ -24,8 +25,10 @@ public class Population {
 		chromosomes[index] = c;
 		MyGASolution sol = new MyGASolution(c, instance);
 		c.setSolution(sol);
-		c.setFitness();
 		
+		c.setFitness();
+	
+
 		if(currentDim == 0 || c.getFitness() < bestChromosome.getFitness()){
 			bestChromosome = c;
 			indexBestChromosome = index;
@@ -132,12 +135,18 @@ public class Population {
 	public void swapChromosome(Chromosome c, int index) {
 		removeChromosome(index);
 		setChromosome(index, c);
+		//c.solution.labelling();
 	}
 
 	public int getWorstChromosomeIndex() {
 		this.sort();
 		
 		return dim-1;
+	}
+
+	public Chromosome getWorstChromosome() {
+		// TODO Auto-generated method stub
+		return chromosomes[getWorstChromosomeIndex()];
 	}
 	
 	

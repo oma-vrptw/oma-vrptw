@@ -14,6 +14,11 @@ public class MySearchProgram implements TabuSearchListener{
 	private static int iterationsDone;
 	public TabuSearch tabuSearch;
 	private MySolution sol;
+	
+	public MySolution getSol() {
+		return sol;
+	}
+
 	public Instance instance;
 	
 	public DrawPanel panel;

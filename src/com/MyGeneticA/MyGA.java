@@ -177,7 +177,6 @@ public class MyGA {
 		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim);
 		Chromosome cw = generator.GenerateChromosome();
 		Chromosome pfih = new Chromosome(pfihSol.getRoutes(), chromosomeDim);
-		
 		// CW
 		population.setChromosome(0, cw);
 		// InitialSol del package
@@ -763,6 +762,19 @@ public class MyGA {
 		population.swapChromosome(c, population.getWorstChromosomeIndex());
 		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
 	}
+	
+	public void insertBestTabuSolutionIntoInitPopulation2(Route[][] feasibleRoutes, double cost) {
+		
+		if( population.getWorstChromosome().getFitness() >= cost ) 
+			return;
+
+		Chromosome c;
+		//build a chromosome from a route 
+		c = new Chromosome(feasibleRoutes, chromosomeDim);
+
+		population.swapChromosome(c, population.getWorstChromosomeIndex());
+		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
+	}
 
 	public ArrayList<MySolution> getNDifferentBestSolutions(int nMax) {
 		Chromosome c;
@@ -778,17 +790,7 @@ public class MyGA {
 				solution.add(0, c.getSolution());
 				optChrom.add(Math.round(c.getFitness()));
 				String msg = "1. Its fitness is: " + Math.round(c.getFitness());
-				System.out.println(msg);
-				FileWriter fw;
-				try {
-					fw = new FileWriter(parameters.getOutputFileName(),true);
-					fw.write(msg);
-					fw.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-		        
+				System.out.println(msg);	        
 				break;
 			}
 		}
@@ -804,15 +806,6 @@ public class MyGA {
 					nSelected++;
 					String msg = nSelected+". Its fitness is: " + Math.round(c.getFitness())+" it has "+x+" genes in different position compared with "+(nSelected-1);
 					System.out.println(msg);
-					FileWriter fw;
-					try {
-						fw = new FileWriter(parameters.getOutputFileName(),true);
-						fw.write(msg);
-						fw.close();
-					} catch (IOException e) {
-						// TODO Auto-generated catch block
-						e.printStackTrace();
-					}
 			}
 		}
 
@@ -959,7 +952,55 @@ public class MyGA {
 		//build a chromosome from a route 
 		c = new Chromosome(routes, chromosomeDim);
 
-
 		population.swapChromosome(c, i);
+		System.out.println("fitness chromosome inserito: "+c.getFitness());
+		/*
+		for(Route r:routes[0])
+			if(r.getCustomersLength() > 0)
+				System.out.println(r.printRoute());
+		
+		c.getSolution().printConvertedRoutes();
+		*/
+	}
+
+	public void insertBestTabuSolutionIntoInitPopulation2(
+			Route[][] feasibleRoutes) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	public ArrayList<MySolution> getNDifferentBestSolutions2(int nBestSolution) {
+		Chromosome c;
+		ArrayList<Chromosome> pickedUpChrom;
+		ArrayList<MyGASolution> solution;
+		boolean tooSimilar;
+		
+		pickedUpChrom = new ArrayList<Chromosome>();
+		solution = new ArrayList<MyGASolution>();
+
+		population.sort();
+
+		for ( int i = 0, pickedUp = 0; i < populationDim && pickedUp < nBestSolution; i++ ){
+			c = population.getChromosome(i);
+			if(!c.isAlreadyTabuImproved()){
+				tooSimilar = false;
+				for(Chromosome tmp : pickedUpChrom){
+					if(c.differentGenesAmongTwoChroms(tmp) < 20 || tmp.getFitness()-c.getFitness() < 10){
+						tooSimilar = true;
+						break;
+					}
+				}
+				if(!tooSimilar){
+					String msg = i+". Its fitness is: " + Math.round(c.getFitness()) ;
+					System.out.println(msg);
+					c.setTabuImproved(true);
+					solution.add(pickedUp, c.getSolution());
+					pickedUpChrom.add(c);
+					pickedUp++;
+				}
+			}
+		}
+		
+		return new ArrayList<MySolution>(solution);
 	}
 }

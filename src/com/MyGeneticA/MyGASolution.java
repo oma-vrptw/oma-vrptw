@@ -21,6 +21,9 @@ public class MyGASolution extends MySolution{
 	Chromosome chromosome;
 	MyGAObjectiveFunction objectiveFunction;
 	
+	double[] labelV;
+	int[] labelP;
+	
 	public MyGASolution(Chromosome ch, Instance instance) {
 		// TODO Auto-generated constructor stub
 		objectiveFunction = new MyGAObjectiveFunction(instance);
@@ -59,6 +62,11 @@ public class MyGASolution extends MySolution{
     	this.objectiveFunction.evaluateAbsolutely(this);
 	}
 	
+	void setAlphaBetaGamma(double alpha, double beta, double gamma){
+		this.alpha = alpha;
+		this.beta = beta;
+		this.gamma = gamma;
+	}
 	/**
 	 * create routes according to chromosome 
 	 * note: private method, called from evaluateRoute
@@ -122,7 +130,215 @@ public class MyGASolution extends MySolution{
 		
 		
 		}
+	
+	private void buildRoutes2() {
+		Route route;
+		int customerChosen;
+		Customer customerChosenPtr;
+		int ng = chromosome.getNumberOfGenes();
+		
+		labelling();
+		
+		for (int i = 0; i < instance.getDepotsNr(); ++i){
+			int j=0;
+			route = routes[i][j];
+			int k = 0;
+			customerChosen = chromosome.getGene(k);
+			customerChosenPtr = instance.getCustomer(customerChosen);
+			route.addCustomer(customerChosenPtr);
+			evaluateRoute(route);
+			
+			for(k = 1; k < ng; k++ ){
+				if(labelP[k] != labelP[k-1] && j < instance.getVehiclesNr()-1){
+					j++;
+					route = routes[i][j];
+				}
+				customerChosen = chromosome.getGene(k);
+				customerChosenPtr = instance.getCustomer(customerChosen);
+				route.addCustomer(customerChosenPtr);
+				evaluateRoute(route);
+			}	
+			
+			if( k < ng ){
+				System.out.println("hi there!");
+				for( ; k < ng ; k++ ){
+					customerChosen = chromosome.getGene(k);
+					customerChosenPtr = instance.getCustomer(customerChosen);
+					route.addCustomer(customerChosenPtr);
+					evaluateRoute(route);
+				}	
+			}
+			
+			chromosome.setRoutesNumber(j+1);
+		}
+			
+	}
+		
+	void printConvertedRoutes(){
+		System.out.println("total cost from labelling: "+labelV[chromosome.getNumberOfGenes()-1]);
+				
+				System.out.print( chromosome.getGene(0) + ", ");
+				for(int k = 1; k < chromosome.getNumberOfGenes(); k++){
+					if(labelP[k] != labelP[k-1])
+						System.out.println();
+					System.out.print( chromosome.getGene(k) + ", ");
+				}
+				
+	}
+	
+	public void labelling(){
+		int ng = chromosome.getNumberOfGenes();
+		double load, cost;
+		int customerChosen;
+		Customer customerChosenPtr;
+		int depotNr = routes[0][1].getDepotNr();
+		double L = routes[0][1].getDepot().getEndTw();
+		double Q = routes[0][1].getLoadAdmited();
+		double costViol, loadViol, TWViol, totalCost, totalViol;
 
+		labelV = new double[ng]; 
+		labelP = new int[ng]; 
+		//double []labelViol = new double[ng]; 
+		
+		labelV[0] = 0;
+		
+		for( int i = 1; i < ng; i++ ) labelV[i] = Double.MAX_VALUE;
+
+		for( int i = 1; i < ng; i++ ){	
+			
+			totalCost = cost = load = 0;
+			totalViol = 0;
+			costViol = loadViol = TWViol = 0;
+			int j = i;
+			do{
+				customerChosen = chromosome.getGene(j);
+				customerChosenPtr = instance.getCustomer(customerChosen);
+				load += customerChosenPtr.getCapacity();
+				
+				//check for load violation
+				if(load > Q){
+					loadViol += load - Q;
+				}
+				
+				if( i == j ){
+					cost =  Math.max(instance.getTravelTime(depotNr, chromosome.getGene(j)), customerChosenPtr.getStartTw());
+							//+ customerChosenPtr.getServiceDuration()
+							//+ instance.getTravelTime(chromosome.getGene(j), depotNr);
+				}else{
+					cost = Math.max(
+							cost 
+						- instance.getTravelTime(chromosome.getGene(j-1), depotNr)
+						+ instance.getTravelTime(chromosome.getGene(j-1), chromosome.getGene(j))
+						,
+						customerChosenPtr.getStartTw()
+						);
+				
+					//cost += customerChosenPtr.getServiceDuration();
+					//check TW violation
+					if(cost > customerChosenPtr.getEndTw()){
+						//relaxed EndTimeWindowConstraint
+						TWViol += cost - customerChosenPtr.getEndTw();
+						//System.out.println("hi there: "+cost);
+					}
+					
+					
+				}
+				
+				cost += customerChosenPtr.getServiceDuration();
+				cost += instance.getTravelTime(chromosome.getGene(j), depotNr);
+				
+				//check for cost Violation
+				if(cost > L){
+					costViol += cost - L;
+				}
+				
+				totalCost = cost + 1000 * loadViol + 1000 * costViol + 1000 * TWViol;
+				totalViol = loadViol + costViol + TWViol;
+				//totalCost = cost + beta * costViol;
+					if( labelV[i-1] + totalCost < labelV[j]){// || (labelV[i-1] + totalCost >= labelV[j] && (totalCost - totalViol) < labelViol[j])){
+						labelV[j] = labelV[i-1] + totalCost;
+						//labelViol[j] = totalViol;
+						labelP[j] = i-1;
+					}
+					
+				j++;
+			}while( j < ng );
+		}
+
+	}
+		
+		public void labelling2(){
+			int ng = chromosome.getNumberOfGenes();
+			double load, cost;
+			int customerChosen;
+			Customer customerChosenPtr;
+			int depotNr = routes[0][1].getDepotNr();
+			double L = routes[0][1].getDepot().getEndTw();
+			double Q = routes[0][1].getLoadAdmited();
+			
+		//	double alpha, beta, gamma;
+		//	double alpha * loadViol + beta * durationViol + gamma * twViol;
+			labelV = new double[ng]; 
+			labelP = new int[ng]; 
+			
+			labelV[0] = 0;
+			
+			for( int i = 1; i < ng; i++ ) labelV[i] = Double.MAX_VALUE;
+			
+			for( int i = 1; i < ng; i++ ){	
+				
+				cost = load = 0;
+				int j = i;
+				do{
+					customerChosen = chromosome.getGene(j);
+					customerChosenPtr = instance.getCustomer(customerChosen);
+					load += customerChosenPtr.getCapacity();
+					
+					if( i == j ){
+						cost =  Math.max(instance.getTravelTime(depotNr, chromosome.getGene(j)), customerChosenPtr.getStartTw());
+					}else{
+						cost = Math.max(
+								cost 
+							- instance.getTravelTime(chromosome.getGene(j-1), depotNr)
+							+ instance.getTravelTime(chromosome.getGene(j-1), chromosome.getGene(j))
+							,
+							customerChosenPtr.getStartTw()
+							);
+					}
+					
+					if(cost > customerChosenPtr.getEndTw()){
+						//relaxed EndTimeWindowConstraint
+						cost = Double.MAX_VALUE;
+						//System.out.println("hi there: "+cost);
+					}else{
+						cost += customerChosenPtr.getServiceDuration() + instance.getTravelTime(chromosome.getGene(j), depotNr);
+					}
+					
+					if(cost <= L && load <= Q){
+						if( labelV[i-1] + cost < labelV[j]){
+							labelV[j] = labelV[i-1] + cost;
+							labelP[j] = i-1;
+						}
+						
+					}
+					j++;
+				}while( j < ng);
+			}
+
+		//System.out.println("total cost from labelling: "+labelV[ng-1]);
+		/*
+		System.out.print( chromosome.getGene(0) + ", ");
+		for(int k = 1; k < ng; k++){
+			if(labelP[k] != labelP[k-1])
+				System.out.println();
+			System.out.print( chromosome.getGene(k) + ", ");
+		}
+		*/
+		
+	}
+
+	
+	
 	/**
 	 * calculate objective function for a given chromosome. 
 	 * infeasible solutions are allowed but penalized according to
@@ -134,9 +350,11 @@ public class MyGASolution extends MySolution{
 		//this function build and evaluate routes 
 		//initializeRoutes(instance);
 		
-		buildRoutes();
+		buildRoutes2();
 		
-		return objectiveFunction.evaluateAbsolutely(this);
+		double x = objectiveFunction.evaluateAbsolutely(this);
+		//System.out.println("fitness = "+x);
+		return x;
 	}
 	
 	public Object clone()

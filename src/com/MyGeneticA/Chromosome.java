@@ -5,13 +5,19 @@ import com.mdvrp.Route;
 public class Chromosome implements Comparable<Chromosome>{
 	private int[] genes;
 	private int numberOfGenes;
-	private MyGASolution solution;
+	public MyGASolution solution;
 	private double fitness;
 	private int routesNumber;
+	private boolean tabuImproved;	//true if chromosome already passed to TABU
 	
 	Chromosome(int chromosomeDim) { 
 		this.numberOfGenes = chromosomeDim;
-		genes = new int[chromosomeDim]; 
+		this.genes = new int[chromosomeDim]; 
+		/*
+		this.fitness = Double.MAX_VALUE;
+		this.routesNumber = 0;
+		*/
+		this.tabuImproved = false;
 	}
 	
 	public Chromosome(Route[][] feasibleRoutes, int chromosomeDim) {
@@ -24,7 +30,9 @@ public class Chromosome implements Comparable<Chromosome>{
 			for(int j=0; j < feasibleRoutes[i].length; j++){
 				for(int z=0; z < feasibleRoutes[i][j].getCustomersLength(); z++, k++){
 					setGene(k, feasibleRoutes[i][j].getCustomerNr(z));
+					//System.out.print(feasibleRoutes[i][j].getCustomerNr(z)+ ", ");
 				}
+				//if(feasibleRoutes[i][j].getCustomersLength() > 0)System.out.println();
 			}
 		}
 		
@@ -124,7 +132,7 @@ public class Chromosome implements Comparable<Chromosome>{
 		return this.differentGenesAmongTwoChroms(c) == 0 || this.getFitness() == c.getFitness();
 	}
 	
-	protected int differentGenesAmongTwoChroms(Chromosome c2)
+	public int differentGenesAmongTwoChroms(Chromosome c2)
 	{
 		int devCnt = 0;
 		for (int iGene = 0; iGene < this.numberOfGenes; iGene++)
@@ -134,5 +142,13 @@ public class Chromosome implements Comparable<Chromosome>{
 		}
 
 		return devCnt;
+	}
+
+	public boolean isAlreadyTabuImproved() {
+		return tabuImproved;
+	}
+
+	public void setTabuImproved(boolean b) {
+		tabuImproved = b;		
 	}
 }

@@ -46,7 +46,7 @@ public class VRPTW_main {
 		Parameters          parameters 		= new Parameters(); 	// holds all the parameters passed from the input line
 		Instance            instance; 								// holds all the problem data extracted from the input file
 		PrintStream         outPrintSream 	= null;					// used to redirect the output
-		int count, iter;
+		int count;
 		int bestRoutesNr;
 		
 		double gap = 0, totalTime = 0;
@@ -80,7 +80,7 @@ public class VRPTW_main {
 				throw new FileNotFoundException("property file '"+propFileName+"' not found on the classpath");
 			}
 			
-			parameters.setIterations(Integer.parseInt(prop.getProperty("tsIterationN")));
+			parameters.setIterations(Integer.parseInt(prop.getProperty("tsIterationNr")));
 			parameters.setTabuTenure(Integer.parseInt(prop.getProperty("tabuTenure")));
 			
 			//set time limit to 5 minutes normalized in respect of Perboli's performance
@@ -133,6 +133,8 @@ public class VRPTW_main {
 			//sort once only, not for each TABU solution inserting in initPopulation
 			myGA.getPopulation().sort();
 			//System.out.println("get avg fitness before TABU pass: "+myGA.getAvgFitness());
+			//iterationToGo = Integer.parseInt(prop.getProperty("totalIterationNr"));
+			
 			for(int k=0, index = populationDim-1; k <= 2; k++, index-=2){
 				
 				
@@ -160,12 +162,11 @@ public class VRPTW_main {
 				search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
 				
 				search.tabuSearch.startSolving();	        
-				int numberOfCustomers = 0;
+
 				int routesNr = 0;
 				for(int i =0; i < search.feasibleRoutes.length; ++i)
 					for(int j=0; j < search.feasibleRoutes[i].length; ++j)
 						if(search.feasibleRoutes[i][j].getCustomersLength() > 0){
-							numberOfCustomers += search.feasibleRoutes[i][j].getCustomersLength();
 							routesNr++;	
 						}
 	
@@ -197,15 +198,18 @@ public class VRPTW_main {
 				System.out.println("end of TABU.");
 				
 				System.out.println("insert this solution into population");
-				myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index);
-				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index-1);
+
+				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index);
+				if(search.feasibleCost.total != search.bestCost.total)
+					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index-1);
+				
 				System.out.println("done.");
 			}
 			
 			//a fast optimization to worst population chromosomes -> only 20 iterations
-			tabuPensaciTu(myGA, populationDim, instance, moveManager, objFunc, tabuList, false, outPrintSream, 20, prop);
+			tabuPensaciTu(myGA, populationDim, instance, moveManager, objFunc, tabuList, false, outPrintSream, 50, prop);
 			
-			iter = Integer.parseInt(prop.getProperty("totalIteration"));
+			
 			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
 			count = 0;
 			
@@ -218,7 +222,7 @@ public class VRPTW_main {
 				NBestSolution = BestGASolutions.size();
 				
 				countBestSolution = 0;
-				while(countBestSolution < NBestSolution && !TimeExpired()){	
+				while(countBestSolution < BestGASolutions.size() && !TimeExpired()){	
 					System.out.println("start TABU with solution "+(countBestSolution+1)+ " as input at "+UpdateGap(previous));
 					initialSol 		= BestGASolutions.get(countBestSolution);
 					
@@ -267,7 +271,9 @@ public class VRPTW_main {
 					System.out.println("done.");
 					
 					System.out.println("insert this solution into population");
-					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes);
+					myGA.insertBestTabuSolutionIntoInitPopulation2(search.feasibleRoutes, search.feasibleCost.total);
+					if(search.feasibleCost.total != search.bestCost.total)
+						myGA.insertBestTabuSolutionIntoInitPopulation2(search.bestRoutes, search.bestCost.total);
 					System.out.println("done.");
 					
 					countBestSolution++;
@@ -302,7 +308,6 @@ public class VRPTW_main {
 		        System.out.println("Finish at "+Date.from(Instant.now()));
 		        System.out.println("see u soon.");
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 
@@ -350,7 +355,6 @@ public class VRPTW_main {
 
 		//END TRY BLOCK
 	} catch (Exception e) {
-		// TODO Auto-generated catch block
 		e.printStackTrace();
 	}
 	}
