@@ -369,5 +369,8 @@ public class MyGASolution extends MySolution{
 	public Chromosome getChromosome() {
 		return chromosome;
 	}
-	
+
+	public int getLabelP(int index){
+		return labelP[index];
+	}
 }

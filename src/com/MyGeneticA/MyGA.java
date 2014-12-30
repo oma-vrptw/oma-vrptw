@@ -582,6 +582,13 @@ public class MyGA {
 						}
 					}
 				}
+				for(int k = 0; k < populationDim; k++){
+					if(children[i].compareToGenes(population.getChromosome(k))){
+						children[i] = null;
+						newDim--;
+						break;
+					}
+				}
 			}
 		}
 		return newDim;
