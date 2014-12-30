@@ -2,10 +2,17 @@ package com.MyGeneticA;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
+import org.coinor.opents.MoveManager;
+import org.coinor.opents.ObjectiveFunction;
+import org.coinor.opents.TabuList;
+
+import com.TabuSearch.MyMoveManager;
+import com.TabuSearch.MyObjectiveFunction;
 import com.TabuSearch.MySearchProgram;
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
@@ -987,13 +994,15 @@ public class MyGA {
 			if(!c.isAlreadyTabuImproved()){
 				tooSimilar = false;
 				for(Chromosome tmp : pickedUpChrom){
-					if(c.differentGenesAmongTwoChroms(tmp) < 20 || tmp.getFitness()-c.getFitness() < 10){
+
+					if(c.differentGenesAmongTwoChroms(tmp) < 20){
+						
 						tooSimilar = true;
 						break;
 					}
 				}
 				if(!tooSimilar){
-					String msg = i+". Its fitness is: " + Math.round(c.getFitness()) ;
+					String msg = (pickedUp+1)+". Its fitness is: " + Math.round(c.getFitness()) ;
 					System.out.println(msg);
 					c.setTabuImproved(true);
 					solution.add(pickedUp, c.getSolution());
@@ -1004,5 +1013,72 @@ public class MyGA {
 		}
 		
 		return new ArrayList<MySolution>(solution);
+	}
+
+	public void evolve2(MoveManager moveManager, 
+			ObjectiveFunction objFunc, 
+			TabuList tabuList, PrintStream outPrintSream,
+			int tabuIteration, 
+			Properties prop) {
+int iGen = 0;
+		Chromosome[] result;
+
+		do{
+			result = doGeneticMating2(iGen);
+			for(int i = 0; i < result.length; i++){
+				Chromosome c = result[i];
+				MyGASolution sol = new MyGASolution(c, instance);
+				c.setSolution(sol);
+				c.setFitness();
+				MySearchProgram search;
+				try {
+					search = new MySearchProgram(instance, c.getSolution(), moveManager,
+							objFunc, tabuList, false,  outPrintSream, prop);
+					
+					prop.setProperty("enableCheckImprovement", "false");
+					search.tabuSearch.setIterationsToGo(tabuIteration);	// Set number of iterations
+					search.tabuSearch.startSolving();
+					
+					result[i] = new Chromosome(search.bestRoutes, chromosomeDim);
+					
+					prop.setProperty("enableCheckImprovement", "true");
+					
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			generateNewPopulation(result);
+			iGen++;
+		}while(iGen < maxGenerations);
+		
+	}
+	
+	Chromosome[] doGeneticMating2(int iGen)
+	{
+		Chromosome[] result;
+		Chromosome[][] selection = selectParents();
+		/*
+		int selectedCrossover = getRandom(3);
+			
+		switch(selectedCrossover){
+			case 0: 
+				result = crossover1pt(selection);
+				break;
+
+			case 1: 
+				result = crossover2pt(selection);
+				break;
+
+			default: 
+				result = pmxCrossover(selection);
+		}
+			
+		
+		return result;
+		*/
+		
+		return pmxCrossover(selection);
 	}
 }

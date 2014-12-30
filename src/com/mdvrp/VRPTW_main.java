@@ -199,8 +199,10 @@ public class VRPTW_main {
 				System.out.println("insert this solution into population");
 
 				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index);
-				if(search.feasibleCost.total != search.bestCost.total)
+				if(search.feasibleCost.total != search.bestCost.total){
+					System.out.println("insert also best but not feasible. Its cost is: "+search.feasibleCost.total);
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index-1);
+				}
 				
 				System.out.println("done.");
 			}
@@ -215,7 +217,11 @@ public class VRPTW_main {
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
 			while(!TimeExpired()){
 				System.out.println("iteration "+(count+1));
-				myGA.evolve();
+				
+				
+				myGA.evolve2(moveManager, objFunc, tabuList, outPrintSream, 20, prop);
+
+				
 				System.out.println("select best chromosomes from population");
 				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
 				NBestSolution = BestGASolutions.size();

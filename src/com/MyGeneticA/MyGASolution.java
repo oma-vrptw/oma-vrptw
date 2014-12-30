@@ -137,7 +137,7 @@ public class MyGASolution extends MySolution{
 		Customer customerChosenPtr;
 		int ng = chromosome.getNumberOfGenes();
 		
-		labelling();
+		labelling2();
 		
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
 			int j=0;
@@ -319,10 +319,9 @@ public class MyGASolution extends MySolution{
 							labelV[j] = labelV[i-1] + cost;
 							labelP[j] = i-1;
 						}
-						
 					}
 					j++;
-				}while( j < ng);
+				}while( j < ng );
 			}
 
 		//System.out.println("total cost from labelling: "+labelV[ng-1]);
