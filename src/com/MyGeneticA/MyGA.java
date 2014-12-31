@@ -905,9 +905,12 @@ public class MyGA {
 		Chromosome c;
 		//build a chromosome from a route 
 		c = new Chromosome(feasibleRoutes, chromosomeDim);
-
-		population.swapChromosome(c, population.getWorstChromosomeIndex(), alpha, beta, gamma);
-		System.out.println("fitness chromosome inserito: "+c.getFitness());
+		if(!population.isClone(c)){
+			population.swapChromosome(c, population.getWorstChromosomeIndex(), alpha, beta, gamma);
+			System.out.println("fitness chromosome inserito: "+c.getFitness());
+		}else{
+			System.out.println("clone detected. skip it.");
+		}
 		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
 	}
 
@@ -918,6 +921,7 @@ public class MyGA {
 		solution = new ArrayList<MyGASolution>();
 
 		population.sort();
+		//population.printPopulation();
 		int i;
 		for(i = 0; i < populationDim; i++){
 			c = population.getChromosome(i);
@@ -1089,8 +1093,13 @@ public class MyGA {
 		//build a chromosome from a route 
 		c = new Chromosome(routes, chromosomeDim);
 	
-		population.swapChromosome(c, i, alpha, beta, gamma);
-		System.out.println("fitness chromosome inserito: "+c.getFitness());
+		if(!population.isClone(c)){
+			population.swapChromosome(c, i, alpha, beta, gamma);
+			System.out.println("fitness chromosome inserito: "+c.getFitness());
+		}else{
+			System.out.println("clone detected. skip it.");
+
+		}
 		/*
 		for(Route r:routes[0])
 			if(r.getCustomersLength() > 0)
