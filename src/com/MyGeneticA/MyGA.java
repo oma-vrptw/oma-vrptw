@@ -499,20 +499,52 @@ public class MyGA {
 		return false;
 	}
 
-	int deleteDuplicates(Chromosome[] children){
+	private boolean areClones(Chromosome c1, Chromosome c2)
+	{
+		double epsilon = 0.001;
+		
+		if(c1.compareToGenes(c2)) 
+		{
+			//System.out.println("SGAMATO CLONE PER I GENI");
+			return true;
+		}
+		if(Math.abs(c1.getFitness() - c2.getFitness()) < epsilon)
+		{
+			//System.out.println("SGAMATO CLONE PER FITNESS");
+			return true;
+		}
+		
+		return false;
+	}
+	
+	int deleteDuplicates(Chromosome[] children)
+	{
+		
 		int newDim = children.length;
-		for(int i = 0; i < children.length; i++){
-			if(children[i] != null){
-				for(int j = 0; j < children.length; j++){
-					if(children[j] != null){
-						if(i != j && children[i].compareToGenes(children[j])){
+		
+		for(int i = 0; i < children.length; i++)
+		{
+			if(children[i] != null)
+			{
+				for(int j = 0; j < children.length; j++)
+				{
+					if(i==j) continue;
+					
+					if(children[j] != null)
+					{
+						// Se sono cloni
+						if(areClones(children[i],children[j]))
+						{
 							children[j] = null;
 							newDim--;
 						}
 					}
 				}
-				for(int k = 0; k < populationDim; k++){
-					if(children[i].compareToGenes(population.getChromosome(k))){
+				
+				for(int k = 0; k < populationDim; k++)
+				{
+					if(areClones(children[i],population.getChromosome(k)))
+					{
 						children[i] = null;
 						newDim--;
 						System.out.println("**************************************DUPLICATE FOUND!!!**********************************");
@@ -1127,6 +1159,9 @@ public class MyGA {
 				}
 				
 			}
+			
+			//TODO: rivedere questo punto
+			deleteDuplicates(result);
 			generateNewPopulation(result);
 			iGen++;
 		}while(iGen < maxGenerations);
@@ -1154,6 +1189,7 @@ public class MyGA {
 		}
 		
 		int generatedChildren = result.length;
+		/*
 		int newDim = deleteDuplicates(result);
 		
 		System.out.println("Generated Children: "+newDim);
@@ -1171,5 +1207,7 @@ public class MyGA {
 			}
 			return childrenWithoutDuplicates;
 		}
+		*/
+		return result;
 	}
 }

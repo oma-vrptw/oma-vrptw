@@ -184,14 +184,14 @@ public class Population {
 			// se sono praticamente identici sono cloni per forza
 			if(c.compareToGenes(tmp)) 
 			{
-				System.out.println("SGAMATO CLONE PER I GENI");
+				//System.out.println("SGAMATO CLONE PER I GENI");
 				return true;
 			}
 			
 			// se invece sono diversi, ma non è detto che siano equivalenti, controllo la fitness
 			if(Math.abs(tmp.getFitness() - c.getFitness())<epsilon)
 			{
-				System.out.println("SGAMATO CLONE PER FITNESS");
+				//System.out.println("SGAMATO CLONE PER FITNESS");
 				return true;
 			}
 		}
