@@ -16,12 +16,31 @@ import java.sql.Date;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 
 public class VRPTW_main {
 
 	static Instant previous;
 	static double timeLimit = 0;
+	
+	
+	public static int countClones(int populationDim, Population p)
+	{
+		int clones = 0;
+		Set<Double> set = new HashSet<>();
+		
+		for(int i=0; i<populationDim; i++)
+		{	
+			set.add(p.getChromosome(i).getFitness());
+		}	
+		clones = populationDim-set.size();
+		
+		set.clear();
+		
+		return clones;
+	}
 	
 	public static boolean TimeExpired(){
 		if(previous == null || timeLimit == 0) System.out.println("azz, da gestire con un eccezione");
@@ -134,6 +153,11 @@ public class VRPTW_main {
 			//System.out.println("get avg fitness before TABU pass: "+myGA.getAvgFitness());
 			//iterationToGo = Integer.parseInt(prop.getProperty("totalIterationNr"));
 			
+			int clones = countClones(populationDim, myGA.getPopulation());
+			
+			if(clones>0)
+				System.out.println("<<<<<< CLONI DOPO INIT POPULATION: " + clones + ">>>>>>");
+			
 			for(int k=0, index = populationDim-1; k <= 2; k++, index-=2){
 				
 				
@@ -193,16 +217,15 @@ public class VRPTW_main {
 				        		gap, bestRoutesNr);
 				        System.out.println(outSol);
 				}
-				System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total));
+				System.out.println("solution from TABU = "+ search.feasibleCost.total);
 				System.out.println("end of TABU.");
 				
-				System.out.println("insert this solution into population");
 				//System.out.println("alpha, beta, gamma: "+search.getSol().alpha+", "+search.getSol().beta+", "+search.getSol().gamma);
 				if(search.feasibleCost.total != Double.POSITIVE_INFINITY)
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
 				else
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
-
+			
 				/*
 				 * 
 			
@@ -216,8 +239,16 @@ public class VRPTW_main {
 				System.out.println("done.");
 			}
 			
+			clones = countClones(populationDim, myGA.getPopulation());
+			if(clones>0)
+				System.out.println("<<<<<< CLONI DOPO FEEL LUCKY: " + clones + ">>>>>>");
+			
 			//a fast optimization to worst population chromosomes -> only 20 iterations
 			tabuPensaciTu(myGA, populationDim, instance, moveManager, objFunc, tabuList, false, outPrintSream, 50, prop);
+			
+			clones = countClones(populationDim, myGA.getPopulation());
+			if(clones>0)
+				System.out.println("<<<<<< CLONI DOPO TABUPENSACI TU: " + clones + ">>>>>>");
 			
 			
 			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
@@ -232,7 +263,7 @@ public class VRPTW_main {
 				
 				
 				myGA.evolve2(moveManager, objFunc, tabuList, outPrintSream, 20, prop);
-				myGA.getPopulation().printPopulation();
+				//myGA.getPopulation().printPopulation();
 				myGA.getPopulation().detectClones();
 				//myGA.evolve3();
 				System.out.println("select best chromosomes from population");
@@ -251,7 +282,7 @@ public class VRPTW_main {
 
 					search.tabuSearch.setIterationsToGo(parameters.getIterations());	// Set number of iterations
 					search.tabuSearch.startSolving();	        
-					System.out.println("solution from TABU = "+Math.round(search.feasibleCost.total)+ " at "+UpdateGap(previous));
+					System.out.println("solution from TABU = "+ search.feasibleCost.total + " at "+UpdateGap(previous));
 					int routesNr = 0;
 					for(int i =0; i < search.feasibleRoutes.length; ++i)
 						for(int j=0; j < search.feasibleRoutes[i].length; ++j)

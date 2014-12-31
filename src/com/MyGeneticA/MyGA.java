@@ -22,6 +22,7 @@ import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Parameters;
 import com.mdvrp.Route;
+import com.mdvrp.VRPTW_main;
 
 
 public class MyGA {
@@ -175,6 +176,7 @@ public class MyGA {
 		usedRoutes++;
 		routeCapacity = 0;
 
+		c.evaluate(instance);
 		population.setChromosome(i, c);
 	}
 
@@ -185,9 +187,10 @@ public class MyGA {
 		MySolution initialSol = new MySolution(instance);
 		this.pfihSol = new MyPFIH(chromosomeDim, instance);
 		
-		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim);
+		Chromosome tesista = new Chromosome(initialSol.getRoutes(), chromosomeDim, instance, initialSol.alpha, initialSol.beta, initialSol.gamma);
 		Chromosome cw = generator.GenerateChromosome();
-		Chromosome pfih = new Chromosome(pfihSol.getRoutes(), chromosomeDim);
+		cw.evaluate(instance);
+		Chromosome pfih = new Chromosome(pfihSol.getRoutes(), chromosomeDim, instance, 1, 1, 1);
 		// CW
 		population.setChromosome(0, cw);
 		// InitialSol del package
@@ -498,40 +501,89 @@ public class MyGA {
 		return false;
 	}
 
-	int deleteDuplicates(Chromosome[] children){
+	private boolean areClones(Chromosome c1, Chromosome c2)
+	{
+		double epsilon = 0.001;
+		
+		if(c1.compareToGenes(c2)) 
+		{
+			//System.out.println("SGAMATO CLONE PER I GENI");
+			return true;
+		}
+		if(Math.abs(c1.getFitness() - c2.getFitness()) < epsilon)
+		{
+			//System.out.println("SGAMATO CLONE PER FITNESS");
+			return true;
+		}
+		
+		return false;
+	}
+	
+	Chromosome[] deleteDuplicates(Chromosome[] children)
+	{
+		
 		int newDim = children.length;
-		for(int i = 0; i < children.length; i++){
-			if(children[i] != null){
-				for(int j = 0; j < children.length; j++){
-					if(children[j] != null){
-						if(i != j && children[i].compareToGenes(children[j])){
+		
+		for(int i = 0; i < children.length; i++)
+		{
+			if(children[i] != null)
+			{
+				for(int j = 0; j < children.length; j++)
+				{
+					if(i==j) continue;
+					
+					if(children[j] != null)
+					{
+						// Se sono cloni
+						if(areClones(children[i],children[j]))
+						{
 							children[j] = null;
+							//System.out.println("**************************************DUPLICATE FOUND!!!**********************************");
 							newDim--;
+							break;
 						}
 					}
 				}
-				for(int k = 0; k < populationDim; k++){
-					if(children[i].compareToGenes(population.getChromosome(k))){
+				
+				for(int k = 0; k < populationDim; k++)
+				{
+					if(areClones(children[i],population.getChromosome(k)))
+					{
 						children[i] = null;
 						newDim--;
-						System.out.println("**************************************DUPLICATE FOUND!!!**********************************");
+						//System.out.println("**************************************DUPLICATE FOUND!!!**********************************");
 						break;
 					}
 				}
 			}
 		}
-		return newDim;
+		
+		Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+		int j = 0;
+		for(int i = 0; i < children.length; i++){
+			if(children[i] != null) {
+				childrenWithoutDuplicates[j] = children[i];
+				j++;
+			}
+		}
+		
+		return childrenWithoutDuplicates;
 	}
 
 	void generateNewPopulation(Chromosome[] children) { 
 
 		Population p_new = new Population(populationDim, instance); //temporary next new population initially empty
 		Population child = new  Population (children.length, instance); //population of children
-
+		
 		//set chromosomes into child population
 		for(int h=0; h<children.length; h++){
-			child.setChromosome(h, children[h]);}
-
+			child.setChromosome(h, children[h]);
+		}
+		/*
+		System.out.println("children, "+children.length);
+		child.printPopulation();
+		*/
+		
 		//define the percentage of the best chromosomes of the old population that will be reinsert in the next new population
 		int precentageChoose = (populationDim/10)*2;
 
@@ -622,8 +674,15 @@ public class MyGA {
 			c++;
 		} //end outer "for"
 
+
+		/*
+		 * System.out.println("new population");
+		p_new.printPopulation();
+		*/
+
 		//create the next new population
 		for(int n=0; n<populationDim; n++){
+			
 			population.setChromosome(n, p_new.getChromosome(n));
 		}
 	}
@@ -681,146 +740,158 @@ public class MyGA {
 	}
 
 	public void evolve() {
-		int iGen = 0;
+		int iGen = 0, clones = 0;
 		
 		do{
+			
+			clones = VRPTW_main.countClones(populationDim, population);
+			if(clones>0)
+				System.out.println("<<<<<< CLONI PRIMA DELLA MATING: " + clones + ">>>>>>");
+			
+			// genetic mating
 			doGeneticMating(iGen);
+			
+			clones = VRPTW_main.countClones(populationDim, population);
+			if(clones>0)
+				System.out.println("<<<<<< CLONI DOPO LA MATING: " + clones + ">>>>>>");
+			
+			
 			iGen++;
 		}while(iGen < maxGenerations);
 	}
 	
-	public void evolve3() {
-		int iGen = 0;
-		
-		do{
-			Chromosome[] result = doGeneticMating2(iGen);
-			
-			for (int i=0; i < result.length; i++){
-				Chromosome c = result[i];
-				MyGASolution sol = new MyGASolution(c, instance);
-				c.setSolution(sol);
-				c.setFitness();
-				c = getSwapMoves(c.getSolution());
-				if(c != null){
-					result[i] = c;
-				}
-				
-			}
-			
-			generateNewPopulation(result);
-			iGen++;
-		}while(iGen < maxGenerations);
-	}
+//	public void evolve3() {
+//		int iGen = 0;
+//		
+//		do{
+//			Chromosome[] result = doGeneticMating2(iGen);
+//			
+//			for (int i=0; i < result.length; i++){
+//				Chromosome c = result[i];
+//				MyGASolution sol = new MyGASolution(c, instance);
+//				c.setSolution(sol);
+//				c.setFitness();
+//				c = getSwapMoves(c.getSolution());
+//				if(c != null){
+//					result[i] = c;
+//				}
+//				
+//			}
+//			
+//			generateNewPopulation(result);
+//			iGen++;
+//		}while(iGen < maxGenerations);
+//	}
 	
 	/**
 	 * Generate moves that move each customer from one route to all routes that are different
 	 * @param solution
 	 * @return
 	 */
-	public Chromosome getSwapMoves(MySolution solution){
-		MyGASolution sol2 = new MyGASolution(instance, solution.getRoutes());
-		Route[][] routes = sol2.getRoutes();
-
-		double minchange = 0;
-		Chromosome minChrome = null;
-		// iterates depots
-		for (int i = 0; i < routes.length; ++i) 
-		{   	 
-			// iterates routes
-			for (int j = 0; j < routes[i].length; ++j) {      		
-				// iterates customers in the route
-				for (int k = 0; k < routes[i][j].getCustomersLength()-1; ++k) {
-					Route route1 = routes[i][j];
-					Customer u = route1.getCustomer(k);
-					Customer x;
-					x = route1.getCustomer(k+1);
-					/*
-         			if(k == routes[i][j].getCustomersLength())
-         				x = routes[i][j+1].getCustomer(1);
-         			else
-         				x = routes[i][j].getCustomer(k+1);
-					 */
-					for(int l = 0; l < routes.length; ++l){
-						// iterate each route for that deposit and generate move to it if is different from the actual route
-						for (int r = 0; r < routes[l].length; ++r) { 
-							for(int s = 0; s < routes[l][r].getCustomersLength()-1; ++s){
-								Route route2 = routes[l][r];
-								Customer v = route2.getCustomer(s);
-								Customer y;
-								y = route2.getCustomer(s+1);
-								/*
-	                 			if(k == routes[l][r].getCustomersLength())
-	                 				y = routes[l][r+1].getCustomer(1);
-	                 			else
-	                 				y = routes[l][r].getCustomer(s+1);
-								 */
-
-								boolean sameTrip = false;
-								if(r == j) sameTrip = true;
-								
-								if(sameTrip){
-									//if are adjacent skip
-									if(s >= k+2 && s <= k-2)continue;
-									//System.out.println("same trip: try internal 2-opt");
-									Cost previousCost = sol2.getCost();
-									previousCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
-									
-									route1.removeCustomer(k+1);
-									route1.addCustomer(v, k+1);
-									sol2.evaluateRoute(route1);
-
-									route2.removeCustomer(s);
-									route2.addCustomer(x, s);
-									sol2.evaluateRoute(route2);
-									
-									sol2.setRoutes(routes);
-									
-									Cost laterCost = sol2.getCost();
-									laterCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
-									
-									double change = laterCost.total - previousCost.total;
-									
-			System.out.println("changement: "+change);
-									if(minchange > change)
-									{
-										System.out.println("bla bla bla");
-										minchange = change;
-										minChrome = new Chromosome(routes, chromosomeDim);
-									}
-								}
-
-							}
-						}
-					}
-				}
-			}
-		}
-
-		return minChrome;
-	}
+//	public Chromosome getSwapMoves(MySolution solution){
+//		MyGASolution sol2 = new MyGASolution(instance, solution.getRoutes());
+//		Route[][] routes = sol2.getRoutes();
+//
+//		double minchange = 0;
+//		Chromosome minChrome = null;
+//		// iterates depots
+//		for (int i = 0; i < routes.length; ++i) 
+//		{   	 
+//			// iterates routes
+//			for (int j = 0; j < routes[i].length; ++j) {      		
+//				// iterates customers in the route
+//				for (int k = 0; k < routes[i][j].getCustomersLength()-1; ++k) {
+//					Route route1 = routes[i][j];
+//					Customer u = route1.getCustomer(k);
+//					Customer x;
+//					x = route1.getCustomer(k+1);
+//					/*
+//         			if(k == routes[i][j].getCustomersLength())
+//         				x = routes[i][j+1].getCustomer(1);
+//         			else
+//         				x = routes[i][j].getCustomer(k+1);
+//					 */
+//					for(int l = 0; l < routes.length; ++l){
+//						// iterate each route for that deposit and generate move to it if is different from the actual route
+//						for (int r = 0; r < routes[l].length; ++r) { 
+//							for(int s = 0; s < routes[l][r].getCustomersLength()-1; ++s){
+//								Route route2 = routes[l][r];
+//								Customer v = route2.getCustomer(s);
+//								Customer y;
+//								y = route2.getCustomer(s+1);
+//								/*
+//	                 			if(k == routes[l][r].getCustomersLength())
+//	                 				y = routes[l][r+1].getCustomer(1);
+//	                 			else
+//	                 				y = routes[l][r].getCustomer(s+1);
+//								 */
+//
+//								boolean sameTrip = false;
+//								if(r == j) sameTrip = true;
+//								
+//								if(sameTrip){
+//									//if are adjacent skip
+//									if(s >= k+2 && s <= k-2)continue;
+//									//System.out.println("same trip: try internal 2-opt");
+//									Cost previousCost = sol2.getCost();
+//									previousCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
+//									
+//									route1.removeCustomer(k+1);
+//									route1.addCustomer(v, k+1);
+//									sol2.evaluateRoute(route1);
+//
+//									route2.removeCustomer(s);
+//									route2.addCustomer(x, s);
+//									sol2.evaluateRoute(route2);
+//									
+//									sol2.setRoutes(routes);
+//									
+//									Cost laterCost = sol2.getCost();
+//									laterCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
+//									
+//									double change = laterCost.total - previousCost.total;
+//									
+//			System.out.println("changement: "+change);
+//									if(minchange > change)
+//									{
+//										System.out.println("bla bla bla");
+//										minchange = change;
+//										minChrome = new Chromosome(routes, chromosomeDim, instance);
+//									}
+//								}
+//
+//							}
+//						}
+//					}
+//				}
+//			}
+//		}
+//
+//		return minChrome;
+//	}
     
-	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
-		Chromosome c;
-		//build a chromosome from a route 
-		c = new Chromosome(feasibleRoutes, chromosomeDim);
-
-
-		population.swapChromosome(c, population.getWorstChromosomeIndex());
-		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
-	}
+//	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
+//		Chromosome c;
+//		//build a chromosome from a route 
+//		c = new Chromosome(feasibleRoutes, chromosomeDim, instance);
+//
+//
+//		population.swapChromosome(c, population.getWorstChromosomeIndex());
+//		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
+//	}
 	
-	public void insertBestTabuSolutionIntoInitPopulation2(Route[][] feasibleRoutes, double cost) {
-		
-		if( population.getWorstChromosome().getFitness() <= cost ) 
-			return;
-
-		Chromosome c;
-		//build a chromosome from a route 
-		c = new Chromosome(feasibleRoutes, chromosomeDim);
-
-		population.swapChromosome(c, population.getWorstChromosomeIndex());
-		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
-	}
+//	public void insertBestTabuSolutionIntoInitPopulation2(Route[][] feasibleRoutes, double cost) {
+//		
+//		if( population.getWorstChromosome().getFitness() <= cost ) 
+//			return;
+//
+//		Chromosome c;
+//		//build a chromosome from a route 
+//		c = new Chromosome(feasibleRoutes, chromosomeDim, instance);
+//
+//		population.swapChromosome(c, population.getWorstChromosomeIndex());
+//		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
+//	}
 	
 	public void insertBestTabuSolutionIntoInitPopulation2(Route[][] feasibleRoutes, double cost, double alpha, double beta, double gamma) {
 		
@@ -829,9 +900,16 @@ public class MyGA {
 
 		Chromosome c;
 		//build a chromosome from a route 
-		c = new Chromosome(feasibleRoutes, chromosomeDim);
+		c = new Chromosome(feasibleRoutes, chromosomeDim, instance, alpha, beta, gamma);
+		
+//		MyGASolution sol = new MyGASolution(c, instance);
+//		c.setSolution(sol);
+//		c.getSolution().setAlphaBetaGamma(alpha, beta, gamma);
+//		c.setFitness();
+		
 		if(!population.isClone(c)){
-			population.swapChromosome(c, population.getWorstChromosomeIndex(), alpha, beta, gamma);
+//			population.swapChromosome(c, population.getWorstChromosomeIndex(), alpha, beta, gamma);
+			population.swapChromosome(c, population.getWorstChromosomeIndex());
 			System.out.println("fitness chromosome inserito: "+c.getFitness());
 		}else{
 			System.out.println("clone detected. skip it.");
@@ -1015,15 +1093,22 @@ public class MyGA {
 			int i, double alpha, double beta, double gamma) {
 		
 		Chromosome c;
+		
 		//build a chromosome from a route 
-		c = new Chromosome(routes, chromosomeDim);
+		c = new Chromosome(routes, chromosomeDim, instance, alpha, beta, gamma);
 	
-		if(!population.isClone(c)){
-			population.swapChromosome(c, i, alpha, beta, gamma);
-			System.out.println("fitness chromosome inserito: "+c.getFitness());
-		}else{
+//		MyGASolution sol = new MyGASolution(c, instance);
+//		c.setSolution(sol);
+//		c.setFitness();
+//		
+		if(!population.isClone(c))
+		{
+			population.swapChromosome(c, i);
+			//System.out.println("fitness chromosome inserito: " + c.getFitness());	
+		}
+		else
+		{
 			System.out.println("clone detected. skip it.");
-
 		}
 		/*
 		for(Route r:routes[0])
@@ -1084,9 +1169,14 @@ public class MyGA {
 			result = doGeneticMating2(iGen);
 			for(int i = 0; i < result.length; i++){
 				Chromosome c = result[i];
-				MyGASolution sol = new MyGASolution(c, instance);
-				c.setSolution(sol);
-				c.setFitness();
+				c.evaluate(instance);
+//				MyGASolution sol = new MyGASolution(c, instance);
+//				c.setSolution(sol);
+//				c.setFitness();
+			}
+			result = deleteDuplicates(result);
+			for(int i = 0; i < result.length; i++){
+				Chromosome c = result[i];
 				MySearchProgram search;
 				try {
 					search = new MySearchProgram(instance, c.getSolution(), moveManager,
@@ -1097,7 +1187,7 @@ public class MyGA {
 					search.tabuSearch.startSolving();
 					
 					if (search.feasibleCost.total != Double.POSITIVE_INFINITY)
-						result[i] = new Chromosome(search.feasibleRoutes, chromosomeDim);
+						result[i] = new Chromosome(search.feasibleRoutes, chromosomeDim, instance, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
 					
 					prop.setProperty("enableCheckImprovement", "true");
 					
@@ -1107,15 +1197,12 @@ public class MyGA {
 				}
 				
 			}
-			System.out.println("prima della generate new pop");
-			population.detectClones();
+			
+			result = deleteDuplicates(result);
 			
 			generateNewPopulation(result);
-			//population.printPopulation();
-			System.out.println("dopo della generate new pop");
-
 			population.detectClones();
-
+			
 			iGen++;
 		}while(iGen < maxGenerations);
 		
@@ -1140,9 +1227,9 @@ public class MyGA {
 			default: 
 				result = pmxCrossover(selection);
 		}
-		
+		/*
 		int generatedChildren = result.length;
-		int newDim = deleteDuplicates(result);
+				int newDim = deleteDuplicates(result);
 		
 		System.out.println("Generated Children: "+newDim);
 		
@@ -1159,5 +1246,7 @@ public class MyGA {
 			}
 			return childrenWithoutDuplicates;
 		}
+		*/
+		return result;
 	}
 }

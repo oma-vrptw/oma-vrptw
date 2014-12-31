@@ -4,6 +4,7 @@ import java.util.Arrays;
 
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
+import com.mdvrp.VRPTW_main;
 
 public class Population {
 	private Chromosome[] chromosomes;
@@ -23,11 +24,12 @@ public class Population {
 	
 	void setChromosome(int index, Chromosome c) { 
 		chromosomes[index] = c;
-		MyGASolution sol = new MyGASolution(c, instance);
-		c.setSolution(sol);
 		
-		c.setFitness();
-	
+//		MyGASolution sol = new MyGASolution(c, instance);
+//		c.setSolution(sol);
+//		
+//		c.setFitness();
+//	
 
 		if(currentDim == 0 || c.getFitness() < bestChromosome.getFitness()){
 			bestChromosome = c;
@@ -150,47 +152,57 @@ public class Population {
 		return chromosomes[getWorstChromosomeIndex()];
 	}
 
-	public void swapChromosome(Chromosome c, int index, double alpha, double beta,
-			double gamma) {
-		removeChromosome(index);
-		setChromosome(index, c, alpha, beta, gamma);
-		
-	}
+//	public void swapChromosome(Chromosome c, int index, double alpha, double beta,
+//			double gamma) {
+//		removeChromosome(index);
+//		setChromosome(index, c, alpha, beta, gamma);
+//		
+//	}
 
-	private void setChromosome(int index, Chromosome c, double alpha,
-			double beta, double gamma) {
-		chromosomes[index] = c;
-		MyGASolution sol = new MyGASolution(c, instance);
-		c.setSolution(sol);
-		c.getSolution().setAlphaBetaGamma(alpha, beta, gamma);
-		c.setFitness();
-	
-
-		if(currentDim == 0 || c.getFitness() < bestChromosome.getFitness()){
-			bestChromosome = c;
-			indexBestChromosome = index;
-		}
-		
-		currentDim++;
-	}
+//	private void setChromosome(int index, Chromosome c, double alpha,
+//			double beta, double gamma) {
+//		chromosomes[index] = c;
+//		
+////		MyGASolution sol = new MyGASolution(c, instance);
+////		c.setSolution(sol);
+////		c.getSolution().setAlphaBetaGamma(alpha, beta, gamma);
+////		c.setFitness();
+//	
+//
+//		if(currentDim == 0 || c.getFitness() < bestChromosome.getFitness()){
+//			bestChromosome = c;
+//			indexBestChromosome = index;
+//		}
+//		
+//		currentDim++;
+//	}
 
 	public boolean isClone(Chromosome c) {
-		for(Chromosome tmp : chromosomes)
-			if(!c.compareToGenes(tmp))
-				return false;
 		
-		return true;
-	}
-	
-	public void detectClones(){
-		int clones =0;
-		sort();
-		for(int i=0; i < populationDim-1; i++){
-			if(chromosomes[i].compareToGenes(chromosomes[i+1])){
-				System.out.println("clones! fitness1: "+chromosomes[i].getFitness()+" fitness2: "+chromosomes[i].getFitness());
-				clones++;
+		double epsilon = 0.01;
+		
+		for(Chromosome tmp : chromosomes)
+		{
+			// se sono praticamente identici sono cloni per forza
+			if(c.compareToGenes(tmp)) 
+			{
+				//System.out.println("SGAMATO CLONE PER I GENI");
+				return true;
+			}
+			
+			// se invece sono diversi, ma non è detto che siano equivalenti, controllo la fitness
+			if(Math.abs(tmp.getFitness() - c.getFitness())<epsilon)
+			{
+				//System.out.println("SGAMATO CLONE PER FITNESS");
+				return true;
 			}
 		}
+		return false;
+	}
+	
+	public void detectClones()
+	{
+		int clones = VRPTW_main.countClones(populationDim, this);
 		System.out.println("num of clones: "+clones);
 	}
 }

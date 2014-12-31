@@ -1,5 +1,6 @@
 package com.MyGeneticA;
 
+import com.mdvrp.Instance;
 import com.mdvrp.Route;
 
 public class Chromosome implements Comparable<Chromosome>{
@@ -20,7 +21,26 @@ public class Chromosome implements Comparable<Chromosome>{
 		this.tabuImproved = false;
 	}
 	
-	public Chromosome(Route[][] feasibleRoutes, int chromosomeDim) {
+//	public Chromosome(Route[][] feasibleRoutes, int chromosomeDim) {
+//		this(chromosomeDim);
+//		
+//		int k;
+//
+//		k = 0;
+//		for(int i =0; i < feasibleRoutes.length; i++){
+//			for(int j=0; j < feasibleRoutes[i].length; j++){
+//				for(int z=0; z < feasibleRoutes[i][j].getCustomersLength(); z++, k++){
+//					setGene(k, feasibleRoutes[i][j].getCustomerNr(z));
+//					//System.out.print(feasibleRoutes[i][j].getCustomerNr(z)+ ", ");
+//				}
+//				//if(feasibleRoutes[i][j].getCustomersLength() > 0)System.out.println();
+//			}
+//		}
+//		
+//		//System.out.println("chromosome from TABU: "+this.toString());
+//	}
+	
+	public Chromosome(Route[][] feasibleRoutes, int chromosomeDim, Instance instance, double alpha, double beta, double gamma) {
 		this(chromosomeDim);
 		
 		int k;
@@ -35,9 +55,12 @@ public class Chromosome implements Comparable<Chromosome>{
 				//if(feasibleRoutes[i][j].getCustomersLength() > 0)System.out.println();
 			}
 		}
-		
+		this.solution =  new MyGASolution(this, instance);
+		this.solution.setAlphaBetaGamma(alpha, beta, gamma);
+		this.fitness = solution.getFitness();
 		//System.out.println("chromosome from TABU: "+this.toString());
 	}
+
 
 	public int getNumberOfGenes() {
 		return numberOfGenes;
@@ -59,9 +82,9 @@ public class Chromosome implements Comparable<Chromosome>{
 		return this.fitness;
 	}
 	
-	public void setFitness() {
-		this.fitness = solution.getFitness();		
-	}
+//	public void setFitness() {
+//		this.fitness = solution.getFitness();		
+//	}
 
 	@Override
 	public int compareTo(Chromosome c) {
@@ -104,8 +127,11 @@ public class Chromosome implements Comparable<Chromosome>{
 
 	public boolean compareToGenes(Chromosome c){
 		for(int i = 0; i < numberOfGenes; i++){
-			if(this.genes[i] != c.genes[i]) return false;
+			if(this.genes[i] != c.genes[i]) 
+				// non è clone
+				return false;
 		}
+		// è clone
 		return true;
 	}
 
@@ -145,5 +171,10 @@ public class Chromosome implements Comparable<Chromosome>{
 
 	public void setTabuImproved(boolean b) {
 		tabuImproved = b;		
+	}
+
+	public void evaluate(Instance instance) {
+		this.solution = new MyGASolution(this, instance);
+		this.fitness = solution.getFitness();
 	}
 }
