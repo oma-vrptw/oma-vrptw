@@ -148,6 +148,30 @@ public class Population {
 		// TODO Auto-generated method stub
 		return chromosomes[getWorstChromosomeIndex()];
 	}
+
+	public void swapChromosome(Chromosome c, int index, double alpha, double beta,
+			double gamma) {
+		removeChromosome(index);
+		setChromosome(index, c, alpha, beta, gamma);
+		
+	}
+
+	private void setChromosome(int index, Chromosome c, double alpha,
+			double beta, double gamma) {
+		chromosomes[index] = c;
+		MyGASolution sol = new MyGASolution(c, instance);
+		c.setSolution(sol);
+		c.getSolution().setAlphaBetaGamma(alpha, beta, gamma);
+		c.setFitness();
+	
+
+		if(currentDim == 0 || c.getFitness() < bestChromosome.getFitness()){
+			bestChromosome = c;
+			indexBestChromosome = index;
+		}
+		
+		currentDim++;
+	}
 	
 	
 }
