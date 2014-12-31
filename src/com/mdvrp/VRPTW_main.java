@@ -198,11 +198,20 @@ public class VRPTW_main {
 				
 				System.out.println("insert this solution into population");
 				//System.out.println("alpha, beta, gamma: "+search.getSol().alpha+", "+search.getSol().beta+", "+search.getSol().gamma);
-				myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
-				if(search.feasibleCost.total != search.bestCost.total){
-					System.out.println("insert also best but not feasible. Its cost is: "+search.feasibleCost.total);
+				if(search.feasibleCost.total != Double.POSITIVE_INFINITY)
+					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
+				else
+					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
+
+				/*
+				 * 
+			
+				double diff2 = Math.abs(search.bestCost.total - search.feasibleCost.total);
+				if(diff2>epsilon){
+					System.out.println("insert also best but not feasible. Its cost is: "+search.bestCost.total);
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index-1, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
 				}
+					 */
 				
 				System.out.println("done.");
 			}
@@ -275,9 +284,18 @@ public class VRPTW_main {
 					System.out.println("done.");
 					
 					System.out.println("insert this solution into population");
-					myGA.insertBestTabuSolutionIntoInitPopulation2(search.feasibleRoutes, search.feasibleCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma );
-					if(search.feasibleCost.total != search.bestCost.total)
+					
+					if (search.feasibleCost.total != Double.POSITIVE_INFINITY)
+						myGA.insertBestTabuSolutionIntoInitPopulation2(search.feasibleRoutes, search.feasibleCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma );
+					else
+						myGA.insertBestTabuSolutionIntoInitPopulation2(search.bestRoutes, search.bestCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma );
+					/*
+					 * double diff2 = Math.abs(search.bestCost.total - search.feasibleCost.total);
+					if(diff2>epsilon){
+						System.out.println("insert also best but not feasible. Its cost is: "+search.bestCost.total);
 						myGA.insertBestTabuSolutionIntoInitPopulation2(search.bestRoutes, search.bestCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
+					}
+					*/
 					System.out.println("done.");
 					
 					countBestSolution++;
