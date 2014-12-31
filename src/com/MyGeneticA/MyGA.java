@@ -2,10 +2,17 @@ package com.MyGeneticA;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
+import org.coinor.opents.MoveManager;
+import org.coinor.opents.ObjectiveFunction;
+import org.coinor.opents.TabuList;
+
+import com.TabuSearch.MyMoveManager;
+import com.TabuSearch.MyObjectiveFunction;
 import com.TabuSearch.MySearchProgram;
 import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
@@ -377,20 +384,7 @@ public class MyGA {
 			k += 2;
 		}
 
-		int newDim = deleteDuplicates(children);
-		if(childrenNum == newDim) return children;
-		else {
-			//System.out.println("Duplicates found!!!");
-			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
-			int j = 0;
-			for(int i = 0; i < childrenNum; i++){
-				if(children[i] != null) {
-					childrenWithoutDuplicates[j] = children[i];
-					j++;
-				}
-			}
-			return childrenWithoutDuplicates;
-		}
+		return children;
 	}
 
 	Chromosome[] crossover2pt(Chromosome[][] parents) { 
@@ -438,20 +432,7 @@ public class MyGA {
 			k += 2;
 		}
 
-		int newDim = deleteDuplicates(children);
-		if(childrenNum == newDim) return children;
-		else {
-			//System.out.println("Duplicates found!!!");
-			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
-			int j = 0;
-			for(int i = 0; i < childrenNum; i++){
-				if(children[i] != null) {
-					childrenWithoutDuplicates[j] = children[i];
-					j++;
-				}
-			}
-			return childrenWithoutDuplicates;
-		}
+		return children;
 	}
 
 	Chromosome[] pmxCrossover(Chromosome[][] parents) {
@@ -497,65 +478,8 @@ public class MyGA {
 			k += 2;
 		}
 		
-		int newDim = deleteDuplicates(children);
-		if(childrenNum == newDim) return children;
-		else {
-			//System.out.println("Duplicates found!!!");
-			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
-			int j = 0;
-			for(int i = 0; i < childrenNum; i++){
-				if(children[i] != null) {
-					childrenWithoutDuplicates[j] = children[i];
-					j++;
-				}
-			}
-			return childrenWithoutDuplicates;
-		}
+		return children;
 	}
-	
-	/*
-	Chromosome[] crossoverUniform(Chromosome[][] parents) { 
-
-		int childrenNum = parents.length*2;
-		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
-
-		Random rnd = new Random();
-
-		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
-
-		for(int i = 0; i < parents.length; i++){
-			children[k] = new Chromosome(chromosomeDim);
-			children[k+1] = new Chromosome(chromosomeDim);
-			for(int j = 0; j < chromosomeDim; j++){
-				int tmp = rnd.nextInt(2); //0 or 1
-
-				if(!geneIsPresent(parents[i][tmp].getGene(j), children[k], j) && !geneIsPresent(parents[i][(tmp+1)%2].getGene(j), children[k+1], j)){ 
-					children[k].setGene(j, parents[i][tmp].getGene(j));
-					children[k+1].setGene(j, parents[i][(tmp+1)%2].getGene(j)); 
-				}else{
-					children[k].setGene(j, parents[i][(tmp+1)%2].getGene(j));
-					children[k+1].setGene(j, parents[i][tmp].getGene(j)); 
-				}
-			}
-			k += 2;
-		}
-
-		int newDim = deleteDuplicates(children);
-		if(childrenNum == newDim) return children;
-		else {
-			//System.out.println("Duplicates found!!!");
-			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
-			int j = 0;
-			for(int i = 0; i < childrenNum; i++){
-				if(children[i] != null) {
-					childrenWithoutDuplicates[j] = children[i];
-					j++;
-				}
-			}
-			return childrenWithoutDuplicates;
-		}
-	}
-	*/
 	
 	void copyGenesInFrom(Chromosome dest, int init_d, int end_d, Chromosome src, int init_s, int end_s){
 		for(int i = init_d, j = init_s; i < end_d; i++, j++){
@@ -586,6 +510,7 @@ public class MyGA {
 					if(children[i].compareToGenes(population.getChromosome(k))){
 						children[i] = null;
 						newDim--;
+						System.out.println("**************************************DUPLICATE FOUND!!!**********************************");
 						break;
 					}
 				}
@@ -994,13 +919,15 @@ public class MyGA {
 			if(!c.isAlreadyTabuImproved()){
 				tooSimilar = false;
 				for(Chromosome tmp : pickedUpChrom){
-					if(c.differentGenesAmongTwoChroms(tmp) < 20 || tmp.getFitness()-c.getFitness() < 10){
+
+					if(c.differentGenesAmongTwoChroms(tmp) < 20){
+						
 						tooSimilar = true;
 						break;
 					}
 				}
 				if(!tooSimilar){
-					String msg = i+". Its fitness is: " + Math.round(c.getFitness()) ;
+					String msg = (pickedUp+1)+". Its fitness is: " + Math.round(c.getFitness()) ;
 					System.out.println(msg);
 					c.setTabuImproved(true);
 					solution.add(pickedUp, c.getSolution());
@@ -1011,5 +938,85 @@ public class MyGA {
 		}
 		
 		return new ArrayList<MySolution>(solution);
+	}
+
+	public void evolve2(MoveManager moveManager, 
+			ObjectiveFunction objFunc, 
+			TabuList tabuList, PrintStream outPrintSream,
+			int tabuIteration, 
+			Properties prop) {
+		int iGen = 0;
+		Chromosome[] result;
+
+		do{
+			result = doGeneticMating2(iGen);
+			for(int i = 0; i < result.length; i++){
+				Chromosome c = result[i];
+				MyGASolution sol = new MyGASolution(c, instance);
+				c.setSolution(sol);
+				c.setFitness();
+				MySearchProgram search;
+				try {
+					search = new MySearchProgram(instance, c.getSolution(), moveManager,
+							objFunc, tabuList, false,  outPrintSream, prop);
+					
+					prop.setProperty("enableCheckImprovement", "false");
+					search.tabuSearch.setIterationsToGo(tabuIteration);	// Set number of iterations
+					search.tabuSearch.startSolving();
+					
+					result[i] = new Chromosome(search.bestRoutes, chromosomeDim);
+					
+					prop.setProperty("enableCheckImprovement", "true");
+					
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+			}
+			generateNewPopulation(result);
+			iGen++;
+		}while(iGen < maxGenerations);
+		
+	}
+	
+	Chromosome[] doGeneticMating2(int iGen)
+	{
+		Chromosome[] result;
+		Chromosome[][] selection = selectParents();
+		
+		int selectedCrossover = getRandom(3);
+			
+		switch(selectedCrossover){
+			case 0: 
+				result = crossover1pt(selection);
+				break;
+
+			case 1: 
+				result = crossover2pt(selection);
+				break;
+
+			default: 
+				result = pmxCrossover(selection);
+		}
+		
+		int generatedChildren = result.length;
+		int newDim = deleteDuplicates(result);
+		
+		System.out.println("Generated Children: "+newDim);
+		
+		if(generatedChildren == newDim) return result;
+		else {
+			//System.out.println("Duplicates found!!!");
+			Chromosome[] childrenWithoutDuplicates = new Chromosome[newDim];
+			int j = 0;
+			for(int i = 0; i < generatedChildren; i++){
+				if(result[i] != null) {
+					childrenWithoutDuplicates[j] = result[i];
+					j++;
+				}
+			}
+			return childrenWithoutDuplicates;
+		}
 	}
 }

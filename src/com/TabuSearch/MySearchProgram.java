@@ -7,6 +7,7 @@ import java.util.Properties;
 
 import org.coinor.opents.*;
 
+import com.MyGeneticA.MyGASolution;
 import com.mdvrp.*;
 
 @SuppressWarnings("serial")
@@ -212,5 +213,9 @@ public class MySearchProgram implements TabuSearchListener{
 	 */
 	public static void setIterationsDone(int iterationsDone) {
 		MySearchProgram.iterationsDone = iterationsDone;
+	}
+
+	public void setInitialSolution(MySolution solution) {
+		this.sol = solution;
 	}
 }
