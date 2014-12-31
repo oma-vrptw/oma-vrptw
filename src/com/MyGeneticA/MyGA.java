@@ -1107,7 +1107,15 @@ public class MyGA {
 				}
 				
 			}
+			System.out.println("prima della generate new pop");
+			population.detectClones();
+			
 			generateNewPopulation(result);
+			//population.printPopulation();
+			System.out.println("dopo della generate new pop");
+
+			population.detectClones();
+
 			iGen++;
 		}while(iGen < maxGenerations);
 		
