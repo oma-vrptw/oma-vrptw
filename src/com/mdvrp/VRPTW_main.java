@@ -227,9 +227,9 @@ public class VRPTW_main {
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
 			while(!TimeExpired()){
 				System.out.println("iteration "+(count+1));
-				myGA.evolve();
+				//myGA.evolve();
 				myGA.getPopulation().detectClones();
-				//myGA.evolve2(moveManager, objFunc, tabuList, outPrintSream, 20, prop);
+				myGA.evolve2(moveManager, objFunc, tabuList, outPrintSream, 20, prop);
 				//myGA.evolve3();
 				System.out.println("select best chromosomes from population");
 				

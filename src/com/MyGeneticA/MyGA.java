@@ -457,7 +457,7 @@ public class MyGA {
 			}
 			
 			boolean[][] matrix = new boolean[chromosomeDim][chromosomeDim];
-			int numSwap = (int) (chromosomeDim*0.3);
+			int numSwap = (int) (chromosomeDim*0.03);
 			
 			int z = 0;
 			while(z < numSwap){
