@@ -22,6 +22,7 @@ import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Parameters;
 import com.mdvrp.Route;
+import com.mdvrp.VRPTW_main;
 
 
 public class MyGA {
@@ -681,10 +682,22 @@ public class MyGA {
 	}
 
 	public void evolve() {
-		int iGen = 0;
+		int iGen = 0, clones = 0;
 		
 		do{
+			
+			clones = VRPTW_main.countClones(populationDim, population);
+			if(clones>0)
+				System.out.println("<<<<<< CLONI PRIMA DELLA MATING: " + clones + ">>>>>>");
+			
+			// genetic mating
 			doGeneticMating(iGen);
+			
+			clones = VRPTW_main.countClones(populationDim, population);
+			if(clones>0)
+				System.out.println("<<<<<< CLONI DOPO LA MATING: " + clones + ">>>>>>");
+			
+			
 			iGen++;
 		}while(iGen < maxGenerations);
 	}
@@ -1015,15 +1028,22 @@ public class MyGA {
 			int i, double alpha, double beta, double gamma) {
 		
 		Chromosome c;
+		
 		//build a chromosome from a route 
 		c = new Chromosome(routes, chromosomeDim);
 	
-		if(!population.isClone(c)){
+		MyGASolution sol = new MyGASolution(c, instance);
+		c.setSolution(sol);
+		c.setFitness();
+		
+		if(!population.isClone(c))
+		{
 			population.swapChromosome(c, i, alpha, beta, gamma);
-			System.out.println("fitness chromosome inserito: "+c.getFitness());
-		}else{
+			System.out.println("fitness chromosome inserito: " + c.getFitness());	
+		}
+		else
+		{
 			System.out.println("clone detected. skip it.");
-
 		}
 		/*
 		for(Route r:routes[0])

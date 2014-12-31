@@ -104,8 +104,11 @@ public class Chromosome implements Comparable<Chromosome>{
 
 	public boolean compareToGenes(Chromosome c){
 		for(int i = 0; i < numberOfGenes; i++){
-			if(this.genes[i] != c.genes[i]) return false;
+			if(this.genes[i] != c.genes[i]) 
+				// non è clone
+				return false;
 		}
+		// è clone
 		return true;
 	}
 
