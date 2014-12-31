@@ -23,6 +23,7 @@ public class MyGASolution extends MySolution{
 	
 	double[] labelV;
 	int[] labelP;
+	private double fitness;
 	
 	public MyGASolution(Chromosome ch, Instance instance) {
 		// TODO Auto-generated constructor stub
@@ -275,7 +276,7 @@ public class MyGASolution extends MySolution{
 			int depotNr = routes[0][1].getDepotNr();
 			double L = routes[0][1].getDepot().getEndTw();
 			double Q = routes[0][1].getLoadAdmited();
-			
+		//	System.out.println("start labelling: "+alpha+", "+beta+", "+gamma);
 		//	double alpha, beta, gamma;
 		//	double alpha * loadViol + beta * durationViol + gamma * twViol;
 			labelV = new double[ng]; 
@@ -345,7 +346,7 @@ public class MyGASolution extends MySolution{
 	 * @return fitness value = objective function cost
 	 */
 	//WARNING -> questa funzione è pericolosa ti sballa mezzo mondo, usare con cautela
-	public double getFitness() {
+	private double getFitnessInternally() {
 		//this function build and evaluate routes 
 		//initializeRoutes(instance);
 		
@@ -354,6 +355,10 @@ public class MyGASolution extends MySolution{
 		double x = objectiveFunction.evaluateAbsolutely(this);
 		//System.out.println("fitness = "+x);
 		return x;
+	}
+	
+	public double getFitness(){
+		return fitness != 0 ? fitness : (fitness = getFitnessInternally());
 	}
 	
 	public Object clone()

@@ -48,12 +48,7 @@ public class Chromosome implements Comparable<Chromosome>{
 	public int getGene(int index) { return genes[index]; }
 	
 	public void print() {
-		System.out.print("[");
-		for(int i = 0; i < genes.length; i++){
-			if(genes[i] == -1) System.out.print("] :::"+genes[i]+"::: [");
-			else System.out.print(" "+genes[i]+" ");
-		}
-		System.out.println("]");
+		System.out.println("fitness: "+fitness);
 	}
 
 	public void setSolution(MyGASolution sol) {

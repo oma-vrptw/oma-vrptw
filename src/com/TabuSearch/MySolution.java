@@ -16,9 +16,9 @@ public class MySolution extends SolutionAdapter{
 	private static int iterationsDone;
 	protected Route[][] routes; // stores the routes to be modified on
 	protected Cost cost;		  // stores the total cost of the routes
-	protected double alpha;		// α
-	protected double beta;		// β
-	protected double gamma;		// γ
+	public double alpha;		// α
+	public double beta;		// β
+	public double gamma;		// γ
 	protected double delta;		// δ
 	protected double upLimit;
 	protected double resetValue;
@@ -266,7 +266,7 @@ public class MySolution extends SolutionAdapter{
 	 * this function calculates the cost of a route from scratch
 	 * @param route
 	 */
-	protected void evaluateRoute(Route route) {
+	public void evaluateRoute(Route route) {
     	double totalTime = 0;
     	double waitingTime = 0;
     	double twViol = 0;

@@ -27,7 +27,6 @@ public class MyMoveManager implements MoveManager {
 		}
     }   // end getAllMoves
     
-    
     /**
      * Generate moves that move each customer from one route to all routes that are different
      * @param solution
@@ -39,7 +38,8 @@ public class MyMoveManager implements MoveManager {
          int nextBufferPos = 0;
          
          // iterates depots
-         for (int i = 0; i < routes.length; ++i) {   	 
+         for (int i = 0; i < routes.length; ++i) 
+         {   	 
          	// iterates routes
          	for (int j = 0; j < routes[i].length; ++j) {      		
          		// iterates customers in the route

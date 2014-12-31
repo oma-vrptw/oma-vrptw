@@ -7,6 +7,7 @@ import java.lang.reflect.Array;
 import java.lang.reflect.Parameter;
 import java.util.*;
 
+import org.coinor.opents.Move;
 import org.coinor.opents.MoveManager;
 import org.coinor.opents.ObjectiveFunction;
 import org.coinor.opents.TabuList;
@@ -15,6 +16,9 @@ import com.TabuSearch.MyMoveManager;
 import com.TabuSearch.MyObjectiveFunction;
 import com.TabuSearch.MySearchProgram;
 import com.TabuSearch.MySolution;
+import com.TabuSearch.MySwapMove;
+import com.mdvrp.Cost;
+import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Parameters;
 import com.mdvrp.Route;
@@ -685,6 +689,116 @@ public class MyGA {
 		}while(iGen < maxGenerations);
 	}
 	
+	public void evolve3() {
+		int iGen = 0;
+		
+		do{
+			Chromosome[] result = doGeneticMating2(iGen);
+			
+			for (int i=0; i < result.length; i++){
+				Chromosome c = result[i];
+				MyGASolution sol = new MyGASolution(c, instance);
+				c.setSolution(sol);
+				c.setFitness();
+				c = getSwapMoves(c.getSolution());
+				if(c != null){
+					result[i] = c;
+				}
+				
+			}
+			
+			generateNewPopulation(result);
+			iGen++;
+		}while(iGen < maxGenerations);
+	}
+	
+	/**
+	 * Generate moves that move each customer from one route to all routes that are different
+	 * @param solution
+	 * @return
+	 */
+	public Chromosome getSwapMoves(MySolution solution){
+		MyGASolution sol2 = new MyGASolution(instance, solution.getRoutes());
+		Route[][] routes = sol2.getRoutes();
+
+		double minchange = 0;
+		Chromosome minChrome = null;
+		// iterates depots
+		for (int i = 0; i < routes.length; ++i) 
+		{   	 
+			// iterates routes
+			for (int j = 0; j < routes[i].length; ++j) {      		
+				// iterates customers in the route
+				for (int k = 0; k < routes[i][j].getCustomersLength()-1; ++k) {
+					Route route1 = routes[i][j];
+					Customer u = route1.getCustomer(k);
+					Customer x;
+					x = route1.getCustomer(k+1);
+					/*
+         			if(k == routes[i][j].getCustomersLength())
+         				x = routes[i][j+1].getCustomer(1);
+         			else
+         				x = routes[i][j].getCustomer(k+1);
+					 */
+					for(int l = 0; l < routes.length; ++l){
+						// iterate each route for that deposit and generate move to it if is different from the actual route
+						for (int r = 0; r < routes[l].length; ++r) { 
+							for(int s = 0; s < routes[l][r].getCustomersLength()-1; ++s){
+								Route route2 = routes[l][r];
+								Customer v = route2.getCustomer(s);
+								Customer y;
+								y = route2.getCustomer(s+1);
+								/*
+	                 			if(k == routes[l][r].getCustomersLength())
+	                 				y = routes[l][r+1].getCustomer(1);
+	                 			else
+	                 				y = routes[l][r].getCustomer(s+1);
+								 */
+
+								boolean sameTrip = false;
+								if(r == j) sameTrip = true;
+								
+								if(sameTrip){
+									//if are adjacent skip
+									if(s >= k+2 && s <= k-2)continue;
+									//System.out.println("same trip: try internal 2-opt");
+									Cost previousCost = sol2.getCost();
+									previousCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
+									
+									route1.removeCustomer(k+1);
+									route1.addCustomer(v, k+1);
+									sol2.evaluateRoute(route1);
+
+									route2.removeCustomer(s);
+									route2.addCustomer(x, s);
+									sol2.evaluateRoute(route2);
+									
+									sol2.setRoutes(routes);
+									
+									Cost laterCost = sol2.getCost();
+									laterCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
+									
+									double change = laterCost.total - previousCost.total;
+									
+			System.out.println("changement: "+change);
+									if(minchange > change)
+									{
+										System.out.println("bla bla bla");
+										minchange = change;
+										minChrome = new Chromosome(routes, chromosomeDim);
+									}
+								}
+
+							}
+						}
+					}
+				}
+			}
+		}
+
+		return minChrome;
+	}
+    
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
 		Chromosome c;
 		//build a chromosome from a route 
@@ -697,7 +811,7 @@ public class MyGA {
 	
 	public void insertBestTabuSolutionIntoInitPopulation2(Route[][] feasibleRoutes, double cost) {
 		
-		if( population.getWorstChromosome().getFitness() >= cost ) 
+		if( population.getWorstChromosome().getFitness() <= cost ) 
 			return;
 
 		Chromosome c;
@@ -705,6 +819,23 @@ public class MyGA {
 		c = new Chromosome(feasibleRoutes, chromosomeDim);
 
 		population.swapChromosome(c, population.getWorstChromosomeIndex());
+		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
+	}
+	
+	public void insertBestTabuSolutionIntoInitPopulation2(Route[][] feasibleRoutes, double cost, double alpha, double beta, double gamma) {
+		
+		if( population.getWorstChromosome().getFitness() <= cost ) 
+			return;
+
+		Chromosome c;
+		//build a chromosome from a route 
+		c = new Chromosome(feasibleRoutes, chromosomeDim);
+		if(!population.isClone(c)){
+			population.swapChromosome(c, population.getWorstChromosomeIndex(), alpha, beta, gamma);
+			System.out.println("fitness chromosome inserito: "+c.getFitness());
+		}else{
+			System.out.println("clone detected. skip it.");
+		}
 		//System.out.println("Fitness del nuovo inserito = "+c.getFitness()+" route number: "+c.getRoutesNumber());			
 	}
 
@@ -715,6 +846,7 @@ public class MyGA {
 		solution = new ArrayList<MyGASolution>();
 
 		population.sort();
+		//population.printPopulation();
 		int i;
 		for(i = 0; i < populationDim; i++){
 			c = population.getChromosome(i);
@@ -880,14 +1012,19 @@ public class MyGA {
 	}
 
 	public void insertBestTabuSolutionIntoInitPopulation(Route[][] routes,
-			int i) {
+			int i, double alpha, double beta, double gamma) {
 		
 		Chromosome c;
 		//build a chromosome from a route 
 		c = new Chromosome(routes, chromosomeDim);
+	
+		if(!population.isClone(c)){
+			population.swapChromosome(c, i, alpha, beta, gamma);
+			System.out.println("fitness chromosome inserito: "+c.getFitness());
+		}else{
+			System.out.println("clone detected. skip it.");
 
-		population.swapChromosome(c, i);
-		System.out.println("fitness chromosome inserito: "+c.getFitness());
+		}
 		/*
 		for(Route r:routes[0])
 			if(r.getCustomersLength() > 0)
@@ -897,11 +1034,6 @@ public class MyGA {
 		*/
 	}
 
-	public void insertBestTabuSolutionIntoInitPopulation2(
-			Route[][] feasibleRoutes) {
-		// TODO Auto-generated method stub
-		
-	}
 
 	public ArrayList<MySolution> getNDifferentBestSolutions2(int nBestSolution) {
 		Chromosome c;
@@ -964,7 +1096,8 @@ public class MyGA {
 					search.tabuSearch.setIterationsToGo(tabuIteration);	// Set number of iterations
 					search.tabuSearch.startSolving();
 					
-					result[i] = new Chromosome(search.bestRoutes, chromosomeDim);
+					if (search.feasibleCost.total != Double.POSITIVE_INFINITY)
+						result[i] = new Chromosome(search.feasibleRoutes, chromosomeDim);
 					
 					prop.setProperty("enableCheckImprovement", "true");
 					
