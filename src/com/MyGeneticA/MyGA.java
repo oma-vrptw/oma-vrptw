@@ -414,24 +414,6 @@ public class MyGA {
 	
         return parents;
 	}
-		
-
-
-	Chromosome[] crossover(Chromosome[][] parents) { 
-		Random rnd = new Random();
-
-		int selectedCrossover = rnd.nextInt(3);
-
-		switch(selectedCrossover){
-		case 0: return crossover1pt(parents);
-
-		case 1: return crossover2pt(parents);
-
-		case 2: return pmxCrossover(parents);
-
-		default: return pmxCrossover(parents);
-		}
-	}
 
 	Chromosome[] heuristicCrossover(Chromosome[][] parents) { 
 		int childrenNum = parents.length*2;
@@ -439,7 +421,7 @@ public class MyGA {
 		
 		for(int i=0; i<children.length; i++)children[i]=new Chromosome(chromosomeDim);
 		
-		int cut = getRandom(chromosomeDim);
+		int cut = instance.getRandom().nextInt(chromosomeDim);
 		
 		for(int i = 0, p = 0; p < parents.length; p++, i+=2){
 			Chromosome dad = new Chromosome(parents[p][0]);
@@ -467,7 +449,7 @@ public class MyGA {
 			}
 			//child.print();
 			
-			cut = getRandom(chromosomeDim);
+			cut = instance.getRandom().nextInt(chromosomeDim);
 			
 			Chromosome sister= children[i+1];
 			sister.setGene(0, dad.getGene(cut));
@@ -506,7 +488,7 @@ public class MyGA {
 		
 		for(int i=0; i<children.length; i++)children[i]=new Chromosome(chromosomeDim);
 		
-		int cut = getRandom(chromosomeDim);
+		int cut = instance.getRandom().nextInt(chromosomeDim);
 		
 		for(int i = 0, p = 0; p < parents.length; p++, i+=2){
 			Chromosome dad = new Chromosome(parents[0]);
@@ -534,7 +516,7 @@ public class MyGA {
 			}
 			//child.print();
 			
-			cut = getRandom(chromosomeDim);
+			cut = instance.getRandom().nextInt(chromosomeDim);
 			
 			Chromosome sister= children[i+1];
 			sister.setGene(0, dad.getGene(cut));
@@ -572,8 +554,7 @@ public class MyGA {
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
 		//calcolo del taglio
-		Random rnd = new Random();
-		int cut = rnd.nextInt(chromosomeDim);
+		int cut = instance.getRandom().nextInt(chromosomeDim);
 
 		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
 
@@ -616,9 +597,8 @@ public class MyGA {
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
 		//calcolo dei tagli
-		Random rnd = new Random();
-		int firstCut = rnd.nextInt(chromosomeDim/2);
-		int secondCut = rnd.nextInt(chromosomeDim/2) + (chromosomeDim/2);
+		int firstCut = instance.getRandom().nextInt(chromosomeDim/2);
+		int secondCut = instance.getRandom().nextInt(chromosomeDim/2) + (chromosomeDim/2);
 
 		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
 
@@ -662,8 +642,6 @@ public class MyGA {
 		int childrenNum = parents.length*2;
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
-		Random rnd = new Random();
-
 		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
 
 		for(int i = 0; i < parents.length; i++){
@@ -680,8 +658,8 @@ public class MyGA {
 			
 			int z = 0;
 			while(z < numSwap){
-				int sw1 = rnd.nextInt(chromosomeDim);
-				int sw2 = rnd.nextInt(chromosomeDim);
+				int sw1 = instance.getRandom().nextInt(chromosomeDim);
+				int sw2 = instance.getRandom().nextInt(chromosomeDim);
 				
 				if(matrix[sw1][sw2] == false && sw1 != sw2){
 					int tmp = children[k].getGene(sw1);
@@ -864,13 +842,12 @@ public class MyGA {
 		//selection of the remaining chromosomes that will define the next new population
 		for(int l=0; l<postiDisponibili; l++){
 
-			Random rnd = new Random();
 			//select 3 chromosomes from the total population and put the best into the next new population
 
 			bestFitness = 0;
 			for(int cycle=0; cycle<=2; ){
 
-				random = rnd.nextInt(populationDim+children.length-1);
+				random = instance.getRandom().nextInt(populationDim+children.length-1);
 
 				if(ArrayTotal.getChromosome(random) != null){
 					tmpFitness = ArrayTotal.getChromosome(random).getFitness();
@@ -903,41 +880,41 @@ public class MyGA {
 		}
 	}
 
-	void swapMutation(Population P) {
-
-		int gene_tmp;
-		Random rnd1 = new Random();
-		Random rnd2 = new Random();
-		int i = 0;
-		int k = 0;
-		boolean matrix[][];
-
-		int numSwap = (int) (chromosomeDim*Double.parseDouble(prop.getProperty("numSwap"))); //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 3 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
-
-		while(i < ((int) (populationDim*Double.parseDouble(prop.getProperty("mutationChromosomeN"))))){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
-
-			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
-
-			/*for(int h=0; h<instance.getCustomersNr(); h++){ //ERR
-				matrix[h][h]=false;} */
-			
-			while(k<numSwap){ //faccio 3(%) swap di geni sui primi 5(%) cromosomi della popolazione
-
-				int sw1=rnd1.nextInt(instance.getCustomersNr()-1);
-				int sw2=rnd2.nextInt(instance.getCustomersNr()-1);
-
-				if(matrix[sw1][sw2]==false){
-					gene_tmp = P.getChromosome(i).getGene(sw1);
-					P.getChromosome(i).setGene(sw1, P.getChromosome(i).getGene(sw2));
-					P.getChromosome(i).setGene(sw2, gene_tmp);
-					k++;
-					matrix[sw1][sw2]=true;}
-
-			}
-
-			i++;}
-
-	}
+//	void swapMutation(Population P) {
+//
+//		int gene_tmp;
+//		Random rnd1 = new Random();
+//		Random rnd2 = new Random();
+//		int i = 0;
+//		int k = 0;
+//		boolean matrix[][];
+//
+//		int numSwap = (int) (chromosomeDim*Double.parseDouble(prop.getProperty("numSwap"))); //FACCIO UN NUMERO DI SWAP PARI AL 3% DEL NUMERO DI CUSTOMER, QUINDI SE HO 100 CUSTOMER FACCIO 3 SWAP ALL'INTERNO DEL CROMOSOMA i-esimo
+//
+//		while(i < ((int) (populationDim*Double.parseDouble(prop.getProperty("mutationChromosomeN"))))){ //faccio la mutation solo sul 5% dei cromosomi quindi se ho 100 cromosomi applico la mutation su 5 di questi
+//
+//			matrix = new boolean [instance.getCustomersNr()][instance.getCustomersNr()];
+//
+//			/*for(int h=0; h<instance.getCustomersNr(); h++){ //ERR
+//				matrix[h][h]=false;} */
+//			
+//			while(k<numSwap){ //faccio 3(%) swap di geni sui primi 5(%) cromosomi della popolazione
+//
+//				int sw1=rnd1.nextInt(instance.getCustomersNr()-1);
+//				int sw2=rnd2.nextInt(instance.getCustomersNr()-1);
+//
+//				if(matrix[sw1][sw2]==false){
+//					gene_tmp = P.getChromosome(i).getGene(sw1);
+//					P.getChromosome(i).setGene(sw1, P.getChromosome(i).getGene(sw2));
+//					P.getChromosome(i).setGene(sw2, gene_tmp);
+//					k++;
+//					matrix[sw1][sw2]=true;}
+//
+//			}
+//
+//			i++;}
+//
+//	}
 
 	public MySolution getBestSolution(){
 		Chromosome best;
@@ -1145,7 +1122,7 @@ public class MyGA {
 		Chromosome[] result;
 		Chromosome[][] selection = selectParents();
 		
-		int selectedCrossover = getRandom(3);
+		int selectedCrossover = instance.getRandom().nextInt(3);
 			
 		switch(selectedCrossover){
 			case 0: 
@@ -1182,11 +1159,11 @@ public class MyGA {
 
 	}
 
-	int getRandom(int upperBound)
-	{
-		int iRandom = (int) (Math.random() * upperBound);
-		return (iRandom);
-	}
+//	int getRandom(int upperBound)
+//	{
+//		int iRandom = (int) (Math.random() * upperBound);
+//		return (iRandom);
+//	}
 	
 	/*
 	 * takes boundary and size of a generation window
@@ -1339,9 +1316,9 @@ public class MyGA {
 			child1.evaluate(instance);
 			//child2.evaluate(instance);
 			
-			int cuttingPoint1 = getRandom(chromosomeDim);
+			int cuttingPoint1 = instance.getRandom().nextInt(chromosomeDim);
 			
-			int cuttingPoint2 = getRandom(chromosomeDim);
+			int cuttingPoint2 = instance.getRandom().nextInt(chromosomeDim);
 
 			int j = cuttingPoint1, k = cuttingPoint2;
 			//copy customer untile we are on the same route
@@ -1369,7 +1346,7 @@ public class MyGA {
 		Chromosome[][] selection = selectParents();
 		
 		
-		int selectedCrossover = getRandom(4);
+		int selectedCrossover = instance.getRandom().nextInt(4);
 			
 		switch(selectedCrossover){
 			case 0: 
@@ -1413,7 +1390,7 @@ public class MyGA {
 		for(int i = 0, k = 0; k < selection.length*2; k+=2, i++){
 			Chromosome[] children;
 			
-			if(Math.random() <= 80){
+			if(instance.getRandom().nextDouble() <= 0.8){
 				//do crossover
 				children = heuristicCrossover(selection[i]);
 			}else{
@@ -1443,9 +1420,9 @@ public class MyGA {
 		for(int i = 0, k = 0; k < selection.length*2; k+=2, i++){
 			Chromosome[] children;
 			
-			if(Math.random() <= 80){
+			if(instance.getRandom().nextDouble() <= 0.8){
 				//do crossover
-				int selectedCrossover = getRandom(4);
+				int selectedCrossover = instance.getRandom().nextInt(4);
 				
 				switch(selectedCrossover){
 					case 0: 
@@ -1489,9 +1466,8 @@ public class MyGA {
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
 		//calcolo dei tagli
-		Random rnd = new Random();
-		int firstCut = rnd.nextInt(chromosomeDim/2);
-		int secondCut = rnd.nextInt(chromosomeDim/2) + (chromosomeDim/2);
+		int firstCut = instance.getRandom().nextInt(chromosomeDim/2);
+		int secondCut = instance.getRandom().nextInt(chromosomeDim/2);
 
 		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
 		
@@ -1552,9 +1528,8 @@ public class MyGA {
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
 		//calcolo dei tagli
-		Random rnd = new Random();
-		int firstCut = rnd.nextInt(chromosomeDim/2);
-		int secondCut = rnd.nextInt(chromosomeDim/2) + (chromosomeDim/2);
+		int firstCut = instance.getRandom().nextInt(chromosomeDim/2);
+		int secondCut = instance.getRandom().nextInt(chromosomeDim/2) + (chromosomeDim/2);
 
 		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
 
@@ -1595,8 +1570,7 @@ public class MyGA {
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
 		//calcolo del taglio
-		Random rnd = new Random();
-		int cut = rnd.nextInt(chromosomeDim);
+		int cut = instance.getRandom().nextInt(chromosomeDim);
 
 
 

@@ -228,12 +228,11 @@ public class MyPFIH
 		// Se il ciclo è terminato per it.hasNext()
 		if(!FirstCustomerInserted)
 		{
-			Random rand = new Random();
 			int index, i=0;
 			CostAwareCustomer randCustomer;
 			do
 			{
-				index = rand.nextInt(customers.size());
+				index = instance.getRandom().nextInt(customers.size());
 				randCustomer = customers.get(index);
 				i++;
 			}
