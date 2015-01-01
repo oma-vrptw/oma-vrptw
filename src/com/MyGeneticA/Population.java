@@ -2,7 +2,6 @@ package com.MyGeneticA;
 
 import java.util.Arrays;
 
-import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
 import com.mdvrp.VRPTW_main;
 

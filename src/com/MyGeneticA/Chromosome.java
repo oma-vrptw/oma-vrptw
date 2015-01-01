@@ -1,6 +1,5 @@
 package com.MyGeneticA;
 
-import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
 
@@ -22,25 +21,6 @@ public class Chromosome implements Comparable<Chromosome>{
 		this.solution = null;
 		this.tabuImproved = false;
 	}
-	
-//	public Chromosome(Route[][] feasibleRoutes, int chromosomeDim) {
-//		this(chromosomeDim);
-//		
-//		int k;
-//
-//		k = 0;
-//		for(int i =0; i < feasibleRoutes.length; i++){
-//			for(int j=0; j < feasibleRoutes[i].length; j++){
-//				for(int z=0; z < feasibleRoutes[i][j].getCustomersLength(); z++, k++){
-//					setGene(k, feasibleRoutes[i][j].getCustomerNr(z));
-//					//System.out.print(feasibleRoutes[i][j].getCustomerNr(z)+ ", ");
-//				}
-//				//if(feasibleRoutes[i][j].getCustomersLength() > 0)System.out.println();
-//			}
-//		}
-//		
-//		//System.out.println("chromosome from TABU: "+this.toString());
-//	}
 	
 	public Chromosome(Route[][] feasibleRoutes, int chromosomeDim, Instance instance, double alpha, double beta, double gamma) {
 		this(chromosomeDim);

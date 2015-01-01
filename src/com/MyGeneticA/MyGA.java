@@ -1,29 +1,19 @@
 package com.MyGeneticA;
 
-import java.awt.HeadlessException;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintStream;
-import java.lang.reflect.Array;
-import java.lang.reflect.Parameter;
 import java.util.*;
 
-import org.coinor.opents.Move;
 import org.coinor.opents.MoveManager;
 import org.coinor.opents.ObjectiveFunction;
 import org.coinor.opents.TabuList;
 
-import com.TabuSearch.MyMoveManager;
-import com.TabuSearch.MyObjectiveFunction;
 import com.TabuSearch.MySearchProgram;
 import com.TabuSearch.MySolution;
-import com.TabuSearch.MySwapMove;
-import com.mdvrp.Cost;
 import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Parameters;
 import com.mdvrp.Route;
-import com.mdvrp.VRPTW_main;
 
 
 public class MyGA {
@@ -55,8 +45,6 @@ public class MyGA {
 	double threshold;
 	
 	private int maxGenerations;
-
-	private int crossoverProb;
 	
 	private boolean computeStatistics; 
 
@@ -121,11 +109,8 @@ public class MyGA {
 
 		for (iGene = 0; iGene < chromosomeDim && usedRoutes < instance.getVehiclesNr(); )
 		{
-			//start building new route
-			Random random = new Random();
-
 			//retrieve a number between (0 .. CustomersNr-1)
-			int startCustomer = random.nextInt(instance.getCustomersNr());
+			int startCustomer = instance.getRandom().nextInt(instance.getCustomersNr());
 			int assignedCustomersNr = instance.getCustomersNr();
 
 			//try to fill a new route
@@ -187,19 +172,18 @@ public class MyGA {
 		int sw1, sw2, gene_tmp, k;
 		double epsilon = 0.001, initialFitness = c.getFitness();
 
-		Random rnd1 = new Random();
-		Random rnd2 = new Random();
+
 		
 		
 		//System.out.println("Inizio mutazioni");
 		for(int i=0; Math.abs(initialFitness - c.getFitness())<epsilon && i<worstCaseIterations;i++)
 		{
-			sw1 = rnd1.nextInt(instance.getCustomersNr());
+			sw1 = instance.getRandom().nextInt(instance.getCustomersNr());
 
 			k=0;
 			do
 			{
-				sw2 = rnd2.nextInt(instance.getCustomersNr());
+				sw2 = instance.getRandom().nextInt(instance.getCustomersNr());
 				
 				k++;
 			}
@@ -340,13 +324,10 @@ public class MyGA {
 		
 		int numberOfParents = populationDim/4, R1 = 0, R2 = 0;;
 		int diversityRate;
-		int maxIteration ;
         int iterationDone;
 	    Chromosome[][] parents= new Chromosome[numberOfParents][2];
 		boolean[] map = new boolean[populationDim];
 		boolean flag1, flag2, found;
-
-		Random R= new Random();	
 		
 		Chromosome c1, c2;
     	
@@ -391,7 +372,7 @@ public class MyGA {
         	iterationDone = 0; //deterministic loop exit condition 
         	while(!flag1 && iterationDone < chromosomeDim)
             {
-            	R1=R.nextInt(populationDim);
+            	R1 = instance.getRandom().nextInt(populationDim);
             	
             	if(map[R1]) flag1 = true;
             	iterationDone++;
@@ -407,7 +388,7 @@ public class MyGA {
             iterationDone = 0;//deterministic loop exit condition 
 			while(!flag2 && iterationDone < chromosomeDim)
             {
-            	R2=R.nextInt(populationDim);
+            	R2 = instance.getRandom().nextInt(populationDim);
             		
             	if(map[R2] && R2!=R1){
             		c2 = population.getChromosome(R2);

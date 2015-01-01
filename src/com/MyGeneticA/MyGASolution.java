@@ -13,7 +13,6 @@ import com.mdvrp.Cost;
 import com.mdvrp.Customer;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
-import com.TabuSearch.MyObjectiveFunction;
 import com.TabuSearch.MySolution;
 
 @SuppressWarnings("serial")
@@ -23,7 +22,6 @@ public class MyGASolution extends MySolution{
 	
 	double[] labelV;
 	int[] labelP;
-	private double fitness;
 	
 	public MyGASolution(Chromosome ch, Instance instance) {
 		// TODO Auto-generated constructor stub
@@ -68,69 +66,6 @@ public class MyGASolution extends MySolution{
 		this.beta = beta;
 		this.gamma = gamma;
 	}
-	/**
-	 * create routes according to chromosome 
-	 * note: private method, called from evaluateRoute
-	 */
-	private void buildRoutes() {
-		int ng;
-
-		int customerChosen;
-		Customer customerChosenPtr;
-		Route route;
-		int k;
-		
-		ng = chromosome.getNumberOfGenes();
-
-		//for each deposit
-		for (int i = 0; i < instance.getDepotsNr(); ++i){
-			int j=0;	//routes index
-				//until there are genes in chromosome
-				//at each iteration create a new route (new vehicle)
-			route = routes[i][j]; //first route
-			//fin quando ci sono geni e veicoli disponibili
-			
-			//inserisci il primo nella prima rotta
-			k=0;
-			customerChosen = chromosome.getGene(k);
-			customerChosenPtr = instance.getCustomer(customerChosen);
-			route.addCustomer(customerChosenPtr);
-			evaluateRoute(route);
-			
-				for(k = 1; k < ng && j < instance.getVehiclesNr()-1; k++){
-					//fill a route according to chromosome
-					//get the customer pointed by chromosome[k]
-					customerChosen = chromosome.getGene(k);
-					customerChosenPtr = instance.getCustomer(customerChosen);
-					if(customerChosenPtr.getCapacity() + route.getCost().load <= route.getLoadAdmited()	
-						&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() <= route.getDepot().getEndTw()
-						&& Math.max(route.getCost().getTotal(), customerChosenPtr.getStartTw()) + instance.getTravelTime(chromosome.getGene(k-1), chromosome.getGene(k))+customerChosenPtr.getServiceDuration() - getInstance().getTravelTime(route.getLastCustomerNr(), route.getDepotNr()) <= customerChosenPtr.getEndTw()
-						){
-						route.addCustomer(customerChosenPtr);
-						evaluateRoute(route);
-					}else{
-						j++;
-						route = routes[i][j];
-						route.addCustomer(customerChosenPtr);
-						evaluateRoute(route);
-					}
-				}
-				
-				//inserisci tutto nella ultima rotta
-				if(k<ng){
-					for(; k < ng ; k++){
-						customerChosen = chromosome.getGene(k);
-						customerChosenPtr = instance.getCustomer(customerChosen);
-						route.addCustomer(customerChosenPtr);
-						evaluateRoute(route);
-					}
-					
-				}
-				chromosome.setRoutesNumber(j+1);
-			}
-		
-		
-		}
 	
 	private void buildRoutes2() {
 		Route route;
@@ -195,7 +130,7 @@ public class MyGASolution extends MySolution{
 		int depotNr = routes[0][1].getDepotNr();
 		double L = routes[0][1].getDepot().getEndTw();
 		double Q = routes[0][1].getLoadAdmited();
-		double costViol, loadViol, TWViol, totalCost, totalViol;
+		double costViol, loadViol, TWViol, totalCost;
 
 		labelV = new double[ng]; 
 		labelP = new int[ng]; 
@@ -208,7 +143,6 @@ public class MyGASolution extends MySolution{
 		for( int i = 1; i < ng; i++ ){	
 			
 			totalCost = cost = load = 0;
-			totalViol = 0;
 			costViol = loadViol = TWViol = 0;
 			int j = i;
 			do{
@@ -254,7 +188,6 @@ public class MyGASolution extends MySolution{
 				}
 				
 				totalCost = cost + alpha * loadViol + beta * costViol + gamma * TWViol;
-				totalViol = loadViol + costViol + TWViol;
 				//totalCost = cost + beta * costViol;
 					if( labelV[i-1] + totalCost < labelV[j]){// || (labelV[i-1] + totalCost >= labelV[j] && (totalCost - totalViol) < labelViol[j])){
 						labelV[j] = labelV[i-1] + totalCost;
