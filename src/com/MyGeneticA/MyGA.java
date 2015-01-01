@@ -212,7 +212,6 @@ public class MyGA {
 			
 				if(sw2==0) sw2++;
 				
-				if(sw2 == c.getNumberOfGenes()-1) sw2--;
 			}
 			
 			//System.out.println(sw1 + " " + sw2);
