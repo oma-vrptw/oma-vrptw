@@ -138,7 +138,7 @@ public class MyGASolution extends MySolution{
 		Customer customerChosenPtr;
 		int ng = chromosome.getNumberOfGenes();
 		
-		labelling2();
+		labelling();
 		
 		for (int i = 0; i < instance.getDepotsNr(); ++i){
 			int j=0;
@@ -346,7 +346,7 @@ public class MyGASolution extends MySolution{
 	 * @return fitness value = objective function cost
 	 */
 	//WARNING -> questa funzione è pericolosa ti sballa mezzo mondo, usare con cautela
-	private double getFitnessInternally() {
+	private double calculateFitness() {
 		//this function build and evaluate routes 
 		//initializeRoutes(instance);
 		
@@ -358,7 +358,7 @@ public class MyGASolution extends MySolution{
 	}
 	
 	public double getFitness(){
-		return fitness != 0 ? fitness : (fitness = getFitnessInternally());
+		return fitness != 0 ? fitness : (fitness = calculateFitness());
 	}
 	
 	public Object clone()

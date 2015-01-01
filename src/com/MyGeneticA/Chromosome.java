@@ -1,5 +1,6 @@
 package com.MyGeneticA;
 
+import com.TabuSearch.MySolution;
 import com.mdvrp.Instance;
 import com.mdvrp.Route;
 
@@ -18,6 +19,7 @@ public class Chromosome implements Comparable<Chromosome>{
 		this.fitness = Double.MAX_VALUE;
 		this.routesNumber = 0;
 		*/
+		this.solution = null;
 		this.tabuImproved = false;
 	}
 	
@@ -61,6 +63,13 @@ public class Chromosome implements Comparable<Chromosome>{
 		//System.out.println("chromosome from TABU: "+this.toString());
 	}
 
+	// constructor which clone the cost passed as parameter
+	public Chromosome(Chromosome c){		
+		this.numberOfGenes = new Integer(c.numberOfGenes);
+		this.genes = new int[this.numberOfGenes];
+		for(int i=0; i < this.numberOfGenes; i++)
+			this.genes = c.genes;		
+	}
 
 	public int getNumberOfGenes() {
 		return numberOfGenes;
@@ -71,6 +80,9 @@ public class Chromosome implements Comparable<Chromosome>{
 	public int getGene(int index) { return genes[index]; }
 	
 	public void print() {
+		System.out.print("genes: [ ");
+		for(int i=0; i< numberOfGenes; i++)System.out.print(genes[i]+" ");
+		System.out.println("]");
 		System.out.println("fitness: "+fitness);
 	}
 
@@ -174,7 +186,26 @@ public class Chromosome implements Comparable<Chromosome>{
 	}
 
 	public void evaluate(Instance instance) {
-		this.solution = new MyGASolution(this, instance);
+		if(this.solution == null)
+			this.solution = new MyGASolution(this, instance);
+		
 		this.fitness = solution.getFitness();
+	}
+
+	public void swapGenes(int position, int customer) {	
+		int i, tmp;
+		
+		//search customer
+		for(i = 0; i < numberOfGenes && genes[i] != customer; i++);
+		
+		//swap
+		if(i >= numberOfGenes){
+			System.out.println("error");
+			System.out.println("we search "+customer);
+			print();
+		}
+		tmp = genes[position];
+		genes[position] = genes[i];
+		genes[i] = tmp;
 	}
 }
