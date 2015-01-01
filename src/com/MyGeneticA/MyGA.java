@@ -1488,41 +1488,61 @@ public class MyGA {
 		int childrenNum = parents.length;
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
 
+		//calcolo dei tagli
 		Random rnd = new Random();
+		int firstCut = rnd.nextInt(chromosomeDim/2);
+		int secondCut = rnd.nextInt(chromosomeDim/2) + (chromosomeDim/2);
 
-		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
-
-			children[k] = new Chromosome(chromosomeDim);
-			children[k+1] = new Chromosome(chromosomeDim);
-			
-			for(int j = 0; j < chromosomeDim; j++){
-				children[k].setGene(j, parents[0].getGene(j));
-				children[k+1].setGene(j, parents[1].getGene(j));
+		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
+		
+		children[0] = new Chromosome(chromosomeDim);
+		children[1] = new Chromosome(chromosomeDim);
+		copyGenesInFrom(children[0], 0, chromosomeDim, parents[0], 0, chromosomeDim);
+		copyGenesInFrom(children[1], 0, chromosomeDim, parents[1], 0, chromosomeDim);
+		
+		//children[0]//1 5 | 9 7 3 | 2 6 8
+		//children[1]//9 8 | 7 1 2 | 3 6 5
+		Chromosome tmp1 = new Chromosome(chromosomeDim);
+		Chromosome tmp2 = new Chromosome(chromosomeDim);
+		
+		copyGenesInFrom(tmp1, firstCut, secondCut, children[0], firstCut, secondCut);
+		copyGenesInFrom(tmp2, firstCut, secondCut, children[1], firstCut, secondCut);
+		
+		//tmp1//0 0 | 9 7 3 | 0 0 0
+		//tmp2//0 0 | 7 1 2 | 0 0 0
+		
+		for(int i = firstCut; i < secondCut; i++){
+			if(children[0].getGene(i) == tmp2.getGene(i)){
+				tmp2.setGene(i, -1);
 			}
-			
-			boolean[][] matrix = new boolean[chromosomeDim][chromosomeDim];
-			int numSwap = (int) (chromosomeDim*0.03);
-			
-			int z = 0;
-			while(z < numSwap){
-				int sw1 = rnd.nextInt(chromosomeDim);
-				int sw2 = rnd.nextInt(chromosomeDim);
-				
-				if(matrix[sw1][sw2] == false && sw1 != sw2){
-					int tmp = children[k].getGene(sw1);
-					children[k].setGene(sw1, children[k].getGene(sw2));
-					children[k].setGene(sw2, tmp);
-					
-					tmp = children[k+1].getGene(sw1);
-					children[k+1].setGene(sw1, children[k+1].getGene(sw2));
-					children[k+1].setGene(sw2, tmp);
-					
-					matrix[sw1][sw2] = true;
-					matrix[sw2][sw1] = true;
-					z++;
+			if(children[1].getGene(i) == tmp1.getGene(i)){
+				tmp1.setGene(i, -1);
+			}
+		}
+		
+		//generate children[0]//9 5 7 1 2 3 6 8
+		for(int i = firstCut; i < secondCut; i++){
+			if(tmp2.getGene(i) == -1) continue;
+			for(int j = 0; j < chromosomeDim; j++){
+				if(tmp2.getGene(i) == children[0].getGene(j)){
+					children[0].setGene(j, children[0].getGene(i));
+					children[0].setGene(i, tmp2.getGene(i));
+					tmp2.setGene(i, -1);
 				}
 			}
-			
+		}
+
+		//generate children[1]//1 8 9 7 3 2 6 5
+		for(int i = firstCut; i < secondCut; i++){
+			if(tmp1.getGene(i) == -1) continue;
+			for(int j = 0; j < chromosomeDim; j++){
+				if(tmp1.getGene(i) == children[1].getGene(j)){
+					children[1].setGene(j, children[1].getGene(i));
+					children[1].setGene(i, tmp1.getGene(i));
+					tmp1.setGene(i, -1);
+				}
+			}
+		}
 		
 		return children;
 	}
