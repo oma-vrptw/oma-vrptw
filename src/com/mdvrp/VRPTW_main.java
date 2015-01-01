@@ -122,7 +122,7 @@ public class VRPTW_main {
 			 * Note: a chromosome is always terminated with a delimiter
 			 */
 			int chromosomeDim = instance.getCustomersNr();
-			int populationDim = (int) (instance.getCustomersNr()*Double.parseDouble(prop.getProperty("populationDim")));
+			int populationDim = Integer.parseInt(prop.getProperty("populationDim"));
 			int NBestSolution, countBestSolution;
 			ArrayList<MySolution> BestGASolutions;
 			
