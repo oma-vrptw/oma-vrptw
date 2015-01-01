@@ -43,11 +43,6 @@ public class Population {
 		return chromosomes[index]; 
 	}
 	
-	double getFitness(int index) { 
-		MyGASolution mgas = new MyGASolution(chromosomes[index], instance);
-		return mgas.getFitness();
-	}
-	
 	public void printPopulation() {
 		sort();
 		for(int i = 0; i < chromosomes.length; i++){

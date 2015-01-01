@@ -59,7 +59,7 @@ public class Chromosome implements Comparable<Chromosome>{
 		}
 		this.solution =  new MyGASolution(this, instance);
 		this.solution.setAlphaBetaGamma(alpha, beta, gamma);
-		this.fitness = solution.getFitness();
+		this.fitness = solution.calculateFitness();
 		//System.out.println("chromosome from TABU: "+this.toString());
 	}
 
@@ -189,7 +189,7 @@ public class Chromosome implements Comparable<Chromosome>{
 		if(this.solution == null)
 			this.solution = new MyGASolution(this, instance);
 		
-		this.fitness = solution.getFitness();
+		this.fitness = solution.calculateFitness();
 	}
 
 	public void swapGenes(int position, int customer) {	

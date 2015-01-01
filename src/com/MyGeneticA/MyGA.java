@@ -419,6 +419,73 @@ public class MyGA {
 		return children;
 	}
 	
+	Chromosome[] heuristicCrossover(Chromosome[] parents) { 
+		int childrenNum = parents.length*2;
+		Chromosome[] children = new Chromosome[childrenNum];
+		
+		for(int i=0; i<children.length; i++)children[i]=new Chromosome(chromosomeDim);
+		
+		int cut = getRandom(chromosomeDim);
+		
+		for(int i = 0, p = 0; p < parents.length; p++, i+=2){
+			Chromosome dad = new Chromosome(parents[0]);
+			Chromosome mom = new Chromosome(parents[1]);
+			Chromosome brother = children[i];
+			
+			brother.setGene(0, dad.getGene(cut));
+			
+			mom.swapGenes(cut, dad.getGene(cut));
+			
+			for(int j = 1, k = (cut+1)%chromosomeDim; j < chromosomeDim; j++, k = (k+1)%chromosomeDim){
+				double distDad = instance.getTravelTime(brother.getGene(j-1), dad.getGene(k));
+				double distMom = instance.getTravelTime(brother.getGene(j-1), mom.getGene(k));
+				int gene;
+				
+				if(distDad > distMom){
+					gene = mom.getGene(k);
+					dad.swapGenes(k, mom.getGene(k));
+				}else{
+					gene = dad.getGene(k);
+					mom.swapGenes(k, dad.getGene(k));
+				}
+				
+				brother.setGene(j, gene);
+			}
+			//child.print();
+			
+			cut = getRandom(chromosomeDim);
+			
+			Chromosome sister= children[i+1];
+			sister.setGene(0, dad.getGene(cut));
+			
+			mom.swapGenes(cut, dad.getGene(cut));
+			
+			for(int j = 1, k = (cut+1)%chromosomeDim; j < chromosomeDim; j++, k = (k+1)%chromosomeDim){
+				Customer customerDadPtr = instance.getCustomer(dad.getGene(k));
+				Customer customerMomPtr = instance.getCustomer(mom.getGene(k));
+				Customer customerSisterPtr = instance.getCustomer(sister.getGene(j-1));
+				
+				double startTWDad = customerDadPtr.getStartTw();
+				double startTWMom = customerMomPtr.getStartTw();
+				double startTWSister = customerSisterPtr.getStartTw();
+				int gene;
+				
+				if(Math.abs(startTWDad - startTWSister) > Math.abs(startTWMom - startTWSister)){
+					gene = mom.getGene(k);
+					dad.swapGenes(k, mom.getGene(k));
+				}else{
+					gene = dad.getGene(k);
+					mom.swapGenes(k, dad.getGene(k));
+				}
+				
+				sister.setGene(j, gene);
+			}
+			//child.print();
+		}
+		
+		return children;
+	}
+	
 	Chromosome[] crossover1pt(Chromosome[][] parents) { 
 		int childrenNum = parents.length*2;
 		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
@@ -807,136 +874,44 @@ public class MyGA {
 		return c.getFitness();
 	}
 
-	public void evolve() {
-		int iGen = 0, clones = 0;
-		
+//	public void evolve() {
+//		int iGen = 0, clones = 0;
+//		
+//		do{
+//			
+//			clones = VRPTW_main.countClones(populationDim, population);
+//			if(clones>0)
+//				System.out.println("<<<<<< CLONI PRIMA DELLA MATING: " + clones + ">>>>>>");
+//			
+//			// genetic mating
+//			doGeneticMating(iGen);
+//			
+//			clones = VRPTW_main.countClones(populationDim, population);
+//			if(clones>0)
+//				System.out.println("<<<<<< CLONI DOPO LA MATING: " + clones + ">>>>>>");
+//			
+//			
+//			iGen++;
+//		}while(iGen < maxGenerations);
+//	}
+	
+	public void evolve3() {
+		int iGen = 0;
+		Chromosome[] result;
+
 		do{
+			result = doGeneticMating4(iGen);
 			
-			clones = VRPTW_main.countClones(populationDim, population);
-			if(clones>0)
-				System.out.println("<<<<<< CLONI PRIMA DELLA MATING: " + clones + ">>>>>>");
+			result = deleteDuplicates(result);
 			
-			// genetic mating
-			doGeneticMating(iGen);
+			generateNewPopulation(result);
 			
-			clones = VRPTW_main.countClones(populationDim, population);
-			if(clones>0)
-				System.out.println("<<<<<< CLONI DOPO LA MATING: " + clones + ">>>>>>");
-			
+			population.detectClones();
 			
 			iGen++;
 		}while(iGen < maxGenerations);
 	}
 	
-//	public void evolve3() {
-//		int iGen = 0;
-//		
-//		do{
-//			Chromosome[] result = doGeneticMating2(iGen);
-//			
-//			for (int i=0; i < result.length; i++){
-//				Chromosome c = result[i];
-//				MyGASolution sol = new MyGASolution(c, instance);
-//				c.setSolution(sol);
-//				c.setFitness();
-//				c = getSwapMoves(c.getSolution());
-//				if(c != null){
-//					result[i] = c;
-//				}
-//				
-//			}
-//			
-//			generateNewPopulation(result);
-//			iGen++;
-//		}while(iGen < maxGenerations);
-//	}
-	
-	/**
-	 * Generate moves that move each customer from one route to all routes that are different
-	 * @param solution
-	 * @return
-	 */
-//	public Chromosome getSwapMoves(MySolution solution){
-//		MyGASolution sol2 = new MyGASolution(instance, solution.getRoutes());
-//		Route[][] routes = sol2.getRoutes();
-//
-//		double minchange = 0;
-//		Chromosome minChrome = null;
-//		// iterates depots
-//		for (int i = 0; i < routes.length; ++i) 
-//		{   	 
-//			// iterates routes
-//			for (int j = 0; j < routes[i].length; ++j) {      		
-//				// iterates customers in the route
-//				for (int k = 0; k < routes[i][j].getCustomersLength()-1; ++k) {
-//					Route route1 = routes[i][j];
-//					Customer u = route1.getCustomer(k);
-//					Customer x;
-//					x = route1.getCustomer(k+1);
-//					/*
-//         			if(k == routes[i][j].getCustomersLength())
-//         				x = routes[i][j+1].getCustomer(1);
-//         			else
-//         				x = routes[i][j].getCustomer(k+1);
-//					 */
-//					for(int l = 0; l < routes.length; ++l){
-//						// iterate each route for that deposit and generate move to it if is different from the actual route
-//						for (int r = 0; r < routes[l].length; ++r) { 
-//							for(int s = 0; s < routes[l][r].getCustomersLength()-1; ++s){
-//								Route route2 = routes[l][r];
-//								Customer v = route2.getCustomer(s);
-//								Customer y;
-//								y = route2.getCustomer(s+1);
-//								/*
-//	                 			if(k == routes[l][r].getCustomersLength())
-//	                 				y = routes[l][r+1].getCustomer(1);
-//	                 			else
-//	                 				y = routes[l][r].getCustomer(s+1);
-//								 */
-//
-//								boolean sameTrip = false;
-//								if(r == j) sameTrip = true;
-//								
-//								if(sameTrip){
-//									//if are adjacent skip
-//									if(s >= k+2 && s <= k-2)continue;
-//									//System.out.println("same trip: try internal 2-opt");
-//									Cost previousCost = sol2.getCost();
-//									previousCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
-//									
-//									route1.removeCustomer(k+1);
-//									route1.addCustomer(v, k+1);
-//									sol2.evaluateRoute(route1);
-//
-//									route2.removeCustomer(s);
-//									route2.addCustomer(x, s);
-//									sol2.evaluateRoute(route2);
-//									
-//									sol2.setRoutes(routes);
-//									
-//									Cost laterCost = sol2.getCost();
-//									laterCost.calculateTotal(solution.alpha, solution.beta, solution.gamma);
-//									
-//									double change = laterCost.total - previousCost.total;
-//									
-//			System.out.println("changement: "+change);
-//									if(minchange > change)
-//									{
-//										System.out.println("bla bla bla");
-//										minchange = change;
-//										minChrome = new Chromosome(routes, chromosomeDim, instance);
-//									}
-//								}
-//
-//							}
-//						}
-//					}
-//				}
-//			}
-//		}
-//
-//		return minChrome;
-//	}
     
 //	public void insertBestTabuSolutionIntoInitPopulation(Route[][] feasibleRoutes) {
 //		Chromosome c;
@@ -1235,7 +1210,7 @@ public class MyGA {
 		Chromosome[] result;
 
 		do{
-			result = doGeneticMating2(iGen);
+			result = doGeneticMating4(iGen);
 			
 			result = deleteDuplicates(result);
 			
@@ -1312,7 +1287,8 @@ public class MyGA {
 		Chromosome[] result;
 		Chromosome[][] selection = selectParents();
 		
-		int selectedCrossover = 3;
+		
+		int selectedCrossover = getRandom(4);
 			
 		switch(selectedCrossover){
 			case 0: 
@@ -1336,15 +1312,6 @@ public class MyGA {
 				result = pmxCrossover(selection);
 		}
 		
-		if(result.length <= 0){
-			System.out.println("zero figli");
-			return result;
-		}
-		
-		if(Math.random() >= 0.85){
-			result = sequencedBasedMutation(result);
-			
-		}
 		
 		for(int i = 0; i < result.length; i++){
 			Chromosome c = result[i];
@@ -1353,5 +1320,212 @@ public class MyGA {
 		}
 		
 		return result;
+	}
+	
+	Chromosome[] doGeneticMating3(int iGen)
+	{
+		Chromosome[] result;
+		Chromosome[][] selection = selectParents();
+		
+		result = new Chromosome[selection.length*2];
+		
+		for(int i = 0, k = 0; k < selection.length*2; k+=2, i++){
+			Chromosome[] children;
+			
+			if(Math.random() <= 80){
+				//do crossover
+				children = heuristicCrossover(selection[i]);
+			}else{
+				//do mutation
+				children = sequencedBasedMutation(selection[i]);
+			}
+			result[k] = children[0];
+			result[k+1] = children[1];
+		}
+			
+		for(int i = 0; i < result.length; i++){
+			Chromosome c = result[i];
+			c.evaluate(instance);
+			//System.out.println("fitness figlio: "+c.getFitness());
+		}
+		
+		return result;
+	}
+	
+	Chromosome[] doGeneticMating4(int iGen)
+	{
+		Chromosome[] result;
+		Chromosome[][] selection = selectParents();
+		
+		result = new Chromosome[selection.length*2];
+		
+		for(int i = 0, k = 0; k < selection.length*2; k+=2, i++){
+			Chromosome[] children;
+			
+			if(Math.random() <= 80){
+				//do crossover
+				int selectedCrossover = getRandom(4);
+				
+				switch(selectedCrossover){
+					case 0: 
+						children = crossover1pt(selection[i]);
+						break;
+
+					case 1: 
+						children = crossover2pt(selection[i]);
+						break;
+
+					case 2:
+						children = pmxCrossover(selection[i]);
+						break;
+						
+					case 3:
+						children = heuristicCrossover(selection[i]);
+						break;
+						
+					default: 
+						children = pmxCrossover(selection[i]);
+				}
+			}else{
+				//do mutation
+				children = sequencedBasedMutation(selection[i]);
+			}
+			result[k] = children[0];
+			result[k+1] = children[1];
+		}
+			
+		for(int i = 0; i < result.length; i++){
+			Chromosome c = result[i];
+			c.evaluate(instance);
+			//System.out.println("fitness figlio: "+c.getFitness());
+		}
+		
+		return result;
+	}
+
+	private Chromosome[] pmxCrossover(Chromosome[] parents) {
+		int childrenNum = parents.length;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
+
+		Random rnd = new Random();
+
+		int k = 0; //variabile usata per riempire i figli (viene ogni volta incrementata di +2)
+
+			children[k] = new Chromosome(chromosomeDim);
+			children[k+1] = new Chromosome(chromosomeDim);
+			
+			for(int j = 0; j < chromosomeDim; j++){
+				children[k].setGene(j, parents[0].getGene(j));
+				children[k+1].setGene(j, parents[1].getGene(j));
+			}
+			
+			boolean[][] matrix = new boolean[chromosomeDim][chromosomeDim];
+			int numSwap = (int) (chromosomeDim*0.03);
+			
+			int z = 0;
+			while(z < numSwap){
+				int sw1 = rnd.nextInt(chromosomeDim);
+				int sw2 = rnd.nextInt(chromosomeDim);
+				
+				if(matrix[sw1][sw2] == false && sw1 != sw2){
+					int tmp = children[k].getGene(sw1);
+					children[k].setGene(sw1, children[k].getGene(sw2));
+					children[k].setGene(sw2, tmp);
+					
+					tmp = children[k+1].getGene(sw1);
+					children[k+1].setGene(sw1, children[k+1].getGene(sw2));
+					children[k+1].setGene(sw2, tmp);
+					
+					matrix[sw1][sw2] = true;
+					matrix[sw2][sw1] = true;
+					z++;
+				}
+			}
+			
+		
+		return children;
+	}
+
+	private Chromosome[] crossover2pt(Chromosome[] parents) {
+		int childrenNum = parents.length;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
+
+		//calcolo dei tagli
+		Random rnd = new Random();
+		int firstCut = rnd.nextInt(chromosomeDim/2);
+		int secondCut = rnd.nextInt(chromosomeDim/2) + (chromosomeDim/2);
+
+		//System.out.println("chromosomeDim: "+chromosomeDim+" firstCut: "+firstCut+ " secondCut: "+secondCut);
+
+
+			for(int j = 0; j < 2; j++){ //j=0 genero primo figlio della "corrente" coppia, j=1 genero secondo figlio
+				children[j] = new Chromosome(chromosomeDim);
+				copyGenesInFrom(children[j], firstCut, secondCut, parents[j], firstCut, secondCut); //riempio la parte centrale del figlio1 con la parte centrale del genitore1
+
+				//optimization thing!!! faccio un cromosoma con soltanto la parte centrale del figlio così 
+				//ogni volta che devo controllare se il gene del genitore è possibile inserirlo risparmio molto in termini di numero di iterazioni
+				int centralPartDim = (secondCut-firstCut);
+				Chromosome centralPart = new Chromosome(centralPartDim);
+				copyGenesInFrom(centralPart, 0, centralPartDim, children[j], firstCut, secondCut);
+
+				int indexVal = secondCut; //indice relativo al figlio 
+				int remainingVals = (chromosomeDim-centralPartDim); //valori rimanenti da inserire nel figlio
+				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
+				int selectedGene = secondCut; //indice relativo al genitore
+				//il cuore della generazione del figlio (sala parto :D)
+				for(int z = 0; z < chromosomeDim; z++){
+					//è possibile inserire il gene del genitore nel figlio?!?!?
+					if(!geneIsPresent(parents[selectedParent].getGene(selectedGene), centralPart, centralPartDim)){ 
+						children[j].setGene(indexVal, parents[selectedParent].getGene(selectedGene));
+						indexVal = (indexVal+1) % chromosomeDim;
+						remainingVals --;
+						if(remainingVals == 0) break; //ho inserito l'ultimo gene nel figlio (è natoooooo :D)
+					}
+					selectedGene = (selectedGene+1) % chromosomeDim;
+				}
+			}
+
+
+		return children;
+	}
+
+	private Chromosome[] crossover1pt(Chromosome[] parents) {
+		int childrenNum = parents.length;
+		Chromosome[] children = new Chromosome[childrenNum]; //creo un array di cromosomi di dimensione al max il doppio dei "genitori"
+
+		//calcolo del taglio
+		Random rnd = new Random();
+		int cut = rnd.nextInt(chromosomeDim);
+
+
+
+			for(int j = 0; j < 2; j++){ //j=0 genero primo figlio della "corrente" coppia, j=1 genero secondo figlio
+				children[j] = new Chromosome(chromosomeDim);
+				copyGenesInFrom(children[j], 0, cut, parents[j], 0, cut); //riempio la parte iniziale del figlio1 con la parte iniziale del genitore1
+
+				//optimization thing!!! faccio un cromosoma con soltanto la parte iniziale del figlio così 
+				//ogni volta che devo controllare se il gene del genitore è possibile inserirlo risparmio molto in termini di numero di iterazioni
+				Chromosome initialPart = new Chromosome(cut);
+				copyGenesInFrom(initialPart, 0, cut, children[j], 0, cut);
+
+				int indexVal = cut; //indice relativo al figlio 
+				int remainingVals = (chromosomeDim-cut); //valori rimanenti da inserire nel figlio
+				int selectedParent = (j+1) % 2; //if j == 0 -> 1; if j == 1 -> 0
+				int selectedGene = cut; //indice relativo al genitore
+				//il cuore della generazione del figlio (sala parto :D)
+				for(int z = 0; z < chromosomeDim; z++){
+					//è possibile inserire il gene del genitore nel figlio?!?!?
+					if(!geneIsPresent(parents[selectedParent].getGene(selectedGene), initialPart, cut)){ 
+						children[j].setGene(indexVal, parents[selectedParent].getGene(selectedGene));
+						indexVal = (indexVal+1) % chromosomeDim;
+						remainingVals --;
+						if(remainingVals == 0) break; //ho inserito l'ultimo gene nel figlio (è natoooooo :D)
+					}
+					selectedGene = (selectedGene+1) % chromosomeDim;
+				}
+			}
+		
+
+		return children;
 	}
 }

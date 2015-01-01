@@ -346,9 +346,9 @@ public class MyGASolution extends MySolution{
 	 * @return fitness value = objective function cost
 	 */
 	//WARNING -> questa funzione è pericolosa ti sballa mezzo mondo, usare con cautela
-	private double calculateFitness() {
+	public double calculateFitness() {
 		//this function build and evaluate routes 
-		//initializeRoutes(instance);
+		initializeRoutes(instance);
 		
 		buildRoutes2();
 		
@@ -357,9 +357,9 @@ public class MyGASolution extends MySolution{
 		return x;
 	}
 	
-	public double getFitness(){
-		return fitness != 0 ? fitness : (fitness = calculateFitness());
-	}
+//	public double getFitness(){
+//		return fitness != 0 ? fitness : (fitness = calculateFitness());
+//	}
 	
 	public Object clone()
     {   
