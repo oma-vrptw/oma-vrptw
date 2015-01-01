@@ -66,7 +66,7 @@ public class VRPTW_main {
 		Parameters          parameters 		= new Parameters(); 	// holds all the parameters passed from the input line
 		Instance            instance; 								// holds all the problem data extracted from the input file
 		PrintStream         outPrintSream 	= null;					// used to redirect the output
-		int count;
+		int count, iter;
 		int bestRoutesNr;
 		
 		double gap = 0, totalTime = 0;
@@ -198,8 +198,10 @@ public class VRPTW_main {
 				double diff = Math.abs(bestSolutionFound - search.feasibleCost.total);
 				
 				if(bestSolutionFound > search.feasibleCost.total && diff>epsilon){
-					bestSolutionFound = search.feasibleCost.total;
 					
+	
+					
+					bestSolutionFound = search.feasibleCost.total;	
 					bestRoutesNr = routesNr;
 					
 					if (previous != null) {
@@ -253,10 +255,12 @@ public class VRPTW_main {
 			
 			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
 			count = 0;
+			iter = Integer.parseInt(prop.getProperty("totalIteration"));
 			
 			myGA.getPopulation().detectClones();
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
-			while(!TimeExpired()){
+			
+			while(count<iter && !TimeExpired()){
 				System.out.println("iteration "+(count+1));
 				//myGA.evolve();
 				
@@ -293,6 +297,8 @@ public class VRPTW_main {
 					
 					if(bestSolutionFound > search.feasibleCost.total && diff>epsilon)
 					{
+						//incremento num iterazioni se miglioro, baloon-like ;)
+						iter++;
 						bestSolutionFound = search.feasibleCost.total;
 						bestRoutesNr = routesNr;
 						

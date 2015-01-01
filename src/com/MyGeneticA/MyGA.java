@@ -181,6 +181,105 @@ public class MyGA {
 		population.setChromosome(i, c);
 	}
 
+	boolean DeclonerSwapMutation(Chromosome c, int worstCaseIterations)
+	{
+		
+		int sw1, sw2, gene_tmp, k;
+		double epsilon = 0.001, initialFitness = c.getFitness();
+
+		Random rnd1 = new Random();
+		Random rnd2 = new Random();
+		
+		
+		//System.out.println("Inizio mutazioni");
+		for(int i=0; Math.abs(initialFitness - c.getFitness())<epsilon && i<worstCaseIterations;i++)
+		{
+			sw1 = rnd1.nextInt(instance.getCustomersNr());
+
+			k=0;
+			do
+			{
+				sw2 = rnd2.nextInt(instance.getCustomersNr());
+				
+				k++;
+			}
+			while(sw1==sw2 && k<c.getNumberOfGenes()+1);
+			
+			if(sw1==sw2)
+			{
+				if(sw2>0 && sw2<c.getNumberOfGenes())
+					sw2--;
+			
+				if(sw2==0) sw2++;
+				
+				if(sw2 == c.getNumberOfGenes()-1) sw2--;
+			}
+			
+			//System.out.println(sw1 + " " + sw2);
+			
+			gene_tmp = c.getGene(sw1);
+			c.setGene(sw1, c.getGene(sw2));
+			c.setGene(sw2, gene_tmp);
+			
+			//Ricalcola la fitness
+			c.evaluate(instance);
+			
+		}
+		//System.out.println("Fine mutazioni");
+		
+		
+		
+		if(Math.abs(initialFitness - c.getFitness())<epsilon)
+		{
+			//System.out.println("NON DIVERSIFICATO: " + initialFitness + " vs " + c.getFitness());
+			return false;
+		}
+		else
+		{
+			//System.out.println("DIVERSIFICATO");
+			return true;
+		}
+	}
+	
+	private void deleteDuplicatesFromInitialPopulation()
+	{
+		int clones = 0, maxMutations = 100, maxIt = 1000;
+		
+		Set<Double> set = new HashSet<>();
+		Set<Integer> clonesIndexes = new HashSet<>();
+		Set<Integer> notAnymoreClonesIndexes = new HashSet<>();
+		
+		// Ottengo gli indici dei cloni
+		for(int i=0; i<populationDim; i++)
+		{	
+			if(set.add(population.getChromosome(i).getFitness()) == false)
+				clonesIndexes.add(i);
+		}
+		
+		clones = populationDim-set.size();
+		set.clear();
+		
+		System.out.println("NUMERO CLONI DA INIT POPULATION: " + clones);
+		
+		for(int i=0; i<maxIt && !clonesIndexes.isEmpty(); i++)
+		{
+			for(Integer index : clonesIndexes)
+			{
+				if(DeclonerSwapMutation(population.getChromosome(index), maxMutations))
+					notAnymoreClonesIndexes.add(index);
+			}
+			
+			for(Integer index : notAnymoreClonesIndexes)
+			{
+				clonesIndexes.remove(index);
+			}
+			
+			population.detectClones();
+			
+			notAnymoreClonesIndexes.clear();
+		}
+	}
+	
 	public void initPopulation() 
 	{
 
@@ -211,6 +310,8 @@ public class MyGA {
 		for(int i = 3; i < populationDim; i++)
 			GenerateRandomChromosome(i);
 		
+		// Muto eventuali cloni
+		deleteDuplicatesFromInitialPopulation();
 		//System.out.println("fitness heuristic first solution by tesista: "+c.getFitness());
 		
 
