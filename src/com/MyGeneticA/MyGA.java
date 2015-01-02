@@ -58,7 +58,7 @@ public class MyGA {
 	 * @param threshold
 	 * @param properties
 	 */
-	public MyGA(int chromosomeDim, int populationDim, Instance instance, Parameters parameters, int maxGenerations, boolean computeStatistics, double threshold, Properties p) { 
+	public MyGA(int chromosomeDim, int populationDim, Instance instance, Parameters parameters, int maxGenerations, Properties p) { 
 		this.chromosomeDim = chromosomeDim;
 		this.populationDim = populationDim;
 		this.instance = instance;
@@ -69,8 +69,6 @@ public class MyGA {
 		this.maxGenerations = maxGenerations;
 		this.genAvgDeviation = new double[maxGenerations];
 		this.genAvgFitness = new double[maxGenerations];
-		this.computeStatistics = computeStatistics;
-		this.threshold = threshold;
 		//array stores solutions made by heuristics
 		this.initialSolutions = new MyGASolution[3];
 		this.prop = p;
@@ -1263,12 +1261,12 @@ public class MyGA {
 			ObjectiveFunction objFunc, 
 			TabuList tabuList, PrintStream outPrintSream,
 			int tabuIteration, 
-			Properties prop) {
+			Properties prop, int outerIterNr) {
 		int iGen = 0;
 		Chromosome[] result;
 
 		do{
-			result = doGeneticMating4(iGen);
+			result = doGeneticMating4(outerIterNr);
 			
 			result = deleteDuplicates(result);
 			
@@ -1410,34 +1408,35 @@ public class MyGA {
 		return result;
 	}
 	
-	Chromosome[] doGeneticMating4(int iGen)
+	Chromosome[] doGeneticMating4(int outerIterNr)
 	{
 		Chromosome[] result;
 		Chromosome[][] selection = selectParents();
+		double crossoverprob;
 		
 		result = new Chromosome[selection.length*2];
+		
+		//intensification/diversification
+		if(outerIterNr < 2)crossoverprob = 0.9;
+		else crossoverprob = 0.8;
 		
 		for(int i = 0, k = 0; k < selection.length*2; k+=2, i++){
 			Chromosome[] children;
 			
-			if(instance.getRandom().nextDouble() <= 0.8){
+			if(instance.getRandom().nextDouble() <= crossoverprob){
 				//do crossover
-				int selectedCrossover = instance.getRandom().nextInt(4);
+				int selectedCrossover = instance.getRandom().nextInt(3);
 				
 				switch(selectedCrossover){
 					case 0: 
-						children = crossover1pt(selection[i]);
-						break;
-
-					case 1: 
 						children = crossover2pt(selection[i]);
 						break;
 
-					case 2:
+					case 1:
 						children = pmxCrossover(selection[i]);
 						break;
 						
-					case 3:
+					case 2:
 						children = heuristicCrossover(selection[i]);
 						break;
 						

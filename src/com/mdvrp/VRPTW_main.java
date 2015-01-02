@@ -23,8 +23,7 @@ import java.util.Set;
 public class VRPTW_main {
 
 	static Instant previous;
-	static double timeLimit = 0;
-	
+	static double timeLimit = 0;	
 	
 	public static int countClones(int populationDim, Population p)
 	{
@@ -134,8 +133,6 @@ public class VRPTW_main {
 					instance, 
 					parameters,
 					Integer.parseInt(prop.getProperty("gaIterationN")), 
-					Boolean.parseBoolean(prop.getProperty("enableMutation")),
-					Integer.parseInt(prop.getProperty("threshold")),
 					prop);
 
 			System.out.println("Hi there, we are going to start the job! Are u ready?");
@@ -150,13 +147,6 @@ public class VRPTW_main {
 			
 			//sort once only, not for each TABU solution inserting in initPopulation
 			myGA.getPopulation().sort();
-			//System.out.println("get avg fitness before TABU pass: "+myGA.getAvgFitness());
-			//iterationToGo = Integer.parseInt(prop.getProperty("totalIterationNr"));
-			
-			int clones = countClones(populationDim, myGA.getPopulation());
-			
-			if(clones>0)
-				System.out.println("<<<<<< CLONI DOPO INIT POPULATION: " + clones + ">>>>>>");
 			
 			for(int k=0, index = populationDim-1; k <= 2; k++, index-=2){
 				
@@ -164,19 +154,10 @@ public class VRPTW_main {
 				System.out.println("start TABU with initial solution number "+(k+1));
 				if(k==0){
 					initialSol 		= new MySolution(instance);
-					//System.out.println("----TESISTA----");
-					//System.out.println(initialSol);
 				}else if(k==2){
-					initialSol 		= new MyGASolution(instance, myGA.getPfihSol().getRoutes());
-					//initialSol 		= myGA.getInitialSolutions(k);
-					//System.out.println("----PFIH----");
-					//System.out.println(initialSol);
-					
+					initialSol 		= new MyGASolution(instance, myGA.getPfihSol().getRoutes());					
 				}else{
 					initialSol 		= myGA.getInitialSolutions(k);
-//					System.out.println("----CW----");
-//					System.out.println(initialSol);
-
 				}
 				// Start solving  
 				search 			= new MySearchProgram(instance, initialSol, moveManager,
@@ -192,8 +173,6 @@ public class VRPTW_main {
 						if(search.feasibleRoutes[i][j].getCustomersLength() > 0){
 							routesNr++;	
 						}
-	
-				//System.out.println("number of customers: "+numberOfCustomers);
 				
 				double diff = Math.abs(bestSolutionFound - search.feasibleCost.total);
 				
@@ -227,49 +206,24 @@ public class VRPTW_main {
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.feasibleRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
 				else
 					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
-			
-				/*
-				 * 
-			
-				double diff2 = Math.abs(search.bestCost.total - search.feasibleCost.total);
-				if(diff2>epsilon){
-					System.out.println("insert also best but not feasible. Its cost is: "+search.bestCost.total);
-					myGA.insertBestTabuSolutionIntoInitPopulation(search.bestRoutes, index-1, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
-				}
-					 */
-				
+							
 				System.out.println("done.");
 			}
-			
-			clones = countClones(populationDim, myGA.getPopulation());
-			if(clones>0)
-				System.out.println("<<<<<< CLONI DOPO FEEL LUCKY: " + clones + ">>>>>>");
-			
+						
 			//a fast optimization to worst population chromosomes -> only 20 iterations
-			tabuPensaciTu(myGA, populationDim, instance, moveManager, objFunc, tabuList, false, outPrintSream, 50, prop);
-			
-			clones = countClones(populationDim, myGA.getPopulation());
-			if(clones>0)
-				System.out.println("<<<<<< CLONI DOPO TABUPENSACI TU: " + clones + ">>>>>>");
-			
+			tabuPensaciTu(myGA, populationDim, instance, moveManager, objFunc, tabuList, false, outPrintSream, 50, prop);			
 			
 			NBestSolution = Integer.parseInt(prop.getProperty("nBestSolution"));
 			count = 0;
 			iter = Integer.parseInt(prop.getProperty("totalIteration"));
 			
-			myGA.getPopulation().detectClones();
 			System.out.println("starting to evolve the population. We hope to reach the optimum if we haven't already find it.");
 			
 			while(count<iter && !TimeExpired()){
 				System.out.println("iteration "+(count+1));
-				//myGA.evolve();
 				
-				
-				
-				myGA.evolve2(moveManager, objFunc, tabuList, outPrintSream, 20, prop);
-				//myGA.getPopulation().printPopulation();
-				myGA.getPopulation().detectClones();
-				//myGA.evolve3();
+				myGA.evolve2(moveManager, objFunc, tabuList, outPrintSream, 20, prop, count);
+
 				System.out.println("select best chromosomes from population");
 				
 				BestGASolutions = myGA.getNDifferentBestSolutions(NBestSolution);
@@ -306,16 +260,7 @@ public class VRPTW_main {
 						    gap = 	UpdateGap(previous);
 						}
 						
-						System.out.println("current solution changed:");
-						/*String outSol = String.format(
-					        		"Instance file: %s\n"
-					        		+ "Total cost: %f\n"
-					        		+ "Execution time: %d sec\n"
-					        		+ "Number of routes: %d\n",
-					        		instance.getParameters().getInputFileName(), bestSolutionFound,
-					        		gap, bestRoutesNr);
-						 System.out.println(outSol);*/
-						 
+						System.out.println("current solution changed:");						 
 					     System.out.println("Instance file: " + instance.getParameters().getInputFileName()
 					        				 + "\nTotal cost: " + bestSolutionFound 
 					        				 + "\nExecution time: "+ gap +" sec"
@@ -332,13 +277,7 @@ public class VRPTW_main {
 						myGA.insertBestTabuSolutionIntoInitPopulation2(search.feasibleRoutes, search.feasibleCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma );
 					else
 						myGA.insertBestTabuSolutionIntoInitPopulation2(search.bestRoutes, search.bestCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma );
-					/*
-					 * double diff2 = Math.abs(search.bestCost.total - search.feasibleCost.total);
-					if(diff2>epsilon){
-						System.out.println("insert also best but not feasible. Its cost is: "+search.bestCost.total);
-						myGA.insertBestTabuSolutionIntoInitPopulation2(search.bestRoutes, search.bestCost.total, search.getSol().alpha, search.getSol().beta, search.getSol().gamma);
-					}
-					*/
+
 					System.out.println("done.");
 					
 					countBestSolution++;
@@ -402,8 +341,6 @@ public class VRPTW_main {
 		System.out.println("improving bad init Population chromosomes");
 		prop.setProperty("enableCheckImprovement", "false");
 		
-//		System.out.println("get avg fitness before TABU pass: "+myGA.getAvgFitness());
-//		System.out.println("get differents from best chrom: "+myGA.getAvgDeviationAmongChroms());
 		try{
 		myGA.getPopulation().sort();
 		for(int i =populationDim/2; i< populationDim; i++){
@@ -424,8 +361,6 @@ public class VRPTW_main {
 		}
 		prop.setProperty("enableCheckImprovement", "true");
 		System.out.println("done");
-//		System.out.println("get avg fitness after TABU pass: "+myGA.getAvgFitness());
-//		System.out.println("get differents from best chrom: "+myGA.getAvgDeviationAmongChroms());
 
 		//END TRY BLOCK
 	} catch (Exception e) {
